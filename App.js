@@ -1,10 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import * as Font from 'expo-font';
 
 const App = () => {
-  console.log('');
-  const h = 1;
+  Font.loadAsync({
+    'Avenir LT Std 55 Roman': require('./src/Assets/Fonts/AvenirLTStd-Roman.ttf'),
+    'Avenir LT Std 65 Medium': require('./src/Assets/Fonts/AvenirLTStd-Medium.ttf'),
+    'Avenir LT Std 95 Black': require('./src/Assets/Fonts/AvenirLTStd-Black.ttf'),
+  });
+
   return (
     <View style={styles.container}>
       <Text>Open up App.js to start working on your Ucash!</Text>
