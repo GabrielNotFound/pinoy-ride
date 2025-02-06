@@ -1,11 +1,9 @@
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Freshchat } from 'react-native-freshchat-sdk';
 import { useTheme } from 'react-native-paper';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AppProgressBar from './AppProgressBar';
-import { Constants } from '@/Utils';
+// import AppProgressBar from './AppProgressBar';
 import React from 'react';
 
 const Container = ({
@@ -25,7 +23,6 @@ const Container = ({
   const headerHeight = useHeaderHeight();
   const { colors } = useTheme();
   const styles = getStyles({ colors }, progressBar);
-  Freshchat.init(Constants.FRESHCHAT_CONFIG);
 
   const edges = ['left', 'right', 'bottom'];
 
@@ -41,12 +38,25 @@ const Container = ({
     }
   }
 
+  const AppFooter = () => {
+    return (
+      <View style={styles.footerContainer}>
+        <Image
+          source={require('@/Assets/Common/umsi-logo.png')}
+          style={styles.umsiLogo}
+          resizeMode="contain"
+        />
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView
       {...{ edges }}
       style={{
         ...styles.container,
         ...style,
+        backgroundColor: colors.background,
       }}>
       {scrollable ? (
         <KeyboardAwareScrollView
@@ -63,7 +73,7 @@ const Container = ({
             ...style,
           }}
           {...rest}>
-          {!!progressBar && <AppProgressBar progressBar={progressBar} />}
+          {/* {!!progressBar && <AppProgressBar progressBar={progressBar} />} */}
           {children}
         </KeyboardAwareScrollView>
       ) : (
@@ -74,10 +84,11 @@ const Container = ({
             { backgroundColor: colors.background },
             style,
           ]}>
-          {!!progressBar && <AppProgressBar progressBar={progressBar} />}
+          {/* {!!progressBar && <AppProgressBar progressBar={progressBar} />} */}
           {children}
         </View>
       )}
+      <AppFooter />
     </SafeAreaView>
   );
 };
@@ -89,6 +100,15 @@ const getStyles = ({ colors }) =>
     },
     spacing: {
       padding: 20,
+    },
+    footerContainer: {
+      justifyContent: 'flex-end',
+      marginBottom: 29,
+      alignItems: 'center',
+    },
+    umsiLogo: {
+      width: 172.38,
+      height: 51,
     },
   });
 
