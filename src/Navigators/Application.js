@@ -2,7 +2,7 @@ import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { LandingScreen, SplashScreen } from '@/Screens';
+import { LandingScreen, OnboardingScreen, SplashScreen } from '@/Screens';
 import { Text } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import LightTheme from '../Theme/LightTheme';
@@ -27,6 +27,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="Splash"
               component={SplashScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="OnboardingScreen"
+              component={OnboardingScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

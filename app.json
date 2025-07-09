@@ -1,12 +1,9 @@
 {
   "expo": {
-    "name": "ucash-kiosk",
-    "slug": "ucash-kiosk",
+    "name": "pinoy-ride",
+    "slug": "pinoy-ride",
     "version": "1.0.0",
-    "plugins": [
-      "expo-font",
-      "expo-build-properties"
-    ],
+    "plugins": ["expo-font", "expo-build-properties"],
     "android": {
       "package": "com.gabriel1337.pinoyride"
     },

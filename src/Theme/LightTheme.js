@@ -24,7 +24,7 @@ const LightTheme = {
   colors: {
     ...NavigationDefaultTheme.colors,
     ...PaperDefaultTheme.colors,
-    primary: '#FFCD05', //brand color yellow
+    primary: '#FEC107', //brand color yellow
     primaryLight: '#E4DDF1', // purple light
     primaryDark: '#3E114C',
     primaryLight2: '#F8F4FF', // very light purple
@@ -69,7 +69,7 @@ const LightTheme = {
     onSurfaceDisabled: 'rgba(28, 27, 30, 0.38)',
     backdrop: 'rgba(50, 47, 55, 0.4)',
 
-    brand: '#FFCD05',
+    brand: '#FEC107',
     brandLight: '#FFDF80',
     onBrand: 'rgb(255, 255, 255)',
     brandContainer: 'black',

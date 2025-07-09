@@ -8,6 +8,7 @@ ENV['RCT_NEW_ARCH_ENABLED'] = podfile_properties['newArchEnabled'] == 'true' ? '
 ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
 
 platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
+use_modular_headers! 
 install! 'cocoapods',
   :deterministic_uuids => false
 
@@ -43,6 +44,8 @@ target 'pinoyride' do
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
   )
+
+  pod 'react-native-text-input-mask', :path => '../node_modules/react-native-text-input-mask', :modular_headers => true
 
   post_install do |installer|
     react_native_post_install(
