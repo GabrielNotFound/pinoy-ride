@@ -151,7 +151,14 @@ const OnboardingScreen = () => {
             <Text style={styles.skip}>Skip</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
-            <Text style={styles.next}>Next</Text>
+            <View style={styles.nextContent}>
+              <Text style={styles.next}>Next</Text>
+              <Image
+                source={require('@/Assets/Common/OnboardingScreen/Arrow_Right.png')}
+                style={styles.arrowIcon}
+                resizeMode="contain"
+              />
+            </View>
           </TouchableOpacity>
         </View>
       )}
@@ -237,6 +244,17 @@ const getStyles = ({ colors }) =>
       color: 'white',
       fontFamily: 'Poppins Regular',
       fontSize: 16,
+      lineHeight: 22,
+    },
+    nextContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    arrowIcon: {
+      width: 11,
+      height: 13,
+      marginLeft: 8,
     },
     backButton: {
       position: 'absolute',

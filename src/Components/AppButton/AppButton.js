@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { StyleSheet } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { Button, useTheme } from 'react-native-paper';
 
 const AppButton = ({
@@ -9,6 +9,8 @@ const AppButton = ({
   contentStyle,
   labelStyle,
   textColor,
+  startIcon,
+  endIcon,
   ...props
 }) => {
   const { colors } = useTheme();
@@ -21,20 +23,8 @@ const AppButton = ({
       buttonColor={
         mode === 'contained' && !buttonColor ? colors.primary : buttonColor
       }
-      labelStyle={[
-        {
-          fontSize: mode === 'contained' ? 18 : 16,
-          fontFamily: 'Poppins Regular',
-          fontWeight: 500,
-        },
-        labelStyle,
-      ]}
-      contentStyle={[
-        {
-          height: 50,
-        },
-        contentStyle,
-      ]}
+      labelStyle={[styles.label, labelStyle]}
+      contentStyle={[styles.content, contentStyle]}
       theme={{
         colors: {
           surfaceDisabled: colors.lightGrey2,
@@ -50,7 +40,15 @@ const AppButton = ({
         },
         props.featureStyle,
       ]}>
-      {props?.title}
+      <View style={styles.labelWrapper}>
+        {startIcon && (
+          <Image source={startIcon} style={styles.icon} resizeMode="contain" />
+        )}
+        <Text style={[styles.label, labelStyle]}>{props?.title}</Text>
+        {endIcon && (
+          <Image source={endIcon} style={styles.icon} resizeMode="contain" />
+        )}
+      </View>
     </Button>
   );
 };
@@ -64,5 +62,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  content: {
+    height: 50,
+  },
+  label: {
+    fontSize: 18,
+    fontFamily: 'Poppins Regular',
+    lineHeight: 22,
+    color: 'white',
+  },
+  labelWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  icon: {
+    width: 18,
+    height: 18,
   },
 });
