@@ -4,7 +4,14 @@
     "slug": "ucash-kiosk",
     "version": "1.0.0",
     "plugins": [
-      "expo-font"
-    ]
+      "expo-font",
+      "expo-build-properties"
+    ],
+    "android": {
+      "package": "com.gabriel1337.pinoyride"
+    },
+    "ios": {
+      "bundleIdentifier": "com.gabriel1337.pinoyride"
+    }
   }
 }

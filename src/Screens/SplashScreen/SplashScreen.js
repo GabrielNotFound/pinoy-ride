@@ -21,15 +21,8 @@ const SplashScreen = () => {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image
-          source={require('@/Assets/Common/ulogo.png')}
+          source={require('@/Assets/Common/Splash_Screen_Logo.png')}
           style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
-      <View style={styles.footerContainer}>
-        <Image
-          source={require('@/Assets/Common/umsi-logo.png')}
-          style={styles.umsiLogo}
           resizeMode="contain"
         />
       </View>
@@ -54,13 +47,5 @@ const styles = StyleSheet.create({
   logo: {
     width: 273,
     height: 239,
-  },
-  footerContainer: {
-    justifyContent: 'flex-end',
-    marginBottom: 29,
-  },
-  umsiLogo: {
-    width: 172.38,
-    height: 51,
   },
 });

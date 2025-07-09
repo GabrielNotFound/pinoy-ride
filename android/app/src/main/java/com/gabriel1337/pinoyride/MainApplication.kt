@@ -1,4 +1,4 @@
-package com.ucashkiosk
+package com.gabriel1337.pinoyride
 
 import android.app.Application
 import android.content.res.Configuration

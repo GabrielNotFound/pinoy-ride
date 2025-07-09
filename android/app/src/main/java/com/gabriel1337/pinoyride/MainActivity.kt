@@ -1,4 +1,4 @@
-package com.ucashkiosk
+package com.gabriel1337.pinoyride
 
 import android.os.Build
 import android.os.Bundle

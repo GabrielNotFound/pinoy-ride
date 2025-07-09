@@ -38,18 +38,6 @@ const Container = ({
     }
   }
 
-  const AppFooter = () => {
-    return (
-      <View style={styles.footerContainer}>
-        <Image
-          source={require('@/Assets/Common/umsi-logo.png')}
-          style={styles.umsiLogo}
-          resizeMode="contain"
-        />
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView
       {...{ edges }}
@@ -88,7 +76,6 @@ const Container = ({
           {children}
         </View>
       )}
-      <AppFooter />
     </SafeAreaView>
   );
 };
