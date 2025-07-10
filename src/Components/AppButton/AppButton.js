@@ -1,85 +1,126 @@
 import React, { memo } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { Button, useTheme } from 'react-native-paper';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from 'react-native-paper';
 
 const AppButton = ({
-  mode = 'contained',
+  title,
+  onPress,
   noSpacing,
   buttonColor,
-  contentStyle,
-  labelStyle,
   textColor,
-  startIcon,
-  endIcon,
-  ...props
+  leftIcon,
+  rightIcon,
+  isBold = false,
+  disabled = false,
+  mode = 'contained', // 'contained' | 'outlined' | 'light'
+  labelStyle,
+  featureStyle,
 }) => {
   const { colors } = useTheme();
 
+  const hasIcon = !!leftIcon || !!rightIcon;
+  const buttonHeight = hasIcon ? 60 : 50;
+  const isOutlined = mode === 'outlined';
+  const isLight = mode === 'light';
+
   return (
-    <Button
-      {...props}
-      mode={mode}
-      textColor={textColor}
-      buttonColor={
-        mode === 'contained' && !buttonColor ? colors.primary : buttonColor
-      }
-      labelStyle={[styles.label, labelStyle]}
-      contentStyle={[styles.content, contentStyle]}
-      theme={{
-        colors: {
-          surfaceDisabled: colors.lightGrey2,
-          onSurfaceDisabled: '#8E8E8E',
-        },
-      }}
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
       style={[
-        styles.shadow,
+        styles.button,
         {
+          backgroundColor: isLight
+            ? '#fff'
+            : isOutlined
+            ? 'transparent'
+            : buttonColor || colors.primary,
+          borderColor: isOutlined
+            ? buttonColor || colors.primary
+            : 'transparent',
+          borderWidth: isOutlined ? 2 : 0,
+          height: buttonHeight,
           marginVertical: noSpacing ? 0 : 20,
-          justifyContent: 'center',
-          borderRadius: 99,
+          opacity: disabled ? 0.6 : 1,
         },
-        props.featureStyle,
+        featureStyle,
       ]}>
-      <View style={styles.labelWrapper}>
-        {startIcon && (
-          <Image source={startIcon} style={styles.icon} resizeMode="contain" />
-        )}
-        <Text style={[styles.label, labelStyle]}>{props?.title}</Text>
-        {endIcon && (
-          <Image source={endIcon} style={styles.icon} resizeMode="contain" />
-        )}
+      <View style={styles.innerContent}>
+        <View style={styles.sideIcon}>
+          {leftIcon && (
+            <Image
+              source={leftIcon}
+              style={[styles.icon, { marginLeft: 24 }]}
+            />
+          )}
+        </View>
+
+        <View style={styles.textWrapper}>
+          <Text
+            numberOfLines={1}
+            style={[
+              {
+                fontSize: hasIcon ? 14 : 18,
+                lineHeight: 22,
+                fontFamily: isBold ? 'Poppins Medium' : 'Poppins Regular',
+                color:
+                  textColor ??
+                  (isLight
+                    ? '#000'
+                    : isOutlined
+                    ? buttonColor || colors.primary
+                    : '#fff'),
+              },
+              labelStyle,
+            ]}>
+            {title}
+          </Text>
+        </View>
+
+        <View style={styles.sideIcon}>
+          {rightIcon && (
+            <Image
+              source={rightIcon}
+              style={[styles.icon, { marginRight: 34 }]}
+            />
+          )}
+        </View>
       </View>
-    </Button>
+    </TouchableOpacity>
   );
 };
 
 export default memo(AppButton);
 
 const styles = StyleSheet.create({
-  shadow: {
+  button: {
+    borderRadius: 99,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
     elevation: 5,
+    backgroundColor: '#fff',
   },
-  content: {
-    height: 50,
-  },
-  label: {
-    fontSize: 18,
-    fontFamily: 'Poppins Regular',
-    lineHeight: 22,
-    color: 'white',
-  },
-  labelWrapper: {
+  innerContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sideIcon: {
+    width: 34,
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+  },
+  textWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   icon: {
-    width: 18,
-    height: 18,
+    width: 25,
+    height: 25,
+    resizeMode: 'contain',
   },
 });

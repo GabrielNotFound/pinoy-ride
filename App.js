@@ -9,6 +9,7 @@ const App = () => {
     'Avenir LT Std 65 Medium': require('./src/Assets/Fonts/AvenirLTStd-Medium.ttf'),
     'Avenir LT Std 95 Black': require('./src/Assets/Fonts/AvenirLTStd-Black.ttf'),
     'Poppins Regular': require('./src/Assets/Fonts/Poppins/Poppins-Regular.ttf'),
+    'Poppins Medium': require('./src/Assets/Fonts/Poppins/Poppins-Medium.ttf'),
     'Poppins SemiBold': require('./src/Assets/Fonts/Poppins/Poppins-SemiBold.ttf'),
   });
 

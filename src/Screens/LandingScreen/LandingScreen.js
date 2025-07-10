@@ -1,9 +1,8 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
-
-const IS_ELOAD_ENABLED = false;
+import { AppButton } from '@/Components';
 
 const LandingScreen = () => {
   const { colors } = useTheme();
@@ -17,6 +16,29 @@ const LandingScreen = () => {
           resizeMode="contain"
         />
       </View>
+      <View style={styles.buttonContainer}>
+        <AppButton
+          title="Continue with Facebook"
+          leftIcon={require('@/Assets/Common/Socials/facebook.png')}
+          onPress={() => console.log('Button Pressed')}
+          mode="light"
+          featureStyle={{ marginBottom: 10 }}
+        />
+        <AppButton
+          title="Continue with Google"
+          leftIcon={require('@/Assets/Common/Socials/google.png')}
+          onPress={() => console.log('Button Pressed')}
+          mode="light"
+          featureStyle={{ marginTop: 0 }}
+        />
+        <AppButton
+          title="Continue with Mobile Number"
+          leftIcon={require('@/Assets/Common/LandingScreen/phone_icon.png')}
+          onPress={() => console.log('Button Pressed')}
+          featureStyle={{ marginTop: 0 }}
+        />
+      </View>
+      <View />
     </Container>
   );
 };
@@ -31,7 +53,10 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
     },
     logo: {
-      width: 273,
-      height: 239,
+      width: 243,
+      height: 175,
+    },
+    buttonContainer: {
+      paddingBottom: 30,
     },
   });

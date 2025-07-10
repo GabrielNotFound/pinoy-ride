@@ -143,7 +143,7 @@ const OnboardingScreen = () => {
 
       {currentIndex === slides.length - 1 ? (
         <View style={styles.continueButtonContainer}>
-          <AppButton title="Continue" onPress={handleNext} />
+          <AppButton title="Get Started" onPress={handleNext} isBold />
         </View>
       ) : (
         <View style={styles.buttonContainer}>
@@ -231,7 +231,7 @@ const getStyles = ({ colors }) =>
     },
     skip: {
       color: colors.primary,
-      fontFamily: 'Poppins Regular',
+      fontFamily: 'Poppins Medium',
       fontSize: 16,
     },
     nextButton: {
@@ -242,7 +242,7 @@ const getStyles = ({ colors }) =>
     },
     next: {
       color: 'white',
-      fontFamily: 'Poppins Regular',
+      fontFamily: 'Poppins Medium',
       fontSize: 16,
       lineHeight: 22,
     },
