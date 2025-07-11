@@ -3,10 +3,12 @@ import React from 'react';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { AppButton } from '@/Components';
+import { useNavigation } from '@react-navigation/native';
 
 const LoginScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
+  const navigation = useNavigation();
   return (
     <Container>
       <View style={styles.logoContainer}>
@@ -47,7 +49,7 @@ const LoginScreen = () => {
         <AppButton
           title="Continue with Mobile Number"
           leftIcon={require('@/Assets/Common/LoginScreen/phone_icon.png')}
-          onPress={() => console.log('Button Pressed')}
+          onPress={() => navigation.navigate('GetStartedScreen')}
           featureStyle={{ marginTop: 0 }}
         />
       </View>
