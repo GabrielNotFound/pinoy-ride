@@ -79,6 +79,7 @@ const LightTheme = {
     lightGrey: '#EFEFEF',
     lightGrey2: '#EEEEEE',
     onSurfaceGrey: '#8E8E8E',
+    grey: '#D9D9D9',
   },
   roundness: 2,
   ...custom,

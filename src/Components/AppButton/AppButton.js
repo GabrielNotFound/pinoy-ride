@@ -17,6 +17,7 @@ const AppButton = ({
   featureStyle,
 }) => {
   const { colors } = useTheme();
+  const styles = getStyles({ colors });
 
   const hasIcon = !!leftIcon || !!rightIcon;
   const buttonHeight = hasIcon ? 60 : 50;
@@ -50,7 +51,7 @@ const AppButton = ({
           {leftIcon && (
             <Image
               source={leftIcon}
-              style={[styles.icon, { marginLeft: 24 }]}
+              style={[styles.icon, { marginLeft: 34, marginRight: 24 }]}
             />
           )}
         </View>
@@ -60,16 +61,16 @@ const AppButton = ({
             numberOfLines={1}
             style={[
               {
-                fontSize: hasIcon ? 14 : 18,
+                fontSize: hasIcon ? 16 : 18,
                 lineHeight: 22,
                 fontFamily: isBold ? 'Poppins Medium' : 'Poppins Regular',
                 color:
                   textColor ??
                   (isLight
-                    ? '#000'
+                    ? colors.shadow
                     : isOutlined
                     ? buttonColor || colors.primary
-                    : '#fff'),
+                    : colors.onPrimary),
               },
               labelStyle,
             ]}>
@@ -81,7 +82,7 @@ const AppButton = ({
           {rightIcon && (
             <Image
               source={rightIcon}
-              style={[styles.icon, { marginRight: 34 }]}
+              style={[styles.icon, { marginRight: 24, marginLeft: 5 }]}
             />
           )}
         </View>
@@ -92,35 +93,36 @@ const AppButton = ({
 
 export default memo(AppButton);
 
-const styles = StyleSheet.create({
-  button: {
-    borderRadius: 99,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 5,
-    backgroundColor: '#fff',
-  },
-  innerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  sideIcon: {
-    width: 34,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textWrapper: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: {
-    width: 25,
-    height: 25,
-    resizeMode: 'contain',
-  },
-});
+const getStyles = ({ colors }) =>
+  StyleSheet.create({
+    button: {
+      borderRadius: 99,
+      paddingHorizontal: 16,
+      justifyContent: 'center',
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.1,
+      shadowRadius: 15,
+      elevation: 5,
+      backgroundColor: colors.onPrimary,
+    },
+    innerContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    sideIcon: {
+      width: 34,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    textWrapper: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    icon: {
+      width: 25,
+      height: 25,
+      resizeMode: 'contain',
+    },
+  });

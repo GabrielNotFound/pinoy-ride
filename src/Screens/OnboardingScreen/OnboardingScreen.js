@@ -42,8 +42,8 @@ const slides = [
       'All our riders are trained and verified. Ride with confidence wherever you’re going.',
     image: require('@/Assets/Common/OnboardingScreen/Third_Page.png'),
     imagePosition: 'top',
-    imageWidth: 500,
-    imageHeight: 401,
+    imageWidth: 552,
+    imageHeight: 502,
     top: 60,
   },
 ];
@@ -59,12 +59,12 @@ const OnboardingScreen = () => {
     if (currentIndex < slides.length - 1) {
       flatListRef.current.scrollToIndex({ index: currentIndex + 1 });
     } else {
-      navigation.replace('LandingScreen');
+      navigation.replace('LoginScreen');
     }
   };
 
   const handleSkip = () => {
-    navigation.navigate('LandingScreen');
+    navigation.navigate('LoginScreen');
   };
 
   const handleBack = () => {
@@ -172,14 +172,14 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#fff',
+      backgroundColor: colors.onPrimary,
     },
     slide: {
       width: width,
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: 20,
+      paddingHorizontal: 10,
       position: 'relative',
     },
     textContainer: {
@@ -200,8 +200,7 @@ const getStyles = ({ colors }) =>
       fontWeight: 400,
       fontSize: 16,
       textAlign: 'center',
-      lineHeight: 25,
-      marginTop: 10,
+      letterSpacing: -0.5,
     },
     indicatorContainer: {
       flexDirection: 'row',
@@ -212,7 +211,7 @@ const getStyles = ({ colors }) =>
       width: 8,
       height: 8,
       borderRadius: 4,
-      backgroundColor: '#ccc',
+      backgroundColor: colors.grey,
       margin: 4,
     },
     activeDot: {
@@ -258,7 +257,7 @@ const getStyles = ({ colors }) =>
     },
     backButton: {
       position: 'absolute',
-      top: 40,
+      top: 20,
       left: 20,
       zIndex: 10,
       width: 52,

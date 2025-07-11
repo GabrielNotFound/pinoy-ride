@@ -21,7 +21,7 @@ const SplashScreen = () => {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image
-          source={require('@/Assets/Common/Splash_Screen_Logo.png')}
+          source={require('@/Assets/Common/Pinoy_Ride.png')}
           style={styles.logo}
           resizeMode="contain"
         />
