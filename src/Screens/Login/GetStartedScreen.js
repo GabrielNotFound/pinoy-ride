@@ -28,6 +28,10 @@ const GetStartedScreen = () => {
       setError('Mobile number is required');
       return;
     }
+    if (currentIndex === 1) {
+      navigation.navigate('GeneralTermsScreen');
+      return;
+    }
     setError('');
     setCurrentIndex(prev => prev + 1);
   };
