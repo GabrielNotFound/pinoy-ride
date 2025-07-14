@@ -58,7 +58,7 @@ const GetStartedScreen = () => {
             value={mobileNumber}
             onChangeText={setMobileNumber}
             inputMode="phone"
-            placeholder="09XXXXXXXXX"
+            placeholder="9XXXXXXXXX"
             error={error}
           />
         ) : (

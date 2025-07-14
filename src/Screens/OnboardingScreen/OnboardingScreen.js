@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
-import { AppButton } from '@/Components';
+import { AppButton, Container } from '@/Components';
 
 const { width } = Dimensions.get('window');
 
@@ -79,7 +79,7 @@ const OnboardingScreen = () => {
   }).current;
 
   return (
-    <View style={styles.container}>
+    <Container style={styles.container}>
       {currentIndex > 0 && (
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Image
@@ -162,7 +162,7 @@ const OnboardingScreen = () => {
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </Container>
   );
 };
 

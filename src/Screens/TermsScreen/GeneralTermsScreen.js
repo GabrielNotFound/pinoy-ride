@@ -41,7 +41,7 @@ const GeneralTermsScreen = () => {
         <Text style={styles.label}>I Accept the Terms and Conditions</Text>
       </View>
       <View>
-        <AppButton title="Next" onPress={handleNext} isBold />
+        <AppButton title="Submit" onPress={handleNext} isBold />
       </View>
     </Container>
   );
