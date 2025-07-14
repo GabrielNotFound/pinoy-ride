@@ -94,7 +94,7 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 10,
+      paddingHorizontal: 10,
     },
     header: {
       height: 52,
