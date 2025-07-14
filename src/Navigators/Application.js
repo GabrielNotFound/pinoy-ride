@@ -7,6 +7,7 @@ import {
   GetStartedScreen,
   LoginScreen,
   OnboardingScreen,
+  RegisterScreen,
   SplashScreen,
 } from '@/Screens';
 import { Text } from 'react-native';
@@ -43,6 +44,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="LoginScreen"
               component={LoginScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="RegisterScreen"
+              component={RegisterScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

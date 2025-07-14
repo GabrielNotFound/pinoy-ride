@@ -1,4 +1,3 @@
-// src/Components/CustomTextInput.js
 import React, { useRef } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import PhoneInput from 'react-native-phone-number-input';
@@ -13,6 +12,7 @@ const AppTextInput = ({
   placeholder,
   inputMode = 'text', // 'text' | 'phone' | 'amount'
   error,
+  labelColor, // 🆕 optional prop
 }) => {
   const isPhone = inputMode === 'phone';
   const isAmount = inputMode === 'amount';
@@ -32,7 +32,11 @@ const AppTextInput = ({
 
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && (
+        <Text style={[styles.label, labelColor && { color: labelColor }]}>
+          {label}
+        </Text>
+      )}
 
       {isPhone ? (
         <PhoneInput
@@ -67,17 +71,17 @@ const AppTextInput = ({
 export default AppTextInput;
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 16 },
+  container: {
+    marginBottom: 16,
+  },
   label: {
     fontFamily: 'Poppins Regular',
     fontSize: 14,
     color: '#333',
-    marginBottom: 6,
   },
   input: {
     borderBottomWidth: 1,
     borderColor: '#ccc',
-    paddingVertical: 10,
     fontSize: 16,
     backgroundColor: 'white',
   },
