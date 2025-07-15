@@ -1,9 +1,10 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Checkbox, useTheme } from 'react-native-paper';
+import { useTheme } from 'react-native-paper';
 import Container from '@/Components/Container/Container';
 import { AppButton } from '@/Components';
+import { Ionicons } from '@expo/vector-icons'; // make sure this is installed
 
 const GeneralTermsScreen = () => {
   const { colors } = useTheme();
@@ -24,6 +25,7 @@ const GeneralTermsScreen = () => {
           resizeMode="contain"
         />
       </View>
+
       <View style={styles.textContainer}>
         <Text style={styles.title}>Accept Our Terms</Text>
         <Text style={styles.subtitle}>
@@ -31,18 +33,20 @@ const GeneralTermsScreen = () => {
           Your safety and privacy matters to us.
         </Text>
       </View>
+
       <View style={styles.checkboxContainer}>
-        <Checkbox
-          status={checked ? 'checked' : 'unchecked'}
-          onPress={() => setChecked(!checked)}
-          color={colors.primary}
-          uncheckedColor={colors.primary}
-        />
+        <TouchableOpacity
+          style={[
+            styles.customCheckbox,
+            checked && styles.checkedCheckbox,
+            { borderColor: colors.primary },
+          ]}
+          onPress={() => setChecked(!checked)}>
+          {checked && <Ionicons name="checkmark" size={16} color="white" />}
+        </TouchableOpacity>
         <Text style={styles.label}>I Accept the Terms and Conditions</Text>
       </View>
-      <View>
-        <AppButton title="Submit" onPress={handleNext} isBold />
-      </View>
+      <AppButton title="Submit" onPress={handleNext} isBold />
     </Container>
   );
 };
@@ -67,7 +71,7 @@ const getStyles = ({ colors }) =>
     textContainer: {
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 40,
+      marginBottom: 50,
     },
     title: {
       fontFamily: 'Poppins SemiBold',
@@ -77,7 +81,7 @@ const getStyles = ({ colors }) =>
     },
     subtitle: {
       fontFamily: 'Poppins Regular',
-      fontWeight: 400,
+      fontWeight: '400',
       fontSize: 16,
       textAlign: 'center',
       letterSpacing: -0.45,
@@ -87,14 +91,24 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    customCheckbox: {
+      width: 20,
+      height: 20,
+      borderWidth: 2,
+      borderRadius: 4,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+      backgroundColor: 'transparent',
+    },
+    checkedCheckbox: {
+      backgroundColor: colors.primary,
+    },
     label: {
       fontSize: 14,
       fontFamily: 'Poppins Regular',
       color: colors.primary,
       lineHeight: 20,
-    },
-    continueButtonContainer: {
-      paddingHorizontal: 30,
-      marginBottom: 40,
+      maxWidth: 250,
     },
   });

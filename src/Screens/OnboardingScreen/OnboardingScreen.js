@@ -225,7 +225,7 @@ const getStyles = ({ colors }) =>
       marginBottom: 40,
     },
     continueButtonContainer: {
-      paddingHorizontal: 30,
+      paddingHorizontal: 10,
       marginBottom: 40,
     },
     skip: {
