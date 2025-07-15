@@ -14,17 +14,19 @@ import { AppButton, AppTextInput } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 
 const textInputs = [
-  { key: 'firstName', label: 'First Name' },
-  { key: 'middleName', label: 'Middle Name' },
-  { key: 'lastName', label: 'Last Name' },
+  { key: 'firstName', label: 'First Name', placeholder: 'Enter first name' },
+  { key: 'middleName', label: 'Middle Name', placeholder: 'Enter middle name' },
+  { key: 'lastName', label: 'Last Name', placeholder: 'Enter last name' },
   {
     key: 'phoneNumber',
     label: 'Phone Number',
+    placeholder: '9XXXXXXXXX',
     inputMode: 'phone',
   },
   {
     key: 'email',
     label: 'Email Address',
+    placeholder: 'Enter email',
     inputMode: 'text',
   },
 ];
@@ -80,7 +82,6 @@ const RegisterScreen = () => {
                   onChangeText={value => handleChange(input.key, value)}
                   placeholder={input.placeholder}
                   inputMode={input.inputMode || 'text'}
-                  labelColor={colors.onSurfaceGrey}
                 />
               </View>
             ))}

@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import PhoneInput from 'react-native-phone-number-input';
+import { useTheme } from 'react-native-paper';
 import useAmountFormattedValue from '@/Hooks/useAmountFormattedValue';
 import numeral from 'numeral';
 
@@ -12,8 +13,10 @@ const AppTextInput = ({
   placeholder,
   inputMode = 'text', // 'text' | 'phone' | 'amount'
   error,
-  labelColor, // 🆕 optional prop
+  labelColor,
 }) => {
+  const { colors } = useTheme();
+  const styles = getStyles({ colors });
   const isPhone = inputMode === 'phone';
   const isAmount = inputMode === 'amount';
 
@@ -50,6 +53,7 @@ const AppTextInput = ({
           textContainerStyle={styles.phoneTextContainer}
           textInputProps={{
             placeholder,
+            placeholderTextColor: colors.onSurfaceGrey, // ← ✅ placeholder color for PhoneInput
             keyboardType: 'phone-pad',
           }}
         />
@@ -58,6 +62,7 @@ const AppTextInput = ({
           value={isAmount ? amountFormattedValue : value}
           onChangeText={isAmount ? handleAmountChange : onChangeText}
           placeholder={placeholder}
+          placeholderTextColor={colors.onSurfaceGrey} // ← ✅ placeholder color for TextInput
           style={[styles.input, error && styles.inputError]}
           keyboardType={isAmount ? 'numeric' : 'default'}
         />
@@ -70,43 +75,45 @@ const AppTextInput = ({
 
 export default AppTextInput;
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  label: {
-    fontFamily: 'Poppins Regular',
-    fontSize: 14,
-    color: '#333',
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    fontSize: 16,
-    backgroundColor: 'white',
-  },
-  inputError: {
-    borderColor: 'red',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  phoneContainer: {
-    width: '100%',
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 0,
-    backgroundColor: 'transparent',
-    elevation: 0,
-    shadowOpacity: 0,
-  },
-  phoneTextContainer: {
-    backgroundColor: 'transparent',
-    paddingVertical: 0,
-    borderRadius: 0,
-    borderWidth: 0,
-    paddingBottom: 2,
-  },
-});
+const getStyles = ({ colors }) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: 20,
+    },
+    label: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 14,
+      color: 'black',
+      marginBottom: 10,
+    },
+    input: {
+      borderBottomWidth: 1,
+      borderColor: colors.surfaceVariant,
+      fontSize: 16,
+      backgroundColor: 'white',
+    },
+    inputError: {
+      borderColor: 'red',
+    },
+    errorText: {
+      color: 'red',
+      fontSize: 12,
+      marginTop: 4,
+    },
+    phoneContainer: {
+      width: '100%',
+      borderBottomWidth: 1,
+      borderColor: colors.surfaceVariant,
+      borderRadius: 0,
+      backgroundColor: 'transparent',
+      elevation: 0,
+      shadowOpacity: 0,
+    },
+    phoneTextContainer: {
+      backgroundColor: 'transparent',
+      paddingVertical: 0,
+      borderRadius: 0,
+      borderWidth: 0,
+      paddingBottom: 2,
+    },
+  });
