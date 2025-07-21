@@ -12,6 +12,7 @@ import {
   OnboardingScreen,
   RatingScreen,
   RegisterScreen,
+  SettingsScreen,
   SplashScreen,
 } from '@/Screens';
 import { Text } from 'react-native';
@@ -78,6 +79,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="RatingScreen"
               component={RatingScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="SettingsScreen"
+              component={SettingsScreen}
               options={{ headerShown: false }}
             />
 

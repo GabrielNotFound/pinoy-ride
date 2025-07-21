@@ -10,7 +10,7 @@ const SplashScreen = () => {
         resolve(true);
       }, 1000),
     );
-    navigation.navigate('RatingScreen');
+    navigation.navigate('SettingsScreen');
   };
 
   useEffect(() => {
