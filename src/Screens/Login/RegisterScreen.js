@@ -53,7 +53,7 @@ const RegisterScreen = () => {
   };
 
   const handleNext = () => {
-    console.log(formData);
+    navigation.navigate('LandingScreen');
   };
 
   return (

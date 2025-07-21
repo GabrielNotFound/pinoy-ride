@@ -4,3 +4,8 @@ export { default as RegisterScreen } from './Login/RegisterScreen';
 export { default as OnboardingScreen } from './OnboardingScreen/OnboardingScreen';
 export { default as GetStartedScreen } from './Login/GetStartedScreen';
 export { default as GeneralTermsScreen } from './TermsScreen/GeneralTermsScreen';
+export { default as LandingScreen } from './LandingScreen/LandingScreen';
+export { default as BottomModal } from './LandingScreen/BottomModal';
+export { default as ServiceModal } from './LandingScreen/ServiceModal';
+export { default as InputLocation } from './Location/InputLocation';
+export { default as MapSelectionModal } from './Location/MapSelectionModal';

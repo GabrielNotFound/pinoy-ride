@@ -88,15 +88,6 @@ const getStyles = ({ colors }) =>
     spacing: {
       padding: 20,
     },
-    footerContainer: {
-      justifyContent: 'flex-end',
-      marginBottom: 29,
-      alignItems: 'center',
-    },
-    umsiLogo: {
-      width: 172.38,
-      height: 51,
-    },
   });
 
 export default Container;

@@ -5,7 +5,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   GeneralTermsScreen,
   GetStartedScreen,
+  InputLocation,
+  LandingScreen,
   LoginScreen,
+  MapSelectionModal,
   OnboardingScreen,
   RegisterScreen,
   SplashScreen,
@@ -61,6 +64,24 @@ const ApplicationNavigator = () => {
               component={GeneralTermsScreen}
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="LandingScreen"
+              component={LandingScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="InputLocation"
+              component={InputLocation}
+              options={{ headerShown: false }}
+            />
+
+            <Stack.Group
+              screenOptions={{ presentation: 'modal', headerShown: false }}>
+              <Stack.Screen
+                name="MapSelectionModal"
+                component={MapSelectionModal}
+              />
+            </Stack.Group>
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>
