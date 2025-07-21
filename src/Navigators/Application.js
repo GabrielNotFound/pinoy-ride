@@ -10,6 +10,7 @@ import {
   LoginScreen,
   MapSelectionModal,
   OnboardingScreen,
+  RatingScreen,
   RegisterScreen,
   SplashScreen,
 } from '@/Screens';
@@ -72,6 +73,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="InputLocation"
               component={InputLocation}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="RatingScreen"
+              component={RatingScreen}
               options={{ headerShown: false }}
             />
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -20,12 +20,26 @@ const LandingScreen = () => {
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
 
+  const riderFoundTimeout = useRef(null);
+
   useEffect(() => {
     setShowSuccess(true);
+
+    // Clear any timeouts when component unmounts
+    return () => {
+      if (riderFoundTimeout.current) {
+        clearTimeout(riderFoundTimeout.current);
+      }
+    };
   }, []);
 
   const onBookPressed = () => {
     setShowServiceModal(true);
+
+    // Schedule Rider Found modal after 15 seconds
+    riderFoundTimeout.current = setTimeout(() => {
+      setShowRiderFound(true);
+    }, 15000); // 15,000 ms = 15 secs
   };
 
   const handleTopRightPress = () => {
@@ -73,7 +87,6 @@ const LandingScreen = () => {
       <BottomModal
         selectedService={selectedService}
         onBookPressed={onBookPressed}
-        onConfirmBooking={() => setShowRiderFound(true)} // ✅ shows alert
       />
 
       <ServiceModal

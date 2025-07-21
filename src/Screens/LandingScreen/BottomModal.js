@@ -112,12 +112,9 @@ const BottomModal = ({ selectedService, onBookPressed, onConfirmBooking }) => {
               title="Cancel"
               onPress={() => setIsConfirmed(false)}
               isBold
-              buttonColor="transparent"
+              mode="outlined"
+              buttonColor={colors.cancel}
               textColor={colors.cancel}
-              featureStyle={{
-                borderWidth: 1,
-                borderColor: colors.cancel,
-              }}
             />
           ) : (
             <AppButton
@@ -170,7 +167,7 @@ const getStyles = ({ colors }) =>
     arrow: {
       fontFamily: 'Poppins Medium',
       fontSize: 20,
-      color: '#084CF7',
+      color: colors.blue,
       fontWeight: '600',
     },
     serviceHeader: {

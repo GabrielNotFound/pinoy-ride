@@ -11,7 +11,7 @@ const AppTextInput = ({
   onChangeText,
   onChangeFormattedText,
   placeholder,
-  inputMode = 'text', // 'text' | 'phone' | 'amount'
+  inputMode = 'text', // 'text' | 'phone' | 'amount' | 'comment'
   error,
   labelColor,
 }) => {
@@ -19,6 +19,7 @@ const AppTextInput = ({
   const styles = getStyles({ colors });
   const isPhone = inputMode === 'phone';
   const isAmount = inputMode === 'amount';
+  const isComment = inputMode === 'comment';
 
   const {
     formattedValue: amountFormattedValue,
@@ -53,7 +54,7 @@ const AppTextInput = ({
           textContainerStyle={styles.phoneTextContainer}
           textInputProps={{
             placeholder,
-            placeholderTextColor: colors.onSurfaceGrey, // ← ✅ placeholder color for PhoneInput
+            placeholderTextColor: colors.onSurfaceGrey,
             keyboardType: 'phone-pad',
           }}
         />
@@ -62,9 +63,15 @@ const AppTextInput = ({
           value={isAmount ? amountFormattedValue : value}
           onChangeText={isAmount ? handleAmountChange : onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.onSurfaceGrey} // ← ✅ placeholder color for TextInput
-          style={[styles.input, error && styles.inputError]}
+          placeholderTextColor={colors.onSurfaceGrey}
+          style={[
+            isComment ? styles.commentBox : styles.input,
+            error && styles.inputError,
+          ]}
           keyboardType={isAmount ? 'numeric' : 'default'}
+          multiline={isComment}
+          numberOfLines={isComment ? 4 : 1}
+          textAlignVertical={isComment ? 'top' : 'center'}
         />
       )}
 
@@ -84,7 +91,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Regular',
       fontSize: 14,
       color: 'black',
-      marginBottom: 10,
+      marginBottom: 5,
     },
     input: {
       borderBottomWidth: 1,
@@ -115,5 +122,19 @@ const getStyles = ({ colors }) =>
       borderRadius: 0,
       borderWidth: 0,
       paddingBottom: 2,
+    },
+    commentBox: {
+      backgroundColor: '#F9F9F9',
+      borderRadius: 15,
+      padding: 15,
+      fontSize: 16,
+      color: '#333',
+      borderColor: 'transparent',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 5,
+      elevation: 3,
+      minHeight: 50,
     },
   });

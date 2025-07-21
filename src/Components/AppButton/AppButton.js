@@ -39,7 +39,7 @@ const AppButton = ({
           borderColor: isOutlined
             ? buttonColor || colors.primary
             : 'transparent',
-          borderWidth: isOutlined ? 2 : 0,
+          borderWidth: isOutlined ? 1 : 0,
           height: buttonHeight,
           marginVertical: noSpacing ? 0 : 20,
           opacity: disabled ? 0.6 : 1,

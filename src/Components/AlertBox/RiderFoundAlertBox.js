@@ -14,7 +14,9 @@ const RiderFoundAlertBox = ({
   const { colors } = useTheme();
   const styles = getStyles({ colors });
 
-  if (!visible) {return null;}
+  if (!visible) {
+    return null;
+  }
 
   return (
     <Pressable style={styles.backdrop} onPress={onClose}>
@@ -59,7 +61,7 @@ const getStyles = ({ colors }) =>
     },
     title: {
       fontSize: 16,
-      fontFamily: 'Poppins Semibold',
+      fontFamily: 'Poppins SemiBold',
       fontWeight: '600',
       color: colors.shadow,
       marginTop: 36,

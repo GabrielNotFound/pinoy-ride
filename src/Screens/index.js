@@ -9,3 +9,4 @@ export { default as BottomModal } from './LandingScreen/BottomModal';
 export { default as ServiceModal } from './LandingScreen/ServiceModal';
 export { default as InputLocation } from './Location/InputLocation';
 export { default as MapSelectionModal } from './Location/MapSelectionModal';
+export { default as RatingScreen } from './RatingScreen/RatingScreen';

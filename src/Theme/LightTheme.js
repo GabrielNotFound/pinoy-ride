@@ -85,6 +85,7 @@ const LightTheme = {
     darkGrey: '#545454',
     blueGrey: '#DEE5F5',
     cancel: '#E4423F',
+    blue: '#084CF7',
   },
   roundness: 2,
   ...custom,
