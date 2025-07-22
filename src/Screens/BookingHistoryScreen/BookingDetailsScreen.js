@@ -10,7 +10,6 @@ import {
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const BookingDetailsScreen = () => {
   const { colors } = useTheme();

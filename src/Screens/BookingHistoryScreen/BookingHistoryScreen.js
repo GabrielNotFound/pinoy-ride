@@ -50,21 +50,17 @@ const BookingHistoryScreen = () => {
 
   const handleRebook = item => {
     console.log('Rebooking ride:', item.destination);
-    // Add navigation or logic here
   };
 
   const handleBack = () => {
-    navigation.navigate('LandingScreen'); // Ensure 'LandingScreen' is the correct route name
+    navigation.goBack();
   };
 
-  // --- NEW: Handle pressing a card to view details ---
   const handleCardPress = item => {
     navigation.navigate('BookingDetailsScreen', { bookingDetails: item });
   };
-  // ---------------------------------------------------
 
   const renderCards = ({ item }) => (
-    // Wrap BookingCard in TouchableOpacity to make it clickable
     <TouchableOpacity onPress={() => handleCardPress(item)} activeOpacity={0.8}>
       <BookingCard
         image={item.image}
@@ -85,7 +81,7 @@ const BookingHistoryScreen = () => {
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
             <Image
-              source={require('@/Assets/Common/Back_2.png')} // Make sure this path is correct
+              source={require('@/Assets/Common/Back_2.png')}
               style={styles.backIcon}
               resizeMode="contain"
             />
@@ -145,6 +141,7 @@ const getStyles = ({ colors }) =>
       flex: 1,
     },
     listContent: {
+      marginTop: 12,
       paddingBottom: 20,
     },
   });

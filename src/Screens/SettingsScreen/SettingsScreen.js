@@ -18,7 +18,7 @@ const SettingsScreen = () => {
     {
       id: 'promo_and_referrals',
       label: 'Promo & Referrals',
-      onPress: () => console.log('Promo & Referrals pressed'),
+      onPress: () => navigation.navigate('PromoReferralsScreen'),
     },
     {
       id: 'payment_option',

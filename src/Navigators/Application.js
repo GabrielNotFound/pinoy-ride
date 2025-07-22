@@ -12,6 +12,7 @@ import {
   LoginScreen,
   MapSelectionModal,
   OnboardingScreen,
+  PromoReferralsScreen,
   RatingScreen,
   RegisterScreen,
   SettingsScreen,
@@ -96,6 +97,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="BookingDetailsScreen"
               component={BookingDetailsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="PromoReferralsScreen"
+              component={PromoReferralsScreen}
               options={{ headerShown: false }}
             />
 

@@ -14,3 +14,4 @@ export { default as SettingsScreen } from './SettingsScreen/SettingsScreen';
 export { default as BookingHistoryScreen } from './BookingHistoryScreen/BookingHistoryScreen';
 export { default as BookingCard } from './BookingHistoryScreen/BookingCard';
 export { default as BookingDetailsScreen } from './BookingHistoryScreen/BookingDetailsScreen';
+export { default as PromoReferralsScreen } from './PromoReferralsScreen/PromoReferralsScreen';
