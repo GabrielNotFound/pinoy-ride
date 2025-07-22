@@ -2,33 +2,35 @@ import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
-
-const buttonList = [
-  {
-    id: 'booking_history',
-    label: 'Booking History',
-    onPress: () => console.log('Booking Histoy pressed'),
-  },
-  {
-    id: 'promo_and_referrals',
-    label: 'Promo & Referrals',
-    onPress: () => console.log('Promo & Referrals pressed'),
-  },
-  {
-    id: 'payment_option',
-    label: 'Payment Option',
-    onPress: () => console.log('Payment Option pressed'),
-  },
-  {
-    id: 'wallet',
-    label: 'Wallet',
-    onPress: () => console.log('Wallet pressed'),
-  },
-];
+import { useNavigation } from '@react-navigation/native';
 
 const SettingsScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
+  const navigation = useNavigation();
+
+  const buttonList = [
+    {
+      id: 'booking_history',
+      label: 'Booking History',
+      onPress: () => navigation.navigate('BookingHistoryScreen'),
+    },
+    {
+      id: 'promo_and_referrals',
+      label: 'Promo & Referrals',
+      onPress: () => console.log('Promo & Referrals pressed'),
+    },
+    {
+      id: 'payment_option',
+      label: 'Payment Option',
+      onPress: () => console.log('Payment Option pressed'),
+    },
+    {
+      id: 'wallet',
+      label: 'Wallet',
+      onPress: () => console.log('Wallet pressed'),
+    },
+  ];
 
   const handleBack = () => {
     console.log('Back Button Pressed');
@@ -99,12 +101,10 @@ const getStyles = ({ colors }) =>
       elevation: 3,
       backgroundColor: colors.onPrimary,
     },
-
     profileTextContainer: {
       flex: 1,
       marginLeft: 10,
     },
-
     profileLabel: {
       backgroundColor: colors.lightBlue,
       color: colors.shadow,

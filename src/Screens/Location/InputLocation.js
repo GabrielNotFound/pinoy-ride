@@ -143,7 +143,7 @@ const getStyles = ({ colors }) =>
     container: { flex: 1, backgroundColor: 'white' },
     headerContainer: {
       backgroundColor: colors.primary,
-      paddingTop: 50,
+      paddingTop: 60,
       paddingBottom: 20,
       paddingLeft: 10,
       paddingRight: 30,

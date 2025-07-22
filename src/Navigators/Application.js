@@ -3,6 +3,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
+  BookingDetailsScreen,
+  BookingHistoryScreen,
   GeneralTermsScreen,
   GetStartedScreen,
   InputLocation,
@@ -84,6 +86,16 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="SettingsScreen"
               component={SettingsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="BookingHistoryScreen"
+              component={BookingHistoryScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="BookingDetailsScreen"
+              component={BookingDetailsScreen}
               options={{ headerShown: false }}
             />
 

@@ -11,3 +11,6 @@ export { default as InputLocation } from './Location/InputLocation';
 export { default as MapSelectionModal } from './Location/MapSelectionModal';
 export { default as RatingScreen } from './RatingScreen/RatingScreen';
 export { default as SettingsScreen } from './SettingsScreen/SettingsScreen';
+export { default as BookingHistoryScreen } from './BookingHistoryScreen/BookingHistoryScreen';
+export { default as BookingCard } from './BookingHistoryScreen/BookingCard';
+export { default as BookingDetailsScreen } from './BookingHistoryScreen/BookingDetailsScreen';

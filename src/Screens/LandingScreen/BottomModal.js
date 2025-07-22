@@ -113,8 +113,8 @@ const BottomModal = ({ selectedService, onBookPressed, onConfirmBooking }) => {
               onPress={() => setIsConfirmed(false)}
               isBold
               mode="outlined"
-              buttonColor={colors.cancel}
-              textColor={colors.cancel}
+              buttonColor={colors.error}
+              textColor={colors.error}
             />
           ) : (
             <AppButton
