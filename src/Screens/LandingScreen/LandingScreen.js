@@ -10,10 +10,12 @@ import { useTheme } from 'react-native-paper';
 import ServiceModal from './ServiceModal';
 import BottomModal from './BottomModal';
 import { RiderFoundAlertBox, SuccessAlertBox } from '@/Components';
+import { useNavigation } from '@react-navigation/native';
 
 const LandingScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
+  const navigation = useNavigation();
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showRiderFound, setShowRiderFound] = useState(false);
@@ -43,7 +45,7 @@ const LandingScreen = () => {
   };
 
   const handleTopRightPress = () => {
-    console.log('Top-right image button pressed');
+    navigation.navigate('SettingsScreen');
   };
 
   return (

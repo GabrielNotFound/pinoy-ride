@@ -38,7 +38,10 @@ const InputLocation = () => {
   const [location, setLocation] = useState('');
 
   const handleBack = () => {
-    navigation.navigate('LandingScreen');
+    navigation.goBack();
+  };
+  const handleProfilePress = () => {
+    navigation.navigate('SettingsScreen');
   };
 
   const handleOpenMap = () => {
@@ -60,7 +63,9 @@ const InputLocation = () => {
               resizeMode="contain"
             />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity
+            onPress={handleProfilePress}
+            style={styles.iconButton}>
             <Image
               source={require('@/Assets/Common/Location/Profile_Icon_2.png')}
               style={styles.iconImage}

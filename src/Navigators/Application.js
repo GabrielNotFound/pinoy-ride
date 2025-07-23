@@ -12,11 +12,13 @@ import {
   LoginScreen,
   MapSelectionModal,
   OnboardingScreen,
+  PaymentOptionScreen,
   PromoReferralsScreen,
   RatingScreen,
   RegisterScreen,
   SettingsScreen,
   SplashScreen,
+  WalletScreen,
 } from '@/Screens';
 import { Text } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
@@ -102,6 +104,16 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="PromoReferralsScreen"
               component={PromoReferralsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="PaymentOptionScreen"
+              component={PaymentOptionScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="WalletScreen"
+              component={WalletScreen}
               options={{ headerShown: false }}
             />
 

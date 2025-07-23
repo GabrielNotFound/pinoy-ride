@@ -23,17 +23,17 @@ const SettingsScreen = () => {
     {
       id: 'payment_option',
       label: 'Payment Option',
-      onPress: () => console.log('Payment Option pressed'),
+      onPress: () => navigation.navigate('PaymentOptionScreen'),
     },
     {
       id: 'wallet',
       label: 'Wallet',
-      onPress: () => console.log('Wallet pressed'),
+      onPress: () => navigation.navigate('WalletScreen'),
     },
   ];
 
   const handleBack = () => {
-    console.log('Back Button Pressed');
+    navigation.goBack();
   };
 
   return (

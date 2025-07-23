@@ -15,3 +15,5 @@ export { default as BookingHistoryScreen } from './BookingHistoryScreen/BookingH
 export { default as BookingCard } from './BookingHistoryScreen/BookingCard';
 export { default as BookingDetailsScreen } from './BookingHistoryScreen/BookingDetailsScreen';
 export { default as PromoReferralsScreen } from './PromoReferralsScreen/PromoReferralsScreen';
+export { default as PaymentOptionScreen } from './PaymentOptionScreen/PaymentOptionScreen';
+export { default as WalletScreen } from './WalletScreen/WalletScreen';
