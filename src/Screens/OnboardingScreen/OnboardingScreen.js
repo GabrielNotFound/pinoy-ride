@@ -3,14 +3,19 @@ import {
   Dimensions,
   FlatList,
   Image,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
-import { AppButton, Container } from '@/Components';
+import { AppButton } from '@/Components';
 
 const { width } = Dimensions.get('window');
 
@@ -42,8 +47,8 @@ const slides = [
       'All our riders are trained and verified. Ride with confidence wherever you’re going.',
     image: require('@/Assets/Common/OnboardingScreen/Third_Page.png'),
     imagePosition: 'top',
-    imageWidth: 552,
-    imageHeight: 502,
+    imageWidth: 540,
+    imageHeight: 490,
     top: 60,
   },
 ];
@@ -54,10 +59,13 @@ const OnboardingScreen = () => {
   const flatListRef = useRef(null);
   const navigation = useNavigation();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const insets = useSafeAreaInsets();
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
-      flatListRef.current.scrollToIndex({ index: currentIndex + 1 });
+      const nextIndex = currentIndex + 1;
+      flatListRef.current.scrollToIndex({ index: nextIndex });
+      setCurrentIndex(nextIndex);
     } else {
       navigation.replace('LoginScreen');
     }
@@ -69,19 +77,23 @@ const OnboardingScreen = () => {
 
   const handleBack = () => {
     if (currentIndex > 0) {
-      flatListRef.current.scrollToIndex({ index: currentIndex - 1 });
-      setCurrentIndex(prev => prev - 1);
+      const prevIndex = currentIndex - 1;
+      flatListRef.current.scrollToIndex({ index: prevIndex });
+      setCurrentIndex(prevIndex);
     }
   };
 
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    setCurrentIndex(viewableItems[0]?.index ?? 0);
-  }).current;
-
   return (
-    <Container style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {currentIndex > 0 && (
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={handleBack}
+          style={[
+            styles.backButton,
+            {
+              top: Platform.OS === 'ios' ? insets.top + 70 : 20,
+            },
+          ]}>
           <Image
             source={require('@/Assets/Common/OnboardingScreen/Back_Button.png')}
             style={styles.backIcon}
@@ -90,47 +102,52 @@ const OnboardingScreen = () => {
         </TouchableOpacity>
       )}
 
-      <FlatList
-        ref={flatListRef}
-        data={slides}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={item => item.key}
-        onViewableItemsChanged={onViewableItemsChanged}
-        renderItem={({ item }) => (
-          <View style={styles.slide}>
-            {item.imagePosition === 'top' && (
-              <Image
-                source={item.image}
-                style={{
-                  width: item.imageWidth,
-                  height: item.imageHeight,
-                  top: item.top,
-                }}
-                resizeMode="contain"
-              />
-            )}
-            <View style={styles.textContainer}>
-              <Text style={styles.title}>{item.title}</Text>
-              <View style={styles.subtitleWrapper}>
-                <Text style={styles.subtitle}>{item.subtitle}</Text>
+      <View style={styles.flatListWrapper}>
+        <FlatList
+          ref={flatListRef}
+          data={slides}
+          horizontal
+          scrollEnabled={false} // Disable swipe
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={item => item.key}
+          renderItem={({ item }) => (
+            <View style={styles.slide}>
+              <View style={styles.slideContent}>
+                {item.imagePosition === 'top' && (
+                  <Image
+                    source={item.image}
+                    style={{
+                      width: item.imageWidth,
+                      height: item.imageHeight,
+                      marginBottom: 20,
+                      top: item.top || 0,
+                    }}
+                    resizeMode="contain"
+                  />
+                )}
+                <View style={styles.textContainer}>
+                  <Text style={styles.title}>{item.title}</Text>
+                  <View style={styles.subtitleWrapper}>
+                    <Text style={styles.subtitle}>{item.subtitle}</Text>
+                  </View>
+                </View>
+                {item.imagePosition === 'bottom' && (
+                  <Image
+                    source={item.image}
+                    style={{
+                      width: item.imageWidth,
+                      height: item.imageHeight,
+                      marginTop: 20,
+                      top: item.top || 0,
+                    }}
+                    resizeMode="contain"
+                  />
+                )}
               </View>
             </View>
-            {item.imagePosition === 'bottom' && (
-              <Image
-                source={item.image}
-                style={{
-                  width: item.imageWidth,
-                  height: item.imageHeight,
-                  top: item.top,
-                }}
-                resizeMode="contain"
-              />
-            )}
-          </View>
-        )}
-      />
+          )}
+        />
+      </View>
 
       <View style={styles.indicatorContainer}>
         {slides.map((_, index) => (
@@ -162,7 +179,7 @@ const OnboardingScreen = () => {
           </TouchableOpacity>
         </View>
       )}
-    </Container>
+    </SafeAreaView>
   );
 };
 
@@ -174,20 +191,27 @@ const getStyles = ({ colors }) =>
       flex: 1,
       backgroundColor: colors.onPrimary,
     },
-    slide: {
-      width: width,
+    flatListWrapper: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: 10,
-      position: 'relative',
+    },
+    slide: {
+      width: width,
+      flex: 1,
+    },
+    slideContent: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 20,
     },
     textContainer: {
-      marginVertical: 20,
       alignItems: 'center',
+      marginVertical: 10,
     },
     subtitleWrapper: {
-      maxWidth: width - 80,
+      maxWidth: 300,
     },
     title: {
       fontFamily: 'Poppins SemiBold',
@@ -197,7 +221,7 @@ const getStyles = ({ colors }) =>
     },
     subtitle: {
       fontFamily: 'Poppins Regular',
-      fontWeight: 400,
+      fontWeight: '400',
       fontSize: 16,
       textAlign: 'center',
       letterSpacing: -0.5,
@@ -225,7 +249,7 @@ const getStyles = ({ colors }) =>
       marginBottom: 40,
     },
     continueButtonContainer: {
-      paddingHorizontal: 10,
+      paddingHorizontal: 30,
       marginBottom: 40,
     },
     skip: {
@@ -257,7 +281,6 @@ const getStyles = ({ colors }) =>
     },
     backButton: {
       position: 'absolute',
-      top: 20,
       left: 20,
       zIndex: 10,
       width: 52,
