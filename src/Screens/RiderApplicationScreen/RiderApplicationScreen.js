@@ -13,7 +13,6 @@ import { useTheme } from 'react-native-paper';
 import { AppButton, AppTextInput } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 
-// NEW: Updated input fields
 const textInputs = [
   {
     key: 'licenseNumber',
@@ -24,7 +23,7 @@ const textInputs = [
     key: 'expirationDate',
     label: 'Expiration Date',
     placeholder: 'Ex: Jan 2000',
-    inputMode: 'text', // You can switch this to 'numeric' if needed
+    inputMode: 'text',
   },
   {
     key: 'motorcycleBrand',
@@ -53,7 +52,6 @@ const RiderApplicationScreen = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
-  // NEW: Updated initial formData
   const [formData, setFormData] = useState({
     licenseNumber: '',
     expirationDate: '',
@@ -64,7 +62,7 @@ const RiderApplicationScreen = () => {
   });
 
   const handleBack = () => {
-    navigation.navigate('GeneralTermsScreen');
+    navigation.navigate('LoginScreen');
   };
 
   const handleChange = (key, value) => {
@@ -120,7 +118,7 @@ const getStyles = ({ colors }) =>
     container: {
       flex: 1,
       paddingHorizontal: 15,
-      backgroundColor: '#fff',
+      backgroundColor: colors.onPrimary,
     },
     backButton: {
       marginTop: 10,
