@@ -15,6 +15,7 @@ import {
   PromoReferralsScreen,
   RatingScreen,
   RegisterScreen,
+  RiderApplicationScreen,
   SettingsScreen,
   SplashScreen,
   WalletScreen,
@@ -53,6 +54,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="RegisterScreen"
               component={RegisterScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="RiderApplicationScreen"
+              component={RiderApplicationScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

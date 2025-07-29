@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
@@ -20,38 +20,17 @@ const LoginScreen = () => {
       </View>
       <View style={styles.buttonContainer}>
         <AppButton
-          title="Continue with Facebook"
-          leftIcon={require('@/Assets/Common/Socials/facebook.png')}
-          onPress={() => console.log('Button Pressed')}
-          mode="light"
-          featureStyle={{ marginBottom: 10 }}
-        />
-        <AppButton
-          title="Continue with Google"
-          leftIcon={require('@/Assets/Common/Socials/google.png')}
-          onPress={() => console.log('Button Pressed')}
-          mode="light"
-          featureStyle={{ marginTop: 0 }}
-        />
-        <View style={styles.separatorContainer}>
-          <Image
-            source={require('@/Assets/Common/LoginScreen/Line.png')}
-            style={styles.line}
-            resizeMode="contain"
-          />
-          <Text style={styles.orText}>or</Text>
-          <Image
-            source={require('@/Assets/Common/LoginScreen/Line.png')}
-            style={styles.line}
-            resizeMode="contain"
-          />
-        </View>
-        <AppButton
           title="Continue with Mobile Number"
           leftIcon={require('@/Assets/Common/LoginScreen/phone_icon.png')}
           onPress={() => navigation.navigate('GetStartedScreen')}
           featureStyle={{ marginTop: 0 }}
         />
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('RiderApplicationScreen')}
+          style={styles.applyButton}>
+          <Text style={styles.applyText}>Apply As Rider</Text>
+        </TouchableOpacity>
       </View>
       <View />
     </Container>
@@ -74,20 +53,13 @@ const getStyles = ({ colors }) =>
     buttonContainer: {
       paddingBottom: 30,
     },
-    separatorContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    applyButton: {
       justifyContent: 'center',
-      marginBottom: 15,
+      alignItems: 'center',
     },
-    line: {
-      width: 150,
-      height: 2,
-      marginHorizontal: 8,
-    },
-    orText: {
+    applyText: {
+      fontFamily: 'Poppins SemiBold',
+      fontWeight: 600,
       fontSize: 16,
-      color: colors.onSurfaceGrey,
-      fontFamily: 'Poppins Regular',
     },
   });
