@@ -9,7 +9,7 @@ import {
 import { useTheme } from 'react-native-paper';
 import ServiceModal from './ServiceModal';
 import BottomModal from './BottomModal';
-import { RiderFoundAlertBox, SuccessAlertBox } from '@/Components';
+import { OfflineAlertBox } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 
 const LandingScreen = () => {
@@ -17,7 +17,7 @@ const LandingScreen = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showOffline, setShowOffline] = useState(false);
   const [showRiderFound, setShowRiderFound] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
@@ -25,7 +25,7 @@ const LandingScreen = () => {
   const riderFoundTimeout = useRef(null);
 
   useEffect(() => {
-    setShowSuccess(true);
+    setShowOffline(true);
 
     // Clear any timeouts when component unmounts
     return () => {
@@ -65,26 +65,13 @@ const LandingScreen = () => {
         />
       </TouchableOpacity>
 
-      {/* ✅ Success Alert */}
-      {showSuccess && (
-        <SuccessAlertBox
-          visible={showSuccess}
-          onClose={() => setShowSuccess(false)}
-          imageSource={require('@/Assets/Common/Check.png')}
-          title="Success"
-          message="You are now successfully Login."
+      {/* ✅ Offline Alert */}
+      {showOffline && (
+        <OfflineAlertBox
+          visible={showOffline}
+          onClose={() => setShowOffline(false)}
         />
       )}
-
-      {/* ✅ Rider Found Alert */}
-      <RiderFoundAlertBox
-        visible={showRiderFound}
-        onClose={() => setShowRiderFound(false)}
-        riderName="Juan Dela Cruz"
-        plateNumber="XYZ 5678"
-        vehicle="Yamaha NMAX"
-        imageSource={require('@/Assets/Common/Sample_Profile.png')}
-      />
 
       <BottomModal
         selectedService={selectedService}

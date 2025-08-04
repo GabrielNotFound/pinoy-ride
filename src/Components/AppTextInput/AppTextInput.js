@@ -90,7 +90,7 @@ const getStyles = ({ colors }) =>
     label: {
       fontFamily: 'Poppins Regular',
       fontSize: 14,
-      color: 'black',
+      color: colors.grey3,
       marginBottom: 5,
     },
     input: {

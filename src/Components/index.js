@@ -4,5 +4,6 @@ export { default as AppTextError } from './AppTextError/AppTextError';
 export { default as AppButton } from './AppButton/AppButton';
 export { default as OTPInput } from './OTP/OTPInput';
 export { default as SuccessAlertBox } from './AlertBox/SuccessAlertBox';
+export { default as OfflineAlertBox } from './AlertBox/OfflineAlertBox';
 export { default as RiderFoundAlertBox } from './AlertBox/RiderFoundAlertBox';
 export { default as AccessLocationAlertBox } from './AlertBox/AccessLocationAlertBox';

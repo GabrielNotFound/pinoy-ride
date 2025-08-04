@@ -1,10 +1,10 @@
-import { Image, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from 'react-native-paper';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 // import AppProgressBar from './AppProgressBar';
-import React from 'react';
 
 const Container = ({
   children,
@@ -54,12 +54,10 @@ const Container = ({
           refreshControl={refresh}
           enableOnAndroid={true}
           bounces={bounces}
-          contentContainerStyle={{
-            flexGrow: 1,
-            backgroundColor: colors.background,
-            ...styles.spacing,
-            ...style,
-          }}
+          contentContainerStyle={[
+            styles.spacing,
+            { flexGrow: 1, backgroundColor: colors.background },
+          ]}
           {...rest}>
           {/* {!!progressBar && <AppProgressBar progressBar={progressBar} />} */}
           {children}
@@ -67,10 +65,8 @@ const Container = ({
       ) : (
         <View
           style={[
-            styles.container,
             styles.spacing,
-            { backgroundColor: colors.background },
-            style,
+            { flex: 1, backgroundColor: colors.background },
           ]}>
           {/* {!!progressBar && <AppProgressBar progressBar={progressBar} />} */}
           {children}
@@ -84,10 +80,9 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: colors.background,
     },
-    spacing: {
-      padding: 20,
-    },
+    spacing: {},
   });
 
 export default Container;

@@ -29,7 +29,7 @@ const GetStartedScreen = () => {
       return;
     }
     if (currentIndex === 1) {
-      navigation.navigate('GeneralTermsScreen');
+      navigation.navigate('LandingScreen');
       return;
     }
     setError('');
@@ -128,7 +128,7 @@ const getStyles = ({ colors }) =>
     headerTitle: {
       fontSize: 16,
       fontFamily: 'Poppins Medium',
-      color: colors.shadow,
+      color: colors.primary,
     },
     pageContainer: {
       flex: 1,

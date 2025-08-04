@@ -5,6 +5,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -13,38 +14,61 @@ import { useTheme } from 'react-native-paper';
 import { AppButton, AppTextInput } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 
-const textInputs = [
-  {
-    key: 'licenseNumber',
-    label: 'Driver’s License No.',
-    placeholder: 'Enter license number',
-  },
-  {
-    key: 'expirationDate',
-    label: 'Expiration Date',
-    placeholder: 'Ex: Jan 2000',
-    inputMode: 'text',
-  },
-  {
-    key: 'motorcycleBrand',
-    label: 'Motorcycle Brand',
-    placeholder: 'Enter brand',
-  },
-  {
-    key: 'motorcycleModel',
-    label: 'Motorcycle Model',
-    placeholder: 'Enter model',
-  },
-  {
-    key: 'color',
-    label: 'Color',
-    placeholder: 'Enter color',
-  },
-  {
-    key: 'plateNumber',
-    label: 'Plate Number',
-    placeholder: 'Enter plate number',
-  },
+const stepInputs = [
+  [
+    { key: 'firstName', label: 'First Name', placeholder: 'Enter first name' },
+    {
+      key: 'middleName',
+      label: 'Middle Name',
+      placeholder: 'Enter middle name',
+    },
+    { key: 'lastName', label: 'Last Name', placeholder: 'Enter last name' },
+    {
+      key: 'phoneNumber',
+      label: 'Phone Number',
+      placeholder: '9XXXXXXXXX',
+      inputMode: 'phone',
+    },
+    {
+      key: 'email',
+      label: 'Email Address',
+      placeholder: 'Enter email',
+      inputMode: 'text',
+    },
+  ],
+  [
+    {
+      key: 'licenseNumber',
+      label: 'Driver’s License No.',
+      placeholder: 'Enter license number',
+    },
+    {
+      key: 'expirationDate',
+      label: 'Expiration Date',
+      placeholder: 'Ex: Jan 2000',
+      inputMode: 'text',
+    },
+    {
+      key: 'motorcycleBrand',
+      label: 'Motorcycle Brand',
+      placeholder: 'Enter brand',
+    },
+    {
+      key: 'motorcycleModel',
+      label: 'Motorcycle Model',
+      placeholder: 'Enter model',
+    },
+    {
+      key: 'color',
+      label: 'Color',
+      placeholder: 'Enter color',
+    },
+    {
+      key: 'plateNumber',
+      label: 'Plate Number',
+      placeholder: 'Enter plate number',
+    },
+  ],
 ];
 
 const RiderApplicationScreen = () => {
@@ -52,7 +76,13 @@ const RiderApplicationScreen = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
+  const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    phoneNumber: '',
+    email: '',
     licenseNumber: '',
     expirationDate: '',
     motorcycleBrand: '',
@@ -62,7 +92,11 @@ const RiderApplicationScreen = () => {
   });
 
   const handleBack = () => {
-    navigation.navigate('LoginScreen');
+    if (step === 0) {
+      navigation.navigate('LoginScreen');
+    } else {
+      setStep(prev => prev - 1);
+    }
   };
 
   const handleChange = (key, value) => {
@@ -70,7 +104,11 @@ const RiderApplicationScreen = () => {
   };
 
   const handleNext = () => {
-    navigation.navigate('LandingScreen');
+    if (step < stepInputs.length - 1) {
+      setStep(prev => prev + 1);
+    } else {
+      navigation.navigate('DownloadDocumentScreen', { formData });
+    }
   };
 
   return (
@@ -85,13 +123,16 @@ const RiderApplicationScreen = () => {
               style={styles.backIcon}
               resizeMode="contain"
             />
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.headerTitle}>Personal Information</Text>
+            </View>
           </TouchableOpacity>
 
           <ScrollView
             style={{ flex: 1 }}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}>
-            {textInputs.map(input => (
+            {stepInputs[step].map(input => (
               <View key={input.key} style={{ marginBottom: 5 }}>
                 <AppTextInput
                   label={input.label}
@@ -105,7 +146,7 @@ const RiderApplicationScreen = () => {
           </ScrollView>
         </View>
 
-        <AppButton title="Submit" onPress={handleNext} isBold />
+        <AppButton title="Next" onPress={handleNext} isBold />
       </KeyboardAvoidingView>
     </Container>
   );
@@ -117,8 +158,6 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      paddingHorizontal: 15,
-      backgroundColor: colors.onPrimary,
     },
     backButton: {
       marginTop: 10,
@@ -130,5 +169,17 @@ const getStyles = ({ colors }) =>
     },
     scrollContent: {
       paddingBottom: 20,
+    },
+    headerTitleContainer: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerTitle: {
+      fontSize: 16,
+      fontFamily: 'Poppins Medium',
+      color: colors.primary,
     },
   });

@@ -84,6 +84,7 @@ const LightTheme = {
     grey3: '#7C7C7C',
     grey4: '#888888',
     grey5: '#ABA9A9',
+    grey6: '#949494',
     darkGrey: '#545454',
     blueGrey: '#DEE5F5',
     lightBlue: '#E2EAFF',

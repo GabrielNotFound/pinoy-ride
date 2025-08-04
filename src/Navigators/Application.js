@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   BookingDetailsScreen,
   BookingHistoryScreen,
-  GeneralTermsScreen,
+  DownloadDocumentScreen,
   GetStartedScreen,
   InputLocation,
   LandingScreen,
@@ -62,13 +62,13 @@ const ApplicationNavigator = () => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="GetStartedScreen"
-              component={GetStartedScreen}
+              name="DownloadDocumentScreen"
+              component={DownloadDocumentScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="GeneralTermsScreen"
-              component={GeneralTermsScreen}
+              name="GetStartedScreen"
+              component={GetStartedScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen
