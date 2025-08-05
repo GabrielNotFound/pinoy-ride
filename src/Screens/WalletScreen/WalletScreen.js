@@ -75,7 +75,11 @@ const WalletScreen = () => {
           <Text style={styles.cardSubtitle}>
             Earnings from cashless, Promo Fare & Incentives
           </Text>
-          <TouchableOpacity style={styles.cardButton}>
+          <TouchableOpacity
+            style={styles.cardButton}
+            onPress={() => {
+              navigation.navigate('TopUpScreen');
+            }}>
             <Image
               source={require('@/Assets/Common/WalletScreen/Top_Up.png')}
               style={styles.cardButtonIcon}
@@ -110,7 +114,6 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#F5F5F5',
     },
     header: {
       height: 52,
@@ -129,7 +132,6 @@ const getStyles = ({ colors }) =>
     backIcon: {
       width: 23,
       height: 23,
-      tintColor: '#000',
     },
     headerTitleContainer: {
       position: 'absolute',
@@ -141,13 +143,13 @@ const getStyles = ({ colors }) =>
     headerTitle: {
       fontSize: 16,
       fontFamily: 'Poppins Medium',
-      color: '#000',
+      color: colors.primary,
     },
     fixedContent: {
+      alignItems: 'center',
       paddingHorizontal: 20,
     },
     scrollContent: {
-      paddingHorizontal: 20,
       paddingBottom: 20,
       paddingTop: 10,
     },
@@ -159,7 +161,7 @@ const getStyles = ({ colors }) =>
       marginBottom: 15,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
+      shadowOpacity: 0.2,
       shadowRadius: 4,
       elevation: 3,
     },
@@ -211,14 +213,15 @@ const getStyles = ({ colors }) =>
       backgroundColor: colors.onPrimary,
       borderRadius: 10,
       padding: 15,
+      marginHorizontal: 5,
       marginBottom: 10,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
+      shadowOffset: { width: 2, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 3,
       elevation: 1,
     },
     cashlessPaymentTitle: {

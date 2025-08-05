@@ -82,7 +82,9 @@ const getStyles = ({ colors }) =>
       flex: 1,
       backgroundColor: colors.background,
     },
-    spacing: {},
+    spacing: {
+      paddingHorizontal: 20,
+    },
   });
 
 export default Container;

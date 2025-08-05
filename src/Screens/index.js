@@ -17,3 +17,4 @@ export { default as BookingDetailsScreen } from './BookingHistoryScreen/BookingD
 export { default as PromoReferralsScreen } from './PromoReferralsScreen/PromoReferralsScreen';
 export { default as PaymentOptionScreen } from './PaymentOptionScreen/PaymentOptionScreen';
 export { default as WalletScreen } from './WalletScreen/WalletScreen';
+export { default as TopUpScreen } from './WalletScreen/TopUpScreen';

@@ -18,6 +18,7 @@ import {
   RiderApplicationScreen,
   SettingsScreen,
   SplashScreen,
+  TopUpScreen,
   WalletScreen,
 } from '@/Screens';
 import { Text } from 'react-native';
@@ -111,11 +112,10 @@ const ApplicationNavigator = () => {
               component={PaymentOptionScreen}
               options={{ headerShown: false }}
             />
-            <Stack.Screen
-              name="WalletScreen"
-              component={WalletScreen}
-              options={{ headerShown: false }}
-            />
+            <Stack.Group screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="WalletScreen" component={WalletScreen} />
+              <Stack.Screen name="TopUpScreen" component={TopUpScreen} />
+            </Stack.Group>
 
             <Stack.Group
               screenOptions={{ presentation: 'modal', headerShown: false }}>
