@@ -52,7 +52,11 @@ const WalletScreen = () => {
             Earnings from cashless, Promo Fare & Incentives
           </Text>
           <View style={styles.balanceButtons}>
-            <TouchableOpacity style={styles.cardButton}>
+            <TouchableOpacity
+              style={styles.cardButton}
+              onPress={() => {
+                navigation.navigate('CashOutScreen');
+              }}>
               <Image
                 source={require('@/Assets/Common/WalletScreen/Cash_Out.png')}
                 style={styles.cardButtonIcon}

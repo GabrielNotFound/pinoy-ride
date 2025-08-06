@@ -18,3 +18,4 @@ export { default as PromoReferralsScreen } from './PromoReferralsScreen/PromoRef
 export { default as PaymentOptionScreen } from './PaymentOptionScreen/PaymentOptionScreen';
 export { default as WalletScreen } from './WalletScreen/WalletScreen';
 export { default as TopUpScreen } from './WalletScreen/TopUpScreen';
+export { default as CashOutScreen } from './WalletScreen/CashOutScreen';

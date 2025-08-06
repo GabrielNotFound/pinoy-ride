@@ -1,4 +1,4 @@
-import { AppTextInput, Container } from '@/Components';
+import { AppButton, AppTextInput, Container } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -17,72 +17,75 @@ const TopUpScreen = () => {
 
   return (
     <Container style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Image
-            source={require('@/Assets/Common/Back.png')}
-            style={styles.backIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Top Up</Text>
-        </View>
-      </View>
-
-      <View style={styles.transferRow}>
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>From</Text>
-          <View style={styles.cardRow}>
-            <Image
-              source={require('@/Assets/Common/WalletScreen/Money_Symbol_1.png')}
-              style={styles.moneySymbol}
-            />
-            <Text style={styles.cardTitle}>Cash{'\n'}Balance</Text>
-          </View>
-        </View>
-
-        <Image
-          source={require('@/Assets/Common/Right_Arrow.png')}
-          style={styles.arrowIcon}
-        />
-
-        <View style={[styles.card, styles.cardYellow]}>
-          <Text style={[styles.cardLabel, { color: colors.onPrimary }]}>
-            To
-          </Text>
-          <View style={styles.cardRow}>
-            <Image
-              source={require('@/Assets/Common/WalletScreen/Money_Symbol_2.png')}
-              style={styles.moneySymbol}
-            />
-            <Text style={[styles.cardTitle, { color: colors.onPrimary }]}>
-              Pinoy Ride{'\n'}Credit
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.divider} />
-
       <View style={styles.contents}>
-        <View style={styles.balanceContainer}>
-          <Text style={styles.balance}>₱250.00</Text>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <Image
+              source={require('@/Assets/Common/Back.png')}
+              style={styles.backIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>Top Up</Text>
+          </View>
         </View>
-        <View style={styles.transaction}>
-          <Text style={styles.amountTitle}>Enter Amount</Text>
-          <AppTextInput
-            value={amount}
-            onChangeText={setAmount}
-            placeholder="Amount"
-            inputMode="amount"
+
+        <View style={styles.transferRow}>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>From</Text>
+            <View style={styles.cardRow}>
+              <Image
+                source={require('@/Assets/Common/WalletScreen/Money_Symbol_1.png')}
+                style={styles.moneySymbol}
+              />
+              <Text style={styles.cardTitle}>Cash{'\n'}Balance</Text>
+            </View>
+          </View>
+
+          <Image
+            source={require('@/Assets/Common/Right_Arrow.png')}
+            style={styles.arrowIcon}
           />
+
+          <View style={[styles.card, styles.cardYellow]}>
+            <Text style={[styles.cardLabel, { color: colors.onPrimary }]}>
+              To
+            </Text>
+            <View style={styles.cardRow}>
+              <Image
+                source={require('@/Assets/Common/WalletScreen/Money_Symbol_2.png')}
+                style={styles.moneySymbol}
+              />
+              <Text style={[styles.cardTitle, { color: colors.onPrimary }]}>
+                Pinoy Ride{'\n'}Credit
+              </Text>
+            </View>
+          </View>
         </View>
-        <Text style={styles.minimum}>
-          50.00 is the minimum amount you can transfer
-        </Text>
-        <Text style={styles.fee}>No Transaction fee</Text>
+
+        <View style={styles.divider} />
+
+        <View style={styles.lowerPart}>
+          <View style={styles.balanceContainer}>
+            <Text style={styles.balance}>₱250.00</Text>
+          </View>
+          <View style={styles.transaction}>
+            <Text style={styles.amountTitle}>Enter Amount</Text>
+            <AppTextInput
+              value={amount}
+              onChangeText={setAmount}
+              placeholder="Amount"
+              inputMode="amount"
+            />
+          </View>
+          <Text style={styles.minimum}>
+            50.00 is the minimum amount you can transfer
+          </Text>
+          <Text style={styles.fee}>No Transaction fee</Text>
+        </View>
       </View>
+      <AppButton title="Confirm" onPress={() => {}} isBold />
     </Container>
   );
 };
@@ -93,6 +96,10 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
+    },
+    contents: {
+      flex: 1,
+      justifyContent: 'flex-start',
     },
     header: {
       height: 52,
@@ -170,11 +177,11 @@ const getStyles = ({ colors }) =>
       marginRight: 10,
     },
     divider: {
-      marginVertical: 30,
+      marginVertical: 25,
       borderBottomWidth: 0.5,
       borderBottomColor: colors.grey5,
     },
-    contents: {
+    lowerPart: {
       paddingHorizontal: 16,
     },
     transaction: {

@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   BookingDetailsScreen,
   BookingHistoryScreen,
+  CashOutScreen,
   DownloadDocumentScreen,
   GetStartedScreen,
   InputLocation,
@@ -115,6 +116,7 @@ const ApplicationNavigator = () => {
             <Stack.Group screenOptions={{ headerShown: false }}>
               <Stack.Screen name="WalletScreen" component={WalletScreen} />
               <Stack.Screen name="TopUpScreen" component={TopUpScreen} />
+              <Stack.Screen name="CashOutScreen" component={CashOutScreen} />
             </Stack.Group>
 
             <Stack.Group
