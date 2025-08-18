@@ -2,4 +2,5 @@
   <string name="app_name">pinoy-ride</string>
   <string name="facebook_app_id">3041042182736964</string>
   <string name="fb_login_protocol_scheme">fb3041042182736964</string>
+  <string name="facebook_client_token">e1d00e7c154bc951f926c1dd08f01a47</string>
 </resources>

@@ -25,6 +25,12 @@
     <!-- Facebook App ID -->
     <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
 
+    <!-- Facebook Client Token ID -->
+    <meta-data 
+    android:name="com.facebook.sdk.ClientToken"
+    android:value="@string/facebook_client_token"/>
+
+
     <!-- Facebook Content Provider -->
     <provider
       android:authorities="com.facebook.app.FacebookContentProvider3041042182736964"
