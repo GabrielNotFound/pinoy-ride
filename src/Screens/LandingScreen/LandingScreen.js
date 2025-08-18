@@ -1,11 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import ServiceModal from './ServiceModal';
 import BottomModal from './BottomModal';
@@ -15,10 +9,8 @@ import { useNavigation } from '@react-navigation/native';
 const LandingScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
-  const navigation = useNavigation();
 
   const [showOffline, setShowOffline] = useState(false);
-  const [showRiderFound, setShowRiderFound] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
 
@@ -35,19 +27,6 @@ const LandingScreen = () => {
     };
   }, []);
 
-  const onBookPressed = () => {
-    setShowServiceModal(true);
-
-    // Schedule Rider Found modal after 15 seconds
-    riderFoundTimeout.current = setTimeout(() => {
-      setShowRiderFound(true);
-    }, 15000); // 15,000 ms = 15 secs
-  };
-
-  const handleTopRightPress = () => {
-    navigation.navigate('SettingsScreen');
-  };
-
   return (
     <View style={styles.container}>
       <Image
@@ -55,15 +34,6 @@ const LandingScreen = () => {
         style={styles.map}
         resizeMode="cover"
       />
-
-      <TouchableOpacity
-        style={styles.profileButton}
-        onPress={handleTopRightPress}>
-        <Image
-          source={require('@/Assets/Common/LandingScreen/Profile_Icon_1.png')}
-          style={styles.iconImage}
-        />
-      </TouchableOpacity>
 
       {/* ✅ Offline Alert */}
       {showOffline && (
@@ -73,10 +43,7 @@ const LandingScreen = () => {
         />
       )}
 
-      <BottomModal
-        selectedService={selectedService}
-        onBookPressed={onBookPressed}
-      />
+      <BottomModal />
 
       <ServiceModal
         visible={showServiceModal}

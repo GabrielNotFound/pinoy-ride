@@ -151,7 +151,6 @@ const getStyles = ({ colors }) =>
     },
     fixedContent: {
       alignItems: 'center',
-      paddingHorizontal: 20,
     },
     scrollContent: {
       paddingBottom: 20,
@@ -159,7 +158,7 @@ const getStyles = ({ colors }) =>
     },
     cardContainer: {
       backgroundColor: colors.onPrimary,
-      width: 385,
+      width: '100%',
       borderRadius: 10,
       padding: 15,
       marginBottom: 15,
