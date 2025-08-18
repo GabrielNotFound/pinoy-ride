@@ -1,4 +1,4 @@
-package com.gabriel1337.pinoyride
+package com.gabriel1337.pinoyriderider
 
 import android.os.Build
 import android.os.Bundle

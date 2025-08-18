@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "pinoy-ride",
-    "slug": "pinoy-ride",
+    "name": "pinoyriderider",
+    "slug": "pinoyriderider",
     "version": "1.0.0",
     "plugins": ["expo-font", "expo-build-properties"],
     "android": {
-      "package": "com.gabriel1337.pinoyride"
+      "package": "com.gabriel1337.pinoyriderider"
     },
     "ios": {
-      "bundleIdentifier": "com.gabriel1337.pinoyride"
+      "bundleIdentifier": "com.gabriel1337.pinoyriderider"
     }
   }
 }
