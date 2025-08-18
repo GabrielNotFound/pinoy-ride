@@ -10,7 +10,7 @@ const SplashScreen = () => {
         resolve(true);
       }, 1000),
     );
-    navigation.navigate('WalletScreen');
+    navigation.navigate('LoginScreen');
   };
 
   useEffect(() => {

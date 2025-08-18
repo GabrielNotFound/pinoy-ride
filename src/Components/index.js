@@ -7,3 +7,4 @@ export { default as SuccessAlertBox } from './AlertBox/SuccessAlertBox';
 export { default as OfflineAlertBox } from './AlertBox/OfflineAlertBox';
 export { default as RiderFoundAlertBox } from './AlertBox/RiderFoundAlertBox';
 export { default as AccessLocationAlertBox } from './AlertBox/AccessLocationAlertBox';
+export { default as AppTransactionComplete } from './AppTransactionComplete/AppTransactionComplete';

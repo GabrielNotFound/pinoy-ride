@@ -26,8 +26,7 @@ const CashOutScreen = () => {
   };
 
   const handleSubmit = () => {
-    console.log('Cash Out submitted with amount:', amount);
-    // Add submission logic here
+    navigation.navigate('AppTransactionComplete');
   };
 
   return (
@@ -233,7 +232,7 @@ const getStyles = ({ colors }) =>
     label: {
       fontFamily: 'Poppins Regular',
       width: 100,
-      marginRight: 50,
+      marginRight: 70,
       fontSize: 14,
       color: colors.grey3,
     },

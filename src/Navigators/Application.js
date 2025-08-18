@@ -25,6 +25,7 @@ import {
 import { Text } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import LightTheme from '../Theme/LightTheme';
+import { AppTransactionComplete } from '@/Components';
 
 const Stack = createNativeStackNavigator();
 
@@ -118,6 +119,12 @@ const ApplicationNavigator = () => {
               <Stack.Screen name="TopUpScreen" component={TopUpScreen} />
               <Stack.Screen name="CashOutScreen" component={CashOutScreen} />
             </Stack.Group>
+
+            <Stack.Screen
+              name="AppTransactionComplete"
+              component={AppTransactionComplete}
+              options={{ headerShown: false }}
+            />
 
             <Stack.Group
               screenOptions={{ presentation: 'modal', headerShown: false }}>
