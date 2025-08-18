@@ -2,13 +2,23 @@
   "expo": {
     "name": "pinoy-ride",
     "slug": "pinoy-ride",
+    "owner": "gabriel1337",
+    "scheme": "pinoyride",
     "version": "1.0.0",
-    "plugins": ["expo-font", "expo-build-properties"],
+    "plugins": [
+      "expo-font",
+      "expo-build-properties"
+    ],
     "android": {
       "package": "com.gabriel1337.pinoyride"
     },
     "ios": {
       "bundleIdentifier": "com.gabriel1337.pinoyride"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "54a9fa8f-b623-44ee-883b-c037d09d78af"
+      }
     }
   }
 }

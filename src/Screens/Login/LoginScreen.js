@@ -1,14 +1,18 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { AppButton } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '@/Services/AuthProvider';
+// adjust path as needed
 
 const LoginScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const { signInWithGoogle, signInWithFacebook } = useAuth();
+
   return (
     <Container>
       <View style={styles.logoContainer}>
@@ -22,14 +26,26 @@ const LoginScreen = () => {
         <AppButton
           title="Continue with Facebook"
           leftIcon={require('@/Assets/Common/Socials/facebook.png')}
-          onPress={() => console.log('Button Pressed')}
+          onPress={async () => {
+            const token = await signInWithFacebook();
+            if (token) {
+              navigation.navigate('LandingScreen');
+              console.log('Facebook token:', token);
+            }
+          }}
           mode="light"
           featureStyle={{ marginBottom: 10 }}
         />
         <AppButton
           title="Continue with Google"
           leftIcon={require('@/Assets/Common/Socials/google.png')}
-          onPress={() => console.log('Button Pressed')}
+          onPress={async () => {
+            const userInfo = await signInWithGoogle();
+            if (userInfo) {
+              // Navigate or do something on success
+              console.log('Google user:', userInfo);
+            }
+          }}
           mode="light"
           featureStyle={{ marginTop: 0 }}
         />

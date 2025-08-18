@@ -91,7 +91,7 @@ const OnboardingScreen = () => {
           style={[
             styles.backButton,
             {
-              top: Platform.OS === 'ios' ? insets.top + 70 : 20,
+              top: Platform.OS === 'ios' ? insets.top + 20 : 70,
             },
           ]}>
           <Image

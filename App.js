@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import * as Font from 'expo-font';
 import ApplicationNavigator from '@/Navigators/Application';
+import { AuthProvider } from '@/Services/AuthProvider';
 
 const App = () => {
   Font.loadAsync({
@@ -15,9 +16,11 @@ const App = () => {
   });
 
   return (
-    <View style={styles.container}>
-      <ApplicationNavigator />
-    </View>
+    <AuthProvider>
+      <View style={styles.container}>
+        <ApplicationNavigator />
+      </View>
+    </AuthProvider>
   );
 };
 
