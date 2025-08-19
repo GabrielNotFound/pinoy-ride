@@ -42,7 +42,7 @@ const LoginScreen = () => {
           onPress={async () => {
             const userInfo = await signInWithGoogle();
             if (userInfo) {
-              // Navigate or do something on success
+              navigation.navigate('LandingScreen');
               console.log('Google user:', userInfo);
             }
           }}

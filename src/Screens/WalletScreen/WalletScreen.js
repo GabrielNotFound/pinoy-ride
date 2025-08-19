@@ -167,7 +167,7 @@ const getStyles = ({ colors }) =>
       color: colors.grey4,
     },
     walletCard: {
-      width: 370,
+      width: '106.5%',
       height: 171,
       borderRadius: 20,
       padding: 20,
@@ -230,7 +230,7 @@ const getStyles = ({ colors }) =>
     actionButton: {
       flex: 1,
       flexDirection: 'row',
-      backgroundColor: 'white',
+      backgroundColor: colors.onPrimary,
       paddingVertical: 12,
       paddingHorizontal: 10,
       borderRadius: 10,
@@ -245,7 +245,7 @@ const getStyles = ({ colors }) =>
     actionIcon: {
       width: 24,
       height: 24,
-      marginRight: 10,
+      marginRight: 5,
     },
     actionLabel: {
       fontFamily: 'Poppins Regular',
