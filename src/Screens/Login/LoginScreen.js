@@ -1,75 +1,102 @@
-import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
-import { AppButton } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '@/Services/AuthProvider';
-// adjust path as needed
+import { AppButton, AppTextInput, OTPInput } from '@/Components';
 
 const LoginScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
-  const { signInWithGoogle, signInWithFacebook } = useAuth();
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [error, setError] = useState('');
+
+  const handleBack = () => {
+    if (currentIndex === 0) {
+      navigation.navigate('LandingScreen');
+    } else {
+      setCurrentIndex(prev => prev - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex === 0 && !mobileNumber) {
+      setError('Mobile number is required');
+      return;
+    }
+    if (currentIndex === 1) {
+      navigation.navigate('GeneralTermsScreen');
+      return;
+    }
+    setError('');
+    setCurrentIndex(prev => prev + 1);
+  };
 
   return (
-    <Container>
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('@/Assets/Common/Pinoy_Ride.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <AppButton
-          title="Continue with Facebook"
-          leftIcon={require('@/Assets/Common/Socials/facebook.png')}
-          onPress={async () => {
-            const token = await signInWithFacebook();
-            if (token) {
-              navigation.navigate('LandingScreen');
-              console.log('Facebook token:', token);
-            }
-          }}
-          mode="light"
-          featureStyle={{ marginBottom: 10 }}
-        />
-        <AppButton
-          title="Continue with Google"
-          leftIcon={require('@/Assets/Common/Socials/google.png')}
-          onPress={async () => {
-            const userInfo = await signInWithGoogle();
-            if (userInfo) {
-              navigation.navigate('LandingScreen');
-              console.log('Google user:', userInfo);
-            }
-          }}
-          mode="light"
-          featureStyle={{ marginTop: 0 }}
-        />
-        <View style={styles.separatorContainer}>
+    <Container style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Image
-            source={require('@/Assets/Common/LoginScreen/Line.png')}
-            style={styles.line}
+            source={require('@/Assets/Common/Back.png')}
+            style={styles.backIcon}
             resizeMode="contain"
           />
-          <Text style={styles.orText}>or</Text>
-          <Image
-            source={require('@/Assets/Common/LoginScreen/Line.png')}
-            style={styles.line}
-            resizeMode="contain"
-          />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Get Started</Text>
         </View>
-        <AppButton
-          title="Continue with Mobile Number"
-          leftIcon={require('@/Assets/Common/LoginScreen/phone_icon.png')}
-          onPress={() => navigation.navigate('GetStartedScreen')}
-          featureStyle={{ marginTop: 0 }}
-        />
       </View>
-      <View />
+
+      {/* Page Content */}
+      <View style={styles.pageContainer}>
+        {currentIndex === 0 ? (
+          <AppTextInput
+            label="Mobile"
+            value={mobileNumber}
+            onChangeText={setMobileNumber}
+            inputMode="phone"
+            placeholder="9XXXXXXXXX"
+            error={error}
+          />
+        ) : (
+          <>
+            <Text style={styles.title}>Enter One-Time PIN</Text>
+            <Text style={styles.subtitle}>
+              A One-Time PIN was sent to +63 ******4567
+            </Text>
+            <OTPInput length={6} onOTPChange={setOtpCode} />
+            <View style={styles.imageContainer}>
+              <Image
+                source={require('@/Assets/Common/LoginScreen/OTP_Image.png')}
+                style={styles.otpImage}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={styles.resendContainer}>
+              <Text style={styles.resendLabel}>Didn't receive it?</Text>
+              <TouchableOpacity onPress={() => console.log('Request new OTP')}>
+                <Text style={styles.resendLink}>Request a new OTP</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+
+      {/* Footer at bottom */}
+      {currentIndex === 0 && (
+        <View>
+          <Text style={styles.footerText}>
+            Enter your active number to receive a verification code. This helps
+            us keep your account secure.
+          </Text>
+          <AppButton title="Next" onPress={handleNext} isBold />
+        </View>
+      )}
     </Container>
   );
 };
@@ -78,32 +105,87 @@ export default LoginScreen;
 
 const getStyles = ({ colors }) =>
   StyleSheet.create({
-    logoContainer: {
+    container: {
       flex: 1,
+      paddingHorizontal: 10,
+    },
+    header: {
+      height: 52,
+      justifyContent: 'center',
+      marginBottom: 20,
+    },
+    backButton: {
+      position: 'absolute',
+      left: 0,
+      width: 52,
+      height: 52,
       justifyContent: 'center',
       alignItems: 'center',
+      zIndex: 2,
     },
-    logo: {
-      width: 243,
-      height: 175,
+    backIcon: {
+      width: 23,
+      height: 23,
     },
-    buttonContainer: {
-      paddingBottom: 30,
-    },
-    separatorContainer: {
-      flexDirection: 'row',
+    headerTitleContainer: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 15,
     },
-    line: {
-      width: 150,
-      height: 2,
-      marginHorizontal: 8,
-    },
-    orText: {
+    headerTitle: {
       fontSize: 16,
-      color: colors.onSurfaceGrey,
+      fontFamily: 'Poppins Medium',
+      color: colors.shadow,
+    },
+    pageContainer: {
+      flex: 1,
+      paddingHorizontal: 20,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '400',
+      marginBottom: 15,
       fontFamily: 'Poppins Regular',
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 11,
+      textAlign: 'center',
+      fontFamily: 'Poppins Regular',
+      color: colors.onSurfaceGrey,
+      marginBottom: 20,
+    },
+    imageContainer: {
+      marginVertical: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    otpImage: {
+      width: 288,
+      height: 288,
+    },
+    resendContainer: {
+      marginTop: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    resendLabel: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 16,
+      color: colors.shadow,
+      marginBottom: 2,
+    },
+    resendLink: {
+      fontFamily: 'Poppins SemiBold',
+      fontSize: 16,
+      color: colors.primary,
+    },
+    footerText: {
+      textAlign: 'center',
+      fontFamily: 'Poppins Regular',
+      fontSize: 12,
+      color: colors.darkGrey,
     },
   });

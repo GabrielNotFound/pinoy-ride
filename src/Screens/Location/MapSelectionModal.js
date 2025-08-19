@@ -37,7 +37,7 @@ const MapSelectionModal = () => {
         style={styles.profileButton}
         onPress={handleTopRightPress}>
         <Image
-          source={require('@/Assets/Common/LandingScreen/Profile_Icon_1.png')}
+          source={require('@/Assets/Common/HomeScreen/Profile_Icon_1.png')}
           style={styles.iconImage}
         />
       </TouchableOpacity>

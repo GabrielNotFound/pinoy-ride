@@ -11,17 +11,17 @@ import { useTheme } from 'react-native-paper';
 
 const services = [
   {
-    icon: require('@/Assets/Common/LandingScreen/Motorcycle.png'),
+    icon: require('@/Assets/Common/HomeScreen/Motorcycle.png'),
     title: 'Motorcycle',
     subtitle: 'Lorem ipsum dolor sit amet consectetur.',
   },
   {
-    icon: require('@/Assets/Common/LandingScreen/Padala.png'),
+    icon: require('@/Assets/Common/HomeScreen/Padala.png'),
     title: 'Padala',
     subtitle: 'Lorem ipsum dolor sit amet consectetur.',
   },
   {
-    icon: require('@/Assets/Common/LandingScreen/Car.png'),
+    icon: require('@/Assets/Common/HomeScreen/Car.png'),
     title: 'Ride a Car',
     subtitle: 'Lorem ipsum dolor sit amet consectetur.',
   },

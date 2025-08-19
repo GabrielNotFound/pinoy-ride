@@ -77,7 +77,7 @@ const InputLocation = () => {
         <View style={styles.locationButtonsContainer}>
           <TouchableOpacity style={styles.iconWithTextButton}>
             <Image
-              source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_5.png')}
+              source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
               style={styles.iconSmall}
               resizeMode="contain"
             />
@@ -88,7 +88,7 @@ const InputLocation = () => {
 
           <TouchableOpacity style={styles.iconWithTextButton}>
             <Image
-              source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_8.png')}
+              source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
               style={styles.iconSmall}
               resizeMode="contain"
             />

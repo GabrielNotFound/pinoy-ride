@@ -6,15 +6,15 @@ import { useNavigation } from '@react-navigation/native';
 
 const buttons = [
   {
-    image: require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png'),
+    image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     text: 'Cash',
   },
   {
-    image: require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png'),
+    image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     text: 'Promo',
   },
   {
-    image: require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png'),
+    image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     text: 'Note to Rider',
   },
 ];
@@ -43,7 +43,7 @@ const BottomModal = ({ selectedService, onBookPressed, onConfirmBooking }) => {
                 style={styles.locationButton}
                 onPress={() => navigation.navigate('InputLocation')}>
                 <Image
-                  source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_5.png')}
+                  source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
                   style={styles.locationIcon}
                 />
                 <Text style={styles.locationText}>Pick up From?</Text>
@@ -59,7 +59,7 @@ const BottomModal = ({ selectedService, onBookPressed, onConfirmBooking }) => {
                 style={styles.locationButton}
                 onPress={() => navigation.navigate('InputLocation')}>
                 <Image
-                  source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_8.png')}
+                  source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
                   style={styles.locationIcon}
                 />
                 <Text style={styles.locationText}>Drop off To?</Text>
@@ -100,7 +100,7 @@ const BottomModal = ({ selectedService, onBookPressed, onConfirmBooking }) => {
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Total</Text>
                 <Image
-                  source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png')}
+                  source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
                   style={styles.optionIcon}
                 />
               </View>

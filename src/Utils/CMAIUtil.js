@@ -4,11 +4,12 @@ import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 import * as Location from 'expo-location';
 import * as Crypto from 'expo-crypto';
-import Constants from '../Utils/Constants';
-import ExpoConstants from 'expo-constants';
-import { getAllServices, getAppDataFiltered } from '@/Services/Database';
+// import Constants from '../Utils/Constants';
 import { Linking, Platform } from 'react-native';
-import RNSimpleCrypto from 'react-native-simple-crypto';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+// import RNSimpleCrypto from 'react-native-simple-crypto';
+
+//@TODO: Re-enable react-native-simple-crypto
 
 const CMAIUtil = {
   debug: function (string) {
@@ -99,7 +100,7 @@ const CMAIUtil = {
   },
 
   getAppVersionNo: function () {
-    return ExpoConstants.expoConfig.version;
+    return DeviceInfo.getVersion();
   },
 
   getUUID: function () {
@@ -135,24 +136,30 @@ const CMAIUtil = {
     return string;
   },
 
-  getUserID: async function () {
-    let app_data = getAppDataFiltered('key = "USER_ID"');
-    let userId = '';
-    if (app_data.value) {
-      userId = await this.aes_decrypt(app_data.value);
-    }
-    return userId;
+  getUBranchCode: async function () {
+    const branchCode = await AsyncStorage.getItem('BRANCH_CODE');
+    return branchCode;
   },
 
-  getSessionID: function () {
-    let app_data = getAppDataFiltered('key = "SESSION_ID"');
-    return app_data.value;
+  getUBranchName: async function () {
+    const branchName = await AsyncStorage.getItem('BRANCH_NAME');
+    return branchName;
   },
 
-  getRegistrationID: function () {
-    let app_data = getAppDataFiltered('key = "REGISTRATION_ID"');
-    return app_data.value;
+  getUTpaId: async function () {
+    const tpaId = await AsyncStorage.getItem('TPA_ID');
+    return tpaId;
   },
+
+  getSessionID: async function () {
+    const sessionId = await AsyncStorage.getItem('SESSION_ID');
+    return sessionId;
+  },
+
+  // getRegistrationID: function () {
+  //   let app_data = getAppDataFiltered('key = "REGISTRATION_ID"');
+  //   return app_data.value;
+  // },
 
   goToDeviceSettings: function () {
     Platform.OS === 'ios'
@@ -167,45 +174,45 @@ const CMAIUtil = {
     let decrypted = await this.aes_decrypt(encrypted);
   */
 
-  aes_encrypt: async function (string) {
-    try {
-      const toHex = RNSimpleCrypto.utils.convertArrayBufferToHex;
+  // aes_encrypt: async function (string) {
+  //   try {
+  //     const toHex = RNSimpleCrypto.utils.convertArrayBufferToHex;
 
-      const strArrayBuffer =
-        RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(string);
+  //     const strArrayBuffer =
+  //       RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(string);
 
-      const cipherTextArrayBuffer = await RNSimpleCrypto.AES.encrypt(
-        strArrayBuffer,
-        RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(Constants.AES_KEY),
-        RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(Constants.AES_IV),
-      );
-      if (__DEV__) {
-        console.log('AES encrypt', toHex(cipherTextArrayBuffer));
-      }
-      return toHex(cipherTextArrayBuffer);
-    } catch (error) {
-      console.log(error);
-    }
-  },
+  //     const cipherTextArrayBuffer = await RNSimpleCrypto.AES.encrypt(
+  //       strArrayBuffer,
+  //       RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(Constants.AES_KEY),
+  //       RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(Constants.AES_IV),
+  //     );
+  //     if (__DEV__) {
+  //       console.log('AES encrypt', toHex(cipherTextArrayBuffer));
+  //     }
+  //     return toHex(cipherTextArrayBuffer);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // },
 
-  aes_decrypt: async function (hex_string) {
-    try {
-      const toUtf8 = RNSimpleCrypto.utils.convertArrayBufferToUtf8;
+  // aes_decrypt: async function (hex_string) {
+  //   try {
+  //     const toUtf8 = RNSimpleCrypto.utils.convertArrayBufferToUtf8;
 
-      const decryptedArrayBuffer = await RNSimpleCrypto.AES.decrypt(
-        RNSimpleCrypto.utils.convertHexToArrayBuffer(hex_string),
-        RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(Constants.AES_KEY),
-        RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(Constants.AES_IV),
-      );
+  //     const decryptedArrayBuffer = await RNSimpleCrypto.AES.decrypt(
+  //       RNSimpleCrypto.utils.convertHexToArrayBuffer(hex_string),
+  //       RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(Constants.AES_KEY),
+  //       RNSimpleCrypto.utils.convertUtf8ToArrayBuffer(Constants.AES_IV),
+  //     );
 
-      if (__DEV__) {
-        console.log('AES decrypt here....', toUtf8(decryptedArrayBuffer));
-      }
-      return toUtf8(decryptedArrayBuffer);
-    } catch (error) {
-      console.log(error);
-    }
-  },
+  //     if (__DEV__) {
+  //       console.log('AES decrypt here....', toUtf8(decryptedArrayBuffer));
+  //     }
+  //     return toUtf8(decryptedArrayBuffer);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // },
 
   hexToBinary: function (hex) {
     // Convert the buffer to a Uint8Array
@@ -226,35 +233,11 @@ const CMAIUtil = {
     return str.slice(0, index) + stringToAdd + str.slice(index);
   },
 
-  checkInactiveProduct: function (product) {
-    const products = getAllServices();
-    // Convert the search term to lowercase for case-insensitive comparison
-    const searchTerm = product?.toLowerCase();
-
-    // Return null if searchTerm is empty or blank
-    if (searchTerm === '') {
-      return null;
-    }
-
-    // Find the first product matching the search term in product_desc and status not equal to "A"
-    const foundProduct = products?.find(
-      p =>
-        p?.product_desc?.toLowerCase().includes(searchTerm) &&
-        p?.status !== 'A',
-    );
-
-    return foundProduct || null;
-  },
-
   formattedMobileNo: function (n) {
     return `+${n.substring(0, 2)} ${n.substring(2, 5)} ${n.substring(
       5,
       8,
     )} ${n.substring(8, 12)}`;
-  },
-
-  formattedUsername: function (str) {
-    return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
   },
 
   maskPhoneNumber: function (num) {
@@ -266,23 +249,6 @@ const CMAIUtil = {
     const lastPart = num.slice(9);
 
     return `+${firstPart}${middlePart}${lastPart}`;
-  },
-
-  maskEmail: function (email) {
-    if (!email) {
-      return;
-    }
-    const atIndex = email.indexOf('@');
-
-    if (atIndex !== -1) {
-      const name = email.substring(0, atIndex); // Extract the part before the '@'
-      const maskedName = name[0] + '*'.repeat(name.length - 1); // Mask the name
-      const domain = email.substring(atIndex); // Extract the domain part
-      return maskedName + domain;
-    } else {
-      // If there's no '@' symbol in the email, return the original email
-      return email;
-    }
   },
 
   isEmail: function (str) {
@@ -299,12 +265,9 @@ const CMAIUtil = {
     }
     return str
       .trim()
+      .replace(/\./g, '')
       .replace(/^[A-Z]/, match => match.toLowerCase())
       .replace(/([A-Z])/g, match => '_' + match.toLowerCase());
-  },
-
-  isImageFile: function (path) {
-    return /\.(jpg|jpeg|png|gif|bmp)$/i.test(path);
   },
 };
 

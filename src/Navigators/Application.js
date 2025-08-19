@@ -6,7 +6,7 @@ import {
   BookingDetailsScreen,
   BookingHistoryScreen,
   GeneralTermsScreen,
-  GetStartedScreen,
+  HomeScreen,
   InputLocation,
   LandingScreen,
   LoginScreen,
@@ -52,8 +52,8 @@ const ApplicationNavigator = () => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="LoginScreen"
-              component={LoginScreen}
+              name="LandingScreen"
+              component={LandingScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen
@@ -62,8 +62,8 @@ const ApplicationNavigator = () => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="GetStartedScreen"
-              component={GetStartedScreen}
+              name="LoginScreen"
+              component={LoginScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen
@@ -72,8 +72,8 @@ const ApplicationNavigator = () => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="LandingScreen"
-              component={LandingScreen}
+              name="HomeScreen"
+              component={HomeScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

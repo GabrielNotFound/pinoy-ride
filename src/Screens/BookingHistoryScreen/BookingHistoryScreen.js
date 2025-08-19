@@ -21,7 +21,7 @@ const BookingHistoryScreen = () => {
     {
       id: 1,
       title: 'Motorcycle',
-      image: require('@/Assets/Common/LandingScreen/Motorcycle.png'),
+      image: require('@/Assets/Common/HomeScreen/Motorcycle.png'),
       status: 'Completed',
       destination: 'Makati City',
       date: 'July 20, 2025 - 3:30 PM',
@@ -35,7 +35,7 @@ const BookingHistoryScreen = () => {
     {
       id: 2,
       title: 'Motorcycle',
-      image: require('@/Assets/Common/LandingScreen/Motorcycle.png'),
+      image: require('@/Assets/Common/HomeScreen/Motorcycle.png'),
       status: 'Cancelled',
       destination: 'Quezon City',
       date: 'July 18, 2025 - 1:00 PM',

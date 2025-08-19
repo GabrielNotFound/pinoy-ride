@@ -13,7 +13,7 @@ const RatingScreen = () => {
   const [comment, setComment] = useState('');
 
   const handleBack = () => {
-    navigation.navigate('LandingScreen');
+    navigation.navigate('HomeScreen');
   };
 
   const handleSubmit = () => {
@@ -83,7 +83,7 @@ const RatingScreen = () => {
         <View style={styles.fareRow}>
           <Text style={styles.feeText}>Payment Method</Text>
           <Image
-            source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png')}
+            source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
             style={styles.optionIcon}
           />
         </View>

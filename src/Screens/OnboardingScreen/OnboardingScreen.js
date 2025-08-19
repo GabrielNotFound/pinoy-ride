@@ -67,12 +67,12 @@ const OnboardingScreen = () => {
       flatListRef.current.scrollToIndex({ index: nextIndex });
       setCurrentIndex(nextIndex);
     } else {
-      navigation.replace('LoginScreen');
+      navigation.replace('LandingScreen');
     }
   };
 
   const handleSkip = () => {
-    navigation.navigate('LoginScreen');
+    navigation.navigate('LandingScreen');
   };
 
   const handleBack = () => {

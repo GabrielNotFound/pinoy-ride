@@ -12,7 +12,7 @@ import BottomModal from './BottomModal';
 import { RiderFoundAlertBox, SuccessAlertBox } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 
-const LandingScreen = () => {
+const HomeScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
@@ -60,7 +60,7 @@ const LandingScreen = () => {
         style={styles.profileButton}
         onPress={handleTopRightPress}>
         <Image
-          source={require('@/Assets/Common/LandingScreen/Profile_Icon_1.png')}
+          source={require('@/Assets/Common/HomeScreen/Profile_Icon_1.png')}
           style={styles.iconImage}
         />
       </TouchableOpacity>
@@ -103,7 +103,7 @@ const LandingScreen = () => {
   );
 };
 
-export default LandingScreen;
+export default HomeScreen;
 
 const { width, height } = Dimensions.get('window');
 

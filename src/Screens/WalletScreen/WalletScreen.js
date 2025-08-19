@@ -23,15 +23,15 @@ const WalletScreen = () => {
   const actionButtons = [
     {
       label: 'Cash In',
-      icon: require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png'),
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     },
     {
       label: 'Transfer',
-      icon: require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png'),
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     },
     {
       label: 'Send',
-      icon: require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png'),
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     },
   ];
 
