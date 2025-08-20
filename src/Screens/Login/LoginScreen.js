@@ -3,37 +3,28 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { AppButton, AppTextInput, OTPInput } from '@/Components';
+import { AppButton, AppTextInput } from '@/Components';
 
 const LoginScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [mobileNumber, setMobileNumber] = useState('');
-  const [otpCode, setOtpCode] = useState('');
-  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleBack = () => {
-    if (currentIndex === 0) {
-      navigation.navigate('LandingScreen');
-    } else {
-      setCurrentIndex(prev => prev - 1);
-    }
+    navigation.navigate('LandingScreen');
   };
 
   const handleNext = () => {
-    if (currentIndex === 0 && !mobileNumber) {
-      setError('Mobile number is required');
+    if (!mobileNumber) {
+      setErrorMessage('Mobile number is required');
       return;
     }
-    if (currentIndex === 1) {
-      navigation.navigate('GeneralTermsScreen');
-      return;
-    }
-    setError('');
-    setCurrentIndex(prev => prev + 1);
+    setErrorMessage('');
+    // navigate to OTPScreen, pass mobile number
+    navigation.navigate('OTPScreen', { mobileNumber });
   };
 
   return (
@@ -52,51 +43,26 @@ const LoginScreen = () => {
         </View>
       </View>
 
-      {/* Page Content */}
+      {/* Input */}
       <View style={styles.pageContainer}>
-        {currentIndex === 0 ? (
-          <AppTextInput
-            label="Mobile"
-            value={mobileNumber}
-            onChangeText={setMobileNumber}
-            inputMode="phone"
-            placeholder="9XXXXXXXXX"
-            error={error}
-          />
-        ) : (
-          <>
-            <Text style={styles.title}>Enter One-Time PIN</Text>
-            <Text style={styles.subtitle}>
-              A One-Time PIN was sent to +63 ******4567
-            </Text>
-            <OTPInput length={6} onOTPChange={setOtpCode} />
-            <View style={styles.imageContainer}>
-              <Image
-                source={require('@/Assets/Common/LoginScreen/OTP_Image.png')}
-                style={styles.otpImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.resendContainer}>
-              <Text style={styles.resendLabel}>Didn't receive it?</Text>
-              <TouchableOpacity onPress={() => console.log('Request new OTP')}>
-                <Text style={styles.resendLink}>Request a new OTP</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
+        <AppTextInput
+          label="Mobile"
+          value={mobileNumber}
+          onChangeText={setMobileNumber}
+          inputMode="phone"
+          placeholder="9XXXXXXXXX"
+          error={errorMessage}
+        />
       </View>
 
-      {/* Footer at bottom */}
-      {currentIndex === 0 && (
-        <View>
-          <Text style={styles.footerText}>
-            Enter your active number to receive a verification code. This helps
-            us keep your account secure.
-          </Text>
-          <AppButton title="Next" onPress={handleNext} isBold />
-        </View>
-      )}
+      {/* Footer */}
+      <View>
+        <Text style={styles.footerText}>
+          Enter your active number to receive a verification code. This helps us
+          keep your account secure.
+        </Text>
+        <AppButton title="Next" onPress={handleNext} isBold />
+      </View>
     </Container>
   );
 };
@@ -116,7 +82,6 @@ const getStyles = ({ colors }) =>
     },
     backButton: {
       position: 'absolute',
-      left: 0,
       width: 52,
       height: 52,
       justifyContent: 'center',
@@ -139,49 +104,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       color: colors.shadow,
     },
-    pageContainer: {
-      flex: 1,
-      paddingHorizontal: 20,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: '400',
-      marginBottom: 15,
-      fontFamily: 'Poppins Regular',
-      textAlign: 'center',
-    },
-    subtitle: {
-      fontSize: 11,
-      textAlign: 'center',
-      fontFamily: 'Poppins Regular',
-      color: colors.onSurfaceGrey,
-      marginBottom: 20,
-    },
-    imageContainer: {
-      marginVertical: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    otpImage: {
-      width: 288,
-      height: 288,
-    },
-    resendContainer: {
-      marginTop: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    resendLabel: {
-      fontFamily: 'Poppins Regular',
-      fontSize: 16,
-      color: colors.shadow,
-      marginBottom: 2,
-    },
-    resendLink: {
-      fontFamily: 'Poppins SemiBold',
-      fontSize: 16,
-      color: colors.primary,
-    },
+    pageContainer: { flex: 1, paddingHorizontal: 20 },
     footerText: {
       textAlign: 'center',
       fontFamily: 'Poppins Regular',

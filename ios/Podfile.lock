@@ -1834,6 +1834,8 @@ PODS:
     - React-logger (= 0.76.6)
     - React-perflogger (= 0.76.6)
     - React-utils (= 0.76.6)
+  - RNCAsyncStorage (2.2.0):
+    - React-Core
   - RNDeviceInfo (14.0.4):
     - React-Core
   - RNGoogleSignin (15.0.0):
@@ -2060,6 +2062,7 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -2256,6 +2259,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-async-storage/async-storage"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNGoogleSignin:
@@ -2368,6 +2373,7 @@ SPEC CHECKSUMS:
   React-utils: e6697b03f21c7ac57b075d848cda7882662cabf7
   ReactCodegen: 484b223748d7489d7036db1cbf79896d297e33a7
   ReactCommon: 832cdd669aeecd430d9ca1975d15676b38d0b263
+  RNCAsyncStorage: 23e56519cc41d3bade3c8d4479f7760cb1c11996
   RNDeviceInfo: feea80a690d2bde1fe51461cf548039258bd03f2
   RNGoogleSignin: f57de86a017d67e98fa9c5c0c1c62f0387433cbd
   RNReanimated: 849c4bfc1a185b123ca9a89f2a98d679b3d79b4e

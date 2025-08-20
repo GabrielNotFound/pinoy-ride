@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //@TODO: Re-enable react-native-simple-crypto
 
-const CMAIUtil = {
+const AppUtil = {
   debug: function (string) {
     if (__DEV__) {
       console.log(string);
@@ -271,4 +271,4 @@ const CMAIUtil = {
   },
 };
 
-export default CMAIUtil;
+export default AppUtil;

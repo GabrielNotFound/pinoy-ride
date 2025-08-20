@@ -11,6 +11,7 @@ import {
   LandingScreen,
   LoginScreen,
   MapSelectionModal,
+  OTPScreen,
   OnboardingScreen,
   PaymentOptionScreen,
   PromoReferralsScreen,
@@ -64,6 +65,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="LoginScreen"
               component={LoginScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="OTPScreen"
+              component={OTPScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

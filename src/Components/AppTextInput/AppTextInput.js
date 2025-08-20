@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
-import PhoneInput from 'react-native-phone-number-input';
+import IntlPhoneInput from 'react-native-intl-phone-input';
 import { useTheme } from 'react-native-paper';
 import useAmountFormattedValue from '@/Hooks/useAmountFormattedValue';
 import numeral from 'numeral';
@@ -32,8 +32,6 @@ const AppTextInput = ({
     isFormattedPartially: val => /[^0-9.,]/.test(val),
   });
 
-  const phoneInputRef = useRef();
-
   return (
     <View style={styles.container}>
       {label && (
@@ -43,27 +41,26 @@ const AppTextInput = ({
       )}
 
       {isPhone ? (
-        <PhoneInput
-          ref={phoneInputRef}
-          defaultValue={value}
-          defaultCode="PH"
-          layout="first"
-          onChangeText={onChangeText}
-          onChangeFormattedText={onChangeFormattedText}
-          containerStyle={styles.phoneContainer}
-          textContainerStyle={styles.phoneTextContainer}
-          textInputProps={{
-            placeholder,
-            placeholderTextColor: colors.onSurfaceGrey,
-            keyboardType: 'phone-pad',
+        <IntlPhoneInput
+          defaultCountry="PH" // Philippines flag & code
+          value={value}
+          onChangeText={({ phoneNumber, dialCode, unmaskedPhoneNumber }) => {
+            const fullNumber = `${dialCode.replace(
+              '+',
+              '',
+            )}${unmaskedPhoneNumber}`;
+            if (onChangeText) {onChangeText(fullNumber);}
           }}
+          placeholder={placeholder || '9XXXXXXXXX'}
+          containerStyle={styles.phoneContainer}
+          phoneInputStyle={styles.phoneTextInput}
         />
       ) : (
         <TextInput
           value={isAmount ? amountFormattedValue : value}
           onChangeText={isAmount ? handleAmountChange : onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.onSurfaceGrey}
+          placeholderTextColor={colors.darkGrey}
           style={[
             isComment ? styles.commentBox : styles.input,
             error && styles.inputError,
@@ -111,17 +108,12 @@ const getStyles = ({ colors }) =>
       width: '100%',
       borderBottomWidth: 1,
       borderColor: colors.surfaceVariant,
-      borderRadius: 0,
       backgroundColor: 'transparent',
-      elevation: 0,
-      shadowOpacity: 0,
     },
-    phoneTextContainer: {
-      backgroundColor: 'transparent',
-      paddingVertical: 0,
-      borderRadius: 0,
-      borderWidth: 0,
-      paddingBottom: 2,
+    phoneTextInput: {
+      fontSize: 16,
+      color: 'black',
+      paddingVertical: 4,
     },
     commentBox: {
       backgroundColor: '#F9F9F9',

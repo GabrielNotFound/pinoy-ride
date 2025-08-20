@@ -14,13 +14,13 @@ const BASE_DEV = {
 
   BASE_URI: IS_DEV ? DEV_URL : PROD_URL,
 
-  ENDPOINTS: {
+  ENDPOINT: {
     //AUTH
-    LOGIN: 'customers/login',
-    SIGN_UP: 'customers/sign_up',
+    LOGIN: 'customers/login/',
+    SIGN_UP: 'customers/sign_up/',
     //OTP
-    GENERATE_OTP: 'otp/generate',
-    VERIFY_OTP: 'otp/verify',
+    GENERATE_OTP: 'otp/generate/',
+    VERIFY_OTP: 'otp/verify/',
   },
 
   FEATURE_STATUS: {},
