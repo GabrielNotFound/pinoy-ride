@@ -6,3 +6,4 @@ export { default as OTPInput } from './OTP/OTPInput';
 export { default as SuccessAlertBox } from './AlertBox/SuccessAlertBox';
 export { default as RiderFoundAlertBox } from './AlertBox/RiderFoundAlertBox';
 export { default as AlertBox } from './AlertBox/AlertBox';
+export { default as AppMap } from './AppMap/AppMap';

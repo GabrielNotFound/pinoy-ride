@@ -22,9 +22,9 @@
     <string>1.0.0</string>
     <key>CFBundleSignature</key>
     <string>????</string>
+
     <key>FacebookAppID</key>
     <string>3041042182736964</string>
-
     <key>FacebookDisplayName</key>
     <string>pinoy-ride</string>
 
@@ -54,35 +54,43 @@
         </array>
       </dict>
     </array>
+
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
+
     <key>NSAppTransportSecurity</key>
     <dict>
       <key>NSAllowsArbitraryLoads</key>
-      <false/>
+      <true/>
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
+
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
+
     <key>UIRequiredDeviceCapabilities</key>
     <array>
       <string>arm64</string>
     </array>
+
     <key>UIRequiresFullScreen</key>
     <false/>
+
     <key>UIStatusBarStyle</key>
     <string>UIStatusBarStyleDefault</string>
+
     <key>UISupportedInterfaceOrientations</key>
     <array>
       <string>UIInterfaceOrientationPortrait</string>
@@ -90,6 +98,7 @@
       <string>UIInterfaceOrientationLandscapeLeft</string>
       <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+
     <key>UISupportedInterfaceOrientations~ipad</key>
     <array>
       <string>UIInterfaceOrientationPortrait</string>
@@ -97,9 +106,18 @@
       <string>UIInterfaceOrientationLandscapeLeft</string>
       <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+
     <key>UIUserInterfaceStyle</key>
     <string>Light</string>
+
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
+
+    <!-- ✅ Google Maps API Key -->
+    <key>GMSApiKey</key>
+    <string>AIzaSyCy-3C367WAU4SJZuLQxXb8z8p4rNI94Qo</string>
+    <key>GMSPlacesApiKey</key>
+    <string>AIzaSyCy-3C367WAU4SJZuLQxXb8z8p4rNI94Qo</string>
+
   </dict>
 </plist>

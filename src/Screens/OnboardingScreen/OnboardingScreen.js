@@ -253,6 +253,7 @@ const getStyles = ({ colors }) =>
       marginBottom: 40,
     },
     skip: {
+      paddingHorizontal: 20,
       color: colors.primary,
       fontFamily: 'Poppins Medium',
       fontSize: 16,

@@ -50,7 +50,7 @@ const LoginScreen = () => {
           value={mobileNumber}
           onChangeText={setMobileNumber}
           inputMode="phone"
-          placeholder="9XXXXXXXXX"
+          placeholder="9XXX-XXX-XXX"
           error={errorMessage}
         />
       </View>
