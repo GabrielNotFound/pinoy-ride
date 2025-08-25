@@ -1,3 +1,12 @@
+if (__DEV__) {
+  const consoleError = console.error;
+  console.error = (...args) => {
+    if (!args[0]?.includes('VectorKit')) {
+      consoleError(...args);
+    }
+  };
+}
+
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import * as Font from 'expo-font';

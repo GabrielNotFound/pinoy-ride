@@ -50,15 +50,7 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <AppMap
-        initialLat={14.5995} // Manila
-        initialLong={120.9842}
-        firstMarkerLat={14.5995}
-        firstMarkerLong={120.9842}
-        secondMarkerLat={14.6095}
-        secondMarkerLong={120.9942}
-        style={styles.map}
-      />
+      <AppMap initialLat={14.5995} initialLong={120.9842} style={styles.map} />
       <TouchableOpacity
         style={styles.profileButton}
         onPress={handleTopRightPress}>

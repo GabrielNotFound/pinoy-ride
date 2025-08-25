@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  AppState,
   Dimensions,
   FlatList,
   Image,
@@ -15,7 +16,12 @@ import {
 } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
-import { AppButton } from '@/Components';
+import { AlertBox, AppButton } from '@/Components';
+import {
+  ensureLocationPermission,
+  requestLocationPermission,
+} from '@/Utils/Permissions';
+import { openSettings } from 'react-native-permissions';
 
 const { width } = Dimensions.get('window');
 
@@ -60,6 +66,49 @@ const OnboardingScreen = () => {
   const navigation = useNavigation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const insets = useSafeAreaInsets();
+  const [showAlert, setShowAlert] = useState(false);
+
+  const appState = useRef(AppState.currentState);
+
+  useEffect(() => {
+    (async () => {
+      const granted = await ensureLocationPermission();
+      if (!granted) {
+        setShowAlert(true);
+      }
+    })();
+  }, []);
+
+  const handleRetryPermission = async () => {
+    const result = await requestLocationPermission();
+
+    if (result === 'granted') {
+      setShowAlert(false);
+    } else if (result === 'blocked') {
+      openSettings();
+    } else {
+      setShowAlert(true);
+    }
+  };
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      async nextAppState => {
+        if (
+          appState.current.match(/inactive|background/) &&
+          nextAppState === 'active'
+        ) {
+          // App came back to foreground, check location permission
+          const granted = await ensureLocationPermission();
+          setShowAlert(!granted);
+        }
+        appState.current = nextAppState;
+      },
+    );
+
+    return () => subscription.remove();
+  }, []);
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
@@ -85,6 +134,15 @@ const OnboardingScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {showAlert && (
+        <AlertBox
+          title="Location Required"
+          message="We need your location to provide rides. Please enable it."
+          visible={showAlert}
+          setVisible={setShowAlert}
+          onConfirm={handleRetryPermission}
+        />
+      )}
       {currentIndex > 0 && (
         <TouchableOpacity
           onPress={handleBack}

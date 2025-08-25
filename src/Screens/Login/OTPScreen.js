@@ -20,6 +20,7 @@ const OTPScreen = () => {
 
   const [otpCode, setOtpCode] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
     fetchOtp(mobileNumber);
@@ -78,9 +79,10 @@ const OTPScreen = () => {
   }, [verifyOtpCode.response, verifyOtpCode.error]);
 
   const login = () => {
-    loginUser.makePostRequest(Constants.ENDPOINT.VERIFY_OTP, {
-      mobile_no: mobileNumber,
-      code: otpCode,
+    loginUser.makePostRequest(Constants.ENDPOINT.LOGIN, {
+      // mobile_no: mobileNumber,
+      mobile_no: '6394612221512', //Temporary
+      otp_code: otpCode,
     });
   };
 
@@ -101,6 +103,28 @@ const OTPScreen = () => {
     handleLoginUser();
   }, [loginUser.response, loginUser.error]);
 
+  const [resendDisabled, setResendDisabled] = useState(false);
+
+  const handleResendOtp = async () => {
+    if (resendDisabled) {
+      return;
+    }
+
+    setResendDisabled(true);
+    setTimeout(() => setResendDisabled(false), 60000); // 30s cooldown
+
+    try {
+      await getOtpCode.makePostRequest(Constants.ENDPOINT.GENERATE_OTP, {
+        mobile_no: mobileNumber,
+      });
+      setAlertMessage('OTP has been resent!');
+      setShowAlert(true);
+    } catch (error) {
+      setAlertMessage(error || 'Failed to resend OTP.');
+      setShowAlert(true);
+    }
+  };
+
   return (
     <Container style={styles.container}>
       {/* Header */}
@@ -120,7 +144,14 @@ const OTPScreen = () => {
       </View>
 
       {/* Alert */}
-      {alertMessage ? <AlertBox title="Error" message={alertMessage} /> : null}
+      {alertMessage ? (
+        <AlertBox
+          title="Error"
+          message={alertMessage}
+          visible={showAlert}
+          setVisible={setShowAlert}
+        />
+      ) : null}
 
       {/* OTP */}
       <View style={styles.pageContainer}>
@@ -140,8 +171,11 @@ const OTPScreen = () => {
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendLabel}>Didn't receive it?</Text>
-          <TouchableOpacity onPress={() => console.log('Resend OTP')}>
-            <Text style={styles.resendLink}>Request a new OTP</Text>
+          <TouchableOpacity onPress={handleResendOtp} disabled={resendDisabled}>
+            <Text
+              style={[styles.resendLink, resendDisabled && { opacity: 0.5 }]}>
+              Request a new OTP
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -1,111 +1,140 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { useTheme } from 'react-native-paper';
-import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
+import { AppButton, AppMap } from '@/Components';
+import React, { useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { TextInput, useTheme } from 'react-native-paper';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-// Fetch route from OpenRouteService API
-const fetchRoute = async (start, end, apiKey) => {
-  try {
-    const response = await fetch(
-      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${start.lng},${start.lat}&end=${end.lng},${end.lat}`,
-    );
-    const json = await response.json();
-
-    if (json.features && json.features.length > 0) {
-      return json.features[0].geometry.coordinates.map(coord => ({
-        latitude: coord[1],
-        longitude: coord[0],
-      }));
-    }
-    return [];
-  } catch (error) {
-    console.error('Error fetching route:', error);
-    return [];
-  }
-};
-
-const AppMap = ({
-  initialLat,
-  initialLong,
-  firstMarkerLat,
-  firstMarkerLong,
-  secondMarkerLat,
-  secondMarkerLong,
-  style,
-}) => {
+const MapSelectionModal = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
+  const [pickupLocation, setPickupLocation] = useState(null); // store coords
 
-  const [routeCoords, setRouteCoords] = useState([]);
+  const navigation = useNavigation();
+  const route = useRoute();
 
-  useEffect(() => {
-    //ORS apiKey
-    const apiKey =
-      'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImYyNTU1ODYxOTc4NDQ4MzA5MjNhZmUzZmM1OTdmMjJmIiwiaCI6Im11cm11cjY0In0=';
-    if (
-      firstMarkerLat &&
-      firstMarkerLong &&
-      secondMarkerLat &&
-      secondMarkerLong
-    ) {
-      fetchRoute(
-        { lat: firstMarkerLat, lng: firstMarkerLong },
-        { lat: secondMarkerLat, lng: secondMarkerLong },
-        apiKey,
-      ).then(setRouteCoords);
+  // Get the callback passed from InputLocation
+  const { onLocationSelect } = route.params || {};
+
+  const handleTopRightPress = () => {
+    console.log('Top-right image button pressed');
+  };
+
+  const handleChoosePickup = () => {
+    if (!pickupLocation) {return;}
+
+    console.log('Chosen location:', pickupLocation);
+
+    // Call the parent callback if provided
+    if (onLocationSelect) {
+      onLocationSelect(pickupLocation);
     }
-  }, [firstMarkerLat, firstMarkerLong, secondMarkerLat, secondMarkerLong]);
+
+    navigation.goBack();
+  };
 
   return (
-    <MapView
-      style={[styles.container, style]}
-      initialRegion={{
-        latitude: initialLat || 14.5995,
-        longitude: initialLong || 120.9842,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      }}>
-      {/* OSM Tiles */}
-      <UrlTile
-        urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maximumZ={19}
-        flipY={false}
+    <View style={styles.container}>
+      {/* ✅ Replace dummy image with AppMap */}
+      <AppMap
+        style={styles.map}
+        initialLat={14.5995} // Manila default
+        initialLong={120.9842}
+        onMapPress={coords => {
+          console.log('User clicked map:', coords);
+          setPickupLocation(coords);
+        }}
       />
 
-      {/* Markers */}
-      {firstMarkerLat && firstMarkerLong && (
-        <Marker
-          coordinate={{ latitude: firstMarkerLat, longitude: firstMarkerLong }}
-          title="Start"
+      {/* Top-right profile button */}
+      <TouchableOpacity
+        style={styles.profileButton}
+        onPress={handleTopRightPress}>
+        <Image
+          source={require('@/Assets/Common/HomeScreen/Profile_Icon_1.png')}
+          style={styles.iconImage}
         />
-      )}
-      {secondMarkerLat && secondMarkerLong && (
-        <Marker
-          coordinate={{
-            latitude: secondMarkerLat,
-            longitude: secondMarkerLong,
-          }}
-          title="Destination"
-        />
-      )}
+      </TouchableOpacity>
 
-      {/* Route line (real roads from ORS) */}
-      {routeCoords.length > 0 && (
-        <Polyline
-          coordinates={routeCoords}
-          strokeColor="blue"
-          strokeWidth={4}
+      {/* Bottom panel */}
+      <View style={styles.bottomPanel}>
+        <TextInput
+          mode="flat"
+          underlineColor="transparent"
+          activeUnderlineColor="transparent"
+          placeholder="Tap on the map to choose location"
+          placeholderTextColor={colors.darkGrey}
+          value={
+            pickupLocation
+              ? `${pickupLocation.latitude}, ${pickupLocation.longitude}`
+              : ''
+          }
+          editable={false} // ✅ user cannot type, only click on map
+          style={styles.textInput}
         />
-      )}
-    </MapView>
+
+        <AppButton
+          title="Choose this pick up"
+          onPress={handleChoosePickup}
+          isBold
+          disabled={!pickupLocation} // ✅ disable until location chosen
+        />
+      </View>
+    </View>
   );
 };
 
-export default AppMap;
+export default MapSelectionModal;
+
+const { width, height } = Dimensions.get('window');
 
 const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      position: 'relative',
+    },
+    map: {
+      flex: 1,
+      width,
+      height,
+    },
+    profileButton: {
+      position: 'absolute',
+      top: 60,
+      right: 28,
+      zIndex: 15,
+    },
+    iconImage: {
+      width: 51,
+      height: 51,
+      resizeMode: 'contain',
+    },
+    bottomPanel: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: '#fff',
+      paddingHorizontal: 30,
+      paddingTop: 40,
+      paddingBottom: 30,
+      shadowColor: '#000',
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      elevation: 10,
+    },
+    textInput: {
+      backgroundColor: colors.blueGrey,
+      height: 40,
+      borderRadius: 10,
+      fontFamily: 'Poppins Regular',
+      fontWeight: '400',
+      fontSize: 12,
     },
   });

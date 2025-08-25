@@ -1,17 +1,38 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { AppButton, AppTextInput } from '@/Components';
+import { AlertBox, AppButton, AppTextInput } from '@/Components';
+import {
+  ensureLocationPermission,
+  requestLocationPermission,
+} from '@/Utils/Permissions';
 
 const LoginScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const [showAlert, setShowAlert] = useState(false);
 
   const [mobileNumber, setMobileNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      const granted = await ensureLocationPermission();
+      if (!granted) {
+        setShowAlert(true);
+      }
+    })();
+  }, []);
+
+  const handleRetryPermission = async () => {
+    const result = await requestLocationPermission();
+    if (result !== 'granted') {
+      setShowAlert(true);
+    }
+  };
 
   const handleBack = () => {
     navigation.navigate('LandingScreen');
@@ -29,6 +50,13 @@ const LoginScreen = () => {
 
   return (
     <Container style={styles.container}>
+      {showAlert && (
+        <AlertBox
+          title="Location Required"
+          message="This app cannot continue without location access."
+          onConfirm={handleRetryPermission}
+        />
+      )}
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>

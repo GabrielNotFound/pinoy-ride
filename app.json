@@ -7,13 +7,27 @@
     "version": "1.0.0",
     "plugins": [
       "expo-font",
-      "expo-build-properties"
+      "expo-build-properties",
+      [
+        "react-native-permissions",
+        {
+          "iosPermissions": ["Camera", "Microphone"]
+        }
+      ]
     ],
     "android": {
-      "package": "com.gabriel1337.pinoyride"
+      "package": "com.gabriel1337.pinoyride",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "ios": {
-      "bundleIdentifier": "com.gabriel1337.pinoyride"
+      "bundleIdentifier": "com.gabriel1337.pinoyride",
+      "infoPlist": {
+        "NSCameraUsageDescription": "[REASON]",
+        "NSMicrophoneUsageDescription": "[REASON]"
+      }
     },
     "extra": {
       "eas": {
