@@ -106,15 +106,17 @@ const BottomModal = ({
           {!isConfirmed ? (
             <View style={styles.optionButtonsRow}>
               {buttons.map((btn, index) => (
-                <View key={index} style={styles.optionWrapper}>
-                  <TouchableOpacity style={styles.optionButton}>
-                    <Image source={btn.image} style={styles.optionIcon} />
-                    <Text style={styles.optionText}>{btn.text}</Text>
-                  </TouchableOpacity>
+                <React.Fragment key={index}>
+                  <View style={styles.optionWrapper}>
+                    <TouchableOpacity style={styles.optionButton}>
+                      <Image source={btn.image} style={styles.optionIcon} />
+                      <Text style={styles.optionText}>{btn.text}</Text>
+                    </TouchableOpacity>
+                  </View>
                   {index < buttons.length - 1 && (
                     <View style={styles.divider} />
                   )}
-                </View>
+                </React.Fragment>
               ))}
             </View>
           ) : (
@@ -258,20 +260,21 @@ const getStyles = ({ colors }) =>
       marginBottom: 20,
     },
     optionWrapper: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      flex: 1,
       justifyContent: 'center',
     },
     optionButton: {
+      width: '100%',
       flexDirection: 'row',
       alignItems: 'center',
     },
     divider: {
-      width: 1,
-      height: '60%',
+      width: 2,
+      height: '100%',
       backgroundColor: colors.grey,
-      marginHorizontal: 10,
+      marginRight: 20,
     },
     optionIcon: {
       width: 22,
