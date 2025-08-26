@@ -1,7 +1,18 @@
-import React, { useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Portal, useTheme } from 'react-native-paper';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import usePostRequest from '@/Services/Api';
+import { Constants } from '@/Utils';
+import Geolocation from 'react-native-geolocation-service';
 
 const savedLocationButtons = [
   {
@@ -34,23 +45,152 @@ const InputLocation = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const route = useRoute();
 
-  const [location, setLocation] = useState('');
+  const [pickup, setPickup] = useState('');
+  const [dropoff, setDropoff] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [focusedField, setFocusedField] = useState(null); // 'pickup' | 'dropoff'
+  const [dropdownTop, setDropdownTop] = useState(0);
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
-  const handleProfilePress = () => {
-    navigation.navigate('SettingsScreen');
-  };
+  const searchLocationRequest = usePostRequest();
+  const debounceRef = useRef(null);
+  const pickupInputRef = useRef(null);
+  const dropoffInputRef = useRef(null);
 
-  const handleOpenMap = () => {
-    navigation.navigate('MapSelectionModal', {
-      onLocationSelect: value => {
-        setLocation(value);
-      },
+  useEffect(() => {
+    if (route.params?.pickup) {
+      setPickup(
+        route.params.pickup.description || route.params.pickup.address || '',
+      );
+    }
+    if (route.params?.dropoff) {
+      setDropoff(
+        route.params.dropoff.description || route.params.dropoff.address || '',
+      );
+    }
+  }, [route.params]);
+
+  const searchLocation = query => {
+    if (!query) {
+      setSearchResults([]);
+      return;
+    }
+    searchLocationRequest.makePostRequest(Constants.ENDPOINT.SEARCH_LOCATION, {
+      location_search_key: query,
     });
   };
+
+  const handleSearchLocationRequest = async () => {
+    if (searchLocationRequest.error) {
+      console.error('Search location error:', searchLocationRequest.error);
+      setSearchResults([]);
+    }
+    const results = searchLocationRequest.response?.data || [];
+    setSearchResults(results);
+  };
+
+  useEffect(() => {
+    handleSearchLocationRequest();
+  }, [searchLocationRequest.response, searchLocationRequest.error]);
+
+  const handleTextChange = (text, setFieldValue, inputRef) => {
+    setFieldValue(text);
+    setFocusedField(setFieldValue === setPickup ? 'pickup' : 'dropoff');
+
+    inputRef.current?.measure((x, y, width, height, pageX, pageY) => {
+      setDropdownTop(pageY + height);
+    });
+
+    if (debounceRef.current) {clearTimeout(debounceRef.current);}
+    debounceRef.current = setTimeout(() => {
+      if (text) {searchLocation(text);}
+    }, 300);
+  };
+
+  const handleBack = () => navigation.goBack();
+  const handleProfilePress = () => navigation.navigate('SettingsScreen');
+  const handleOpenMap = () => {
+    navigation.navigate('MapSelectionModal', {
+      onLocationSelect: value => setPickup(value),
+    });
+  };
+
+  const handleSelectItem = item => {
+    if (focusedField === 'pickup') {
+      setPickup(item.address);
+      route.params?.onPickupSelect?.(item);
+    } else if (focusedField === 'dropoff') {
+      setDropoff(item.address);
+      route.params?.onDropoffSelect?.(item);
+    }
+
+    setSearchResults([]);
+    setFocusedField(null);
+
+    // Navigate back only if both pickup and dropoff have values
+    if (
+      (focusedField === 'pickup' && dropoff) ||
+      (focusedField === 'dropoff' && pickup)
+    ) {
+      navigation.goBack();
+    }
+  };
+
+  const handleUseCurrentLocation = async () => {
+    Geolocation.getCurrentPosition(
+      async position => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          const response = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${Constants.GOOGLE_MAP_API_KEY}`,
+          );
+          const data = await response.json();
+
+          const currentAddress =
+            data.results[0]?.formatted_address || 'Current Location';
+          setPickup(currentAddress);
+          route.params?.onPickupSelect?.({
+            address: currentAddress,
+            lat: latitude,
+            long: longitude,
+          });
+
+          setFocusedField(null);
+          setSearchResults([]);
+        } catch (error) {
+          console.error('Reverse geocode error:', error);
+          alert('Unable to get address from location.');
+        }
+      },
+      error => {
+        console.error('Location error:', error);
+        alert('Unable to get location. Please try again.');
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+    );
+  };
+
+  const renderDropdown = () => (
+    <Portal>
+      {focusedField && searchResults.length > 0 && (
+        <View style={[styles.dropdown, { top: dropdownTop }]}>
+          <FlatList
+            data={searchResults}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => handleSelectItem(item)}
+                style={styles.dropdownItem}>
+                <Text style={styles.dropdownText}>{item.address}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
+    </Portal>
+  );
 
   return (
     <View style={styles.container}>
@@ -75,32 +215,82 @@ const InputLocation = () => {
         </View>
 
         <View style={styles.locationButtonsContainer}>
-          <TouchableOpacity style={styles.iconWithTextButton}>
+          {/* Pickup */}
+          <View style={styles.iconWithTextButton}>
             <Image
               source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
               style={styles.iconSmall}
               resizeMode="contain"
             />
-            <Text style={styles.locationIconText}>
-              {location || 'Input pickup location'}
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <TextInput
+                ref={pickupInputRef}
+                value={pickup}
+                onChangeText={text =>
+                  handleTextChange(text, setPickup, pickupInputRef)
+                }
+                placeholder="Input pickup location"
+                style={styles.locationIconText}
+                placeholderTextColor={colors.onPrimary}
+                onFocus={() => setFocusedField('pickup')}
+                autoCorrect={false}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              {pickup.length > 0 && (
+                <TouchableOpacity onPress={() => setPickup('')}>
+                  <Image
+                    source={require('@/Assets/Common/Close.png')}
+                    style={styles.clearIcon}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+            {focusedField === 'pickup' && renderDropdown(setPickup)}
+          </View>
 
-          <TouchableOpacity style={styles.iconWithTextButton}>
+          {/* Dropoff */}
+          <View style={styles.iconWithTextButton}>
             <Image
               source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
               style={styles.iconSmall}
               resizeMode="contain"
             />
-            <Text style={styles.locationIconText}>Drop off to?</Text>
-          </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <TextInput
+                ref={dropoffInputRef}
+                value={dropoff}
+                onChangeText={text =>
+                  handleTextChange(text, setDropoff, dropoffInputRef)
+                }
+                placeholder="Drop off to?"
+                style={styles.locationIconText}
+                placeholderTextColor={colors.onPrimary}
+                onFocus={() => setFocusedField('dropoff')}
+                autoCorrect={false}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              {dropoff.length > 0 && (
+                <TouchableOpacity onPress={() => setDropoff('')}>
+                  <Image
+                    source={require('@/Assets/Common/Close.png')}
+                    style={styles.clearIcon}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+            {focusedField === 'dropoff' && renderDropdown(setDropoff)}
+          </View>
         </View>
       </View>
 
       <View style={styles.body}>
         <TouchableOpacity
           style={styles.currentLocationButton}
-          onPress={() => console.log('Use my current location pressed')}>
+          onPress={handleUseCurrentLocation}>
           <Image
             source={require('@/Assets/Common/Location/Location.png')}
             style={styles.iconSmall}
@@ -172,21 +362,27 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
       marginTop: 20,
     },
-    iconSmall: {
-      width: 19,
-      height: 19,
-      marginRight: 12,
+    iconSmall: { width: 19, height: 19, marginRight: 12 },
+    inputContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: 0,
+    },
+    clearIcon: {
+      width: 16,
+      height: 16,
+      marginLeft: 20,
+      tintColor: colors.onPrimary,
     },
     locationIconText: {
+      flex: 1,
       fontFamily: 'Poppins SemiBold',
       color: colors.onPrimary,
       fontSize: 15,
       fontWeight: '600',
     },
-    body: {
-      paddingHorizontal: 30,
-      flex: 1,
-    },
+    body: { paddingHorizontal: 30, flex: 1 },
     currentLocationButton: {
       backgroundColor: colors.grey2,
       flexDirection: 'row',
@@ -238,6 +434,31 @@ const getStyles = ({ colors }) =>
       fontSize: 14,
       fontWeight: '500',
       fontFamily: 'Poppins Medium',
+      color: colors.grey3,
+    },
+    dropdown: {
+      position: 'absolute',
+      left: 30,
+      right: 30,
+      maxHeight: 500,
+      backgroundColor: 'white',
+      borderRadius: 8,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 5,
+      zIndex: 1000,
+      paddingHorizontal: 10,
+    },
+    dropdownItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderColor: colors.onPrimary,
+    },
+    dropdownText: {
+      fontSize: 14,
+      fontFamily: 'Poppins Regular',
       color: colors.grey3,
     },
   });

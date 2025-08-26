@@ -11,11 +11,15 @@ import ServiceModal from './ServiceModal';
 import BottomModal from './BottomModal';
 import { AppMap, RiderFoundAlertBox, SuccessAlertBox } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { selectUserInfo } from '@/Redux/Slices/userSlice';
+import { AppUtil } from '@/Utils';
 
 const HomeScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const userInfo = useSelector(selectUserInfo);
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showRiderFound, setShowRiderFound] = useState(false);
@@ -23,34 +27,54 @@ const HomeScreen = () => {
   const [selectedService, setSelectedService] = useState(null);
 
   const riderFoundTimeout = useRef(null);
+  const successShownRef = useRef(false);
 
-  useEffect(() => {
-    setShowSuccess(true);
-
-    // Clear any timeouts when component unmounts
-    return () => {
-      if (riderFoundTimeout.current) {
-        clearTimeout(riderFoundTimeout.current);
-      }
-    };
-  }, []);
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const [dropoffLocation, setDropoffLocation] = useState(null);
 
   const onBookPressed = () => {
     setShowServiceModal(true);
-
-    // Schedule Rider Found modal after 15 seconds
     riderFoundTimeout.current = setTimeout(() => {
-      setShowRiderFound(true);
-    }, 15000); // 15,000 ms = 15 secs
+      // setShowRiderFound(true);
+    }, 15000);
   };
 
   const handleTopRightPress = () => {
     navigation.navigate('SettingsScreen');
   };
 
+  useEffect(() => {
+    AppUtil.debugDeep(selectedService);
+  });
+
+  // Show login success only once
+  useEffect(() => {
+    if (!successShownRef.current) {
+      setShowSuccess(true);
+      successShownRef.current = true;
+    }
+    return () => {
+      if (riderFoundTimeout.current) {clearTimeout(riderFoundTimeout.current);}
+    };
+  }, []);
+
+  // Parse initial user coordinates
+  const initialLat = parseFloat(userInfo.latitude.replace('° N', '').trim());
+  const initialLong = parseFloat(userInfo.longitude.replace('° E', '').trim());
+
   return (
     <View style={styles.container}>
-      <AppMap initialLat={14.5995} initialLong={120.9842} style={styles.map} />
+      <AppMap
+        initialLat={initialLat}
+        initialLong={initialLong}
+        firstMarkerLat={pickupLocation?.lat}
+        firstMarkerLong={pickupLocation?.long}
+        secondMarkerLat={dropoffLocation?.lat}
+        secondMarkerLong={dropoffLocation?.long}
+        interactive
+        style={styles.map}
+      />
+
       <TouchableOpacity
         style={styles.profileButton}
         onPress={handleTopRightPress}>
@@ -60,7 +84,6 @@ const HomeScreen = () => {
         />
       </TouchableOpacity>
 
-      {/* ✅ Success Alert */}
       {showSuccess && (
         <SuccessAlertBox
           visible={showSuccess}
@@ -71,7 +94,6 @@ const HomeScreen = () => {
         />
       )}
 
-      {/* ✅ Rider Found Alert */}
       <RiderFoundAlertBox
         visible={showRiderFound}
         onClose={() => setShowRiderFound(false)}
@@ -84,6 +106,10 @@ const HomeScreen = () => {
       <BottomModal
         selectedService={selectedService}
         onBookPressed={onBookPressed}
+        pickup={pickupLocation}
+        dropoff={dropoffLocation}
+        onPickupChange={setPickupLocation}
+        onDropoffChange={setDropoffLocation}
       />
 
       <ServiceModal

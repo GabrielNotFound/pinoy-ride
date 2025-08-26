@@ -6,6 +6,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { AlertBox, OTPInput } from '@/Components';
 import usePostRequest from '@/Services/Api';
 import { AppUtil, Constants } from '@/Utils';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectUserInfo, setUserInfo } from '@/Redux/Slices/userSlice';
 
 const OTPScreen = () => {
   const { colors } = useTheme();
@@ -21,6 +23,9 @@ const OTPScreen = () => {
   const [otpCode, setOtpCode] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
+
+  const dispatch = useDispatch();
+  const userInfo = useSelector(selectUserInfo);
 
   useEffect(() => {
     fetchOtp(mobileNumber);
@@ -81,7 +86,7 @@ const OTPScreen = () => {
   const login = () => {
     loginUser.makePostRequest(Constants.ENDPOINT.LOGIN, {
       // mobile_no: mobileNumber,
-      mobile_no: '6394612221512', //Temporary
+      mobile_no: '6394612221512',
       otp_code: otpCode,
     });
   };
@@ -92,10 +97,18 @@ const OTPScreen = () => {
       return;
     }
     const results = loginUser.response;
-    AppUtil.debugDeep(results);
 
-    if (results?.code === 200) {
-      navigation.navigate('HomeScreen');
+    if (results?.code === 200 && results.data) {
+      const userData = results.data;
+      // merge customer_address directly
+      const flattenedUser = {
+        ...userData,
+        ...(userData.customer_address?.[0] || {}),
+      };
+      // remove original customer_address array
+      delete flattenedUser.customer_address;
+
+      dispatch(setUserInfo(flattenedUser));
     }
   };
 
@@ -103,12 +116,20 @@ const OTPScreen = () => {
     handleLoginUser();
   }, [loginUser.response, loginUser.error]);
 
+  // Watch for userInfo change
+  useEffect(() => {
+    if (userInfo) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'HomeScreen' }],
+      });
+    }
+  }, [userInfo]);
+
   const [resendDisabled, setResendDisabled] = useState(false);
 
   const handleResendOtp = async () => {
-    if (resendDisabled) {
-      return;
-    }
+    if (resendDisabled) {return;}
 
     setResendDisabled(true);
     setTimeout(() => setResendDisabled(false), 60000); // 30s cooldown

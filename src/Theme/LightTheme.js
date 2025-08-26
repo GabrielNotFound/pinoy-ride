@@ -90,6 +90,7 @@ const LightTheme = {
     blue: '#084CF7',
     completed: '#4FA650',
     cancelled: '#E4423F',
+    locationTextColor: '#A3B6E6',
   },
   roundness: 2,
   ...custom,

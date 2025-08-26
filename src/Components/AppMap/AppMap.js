@@ -1,140 +1,157 @@
-import { AppButton, AppMap } from '@/Components';
-import React, { useState } from 'react';
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { TextInput, useTheme } from 'react-native-paper';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet } from 'react-native';
+import { useTheme } from 'react-native-paper';
+import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
+import { Constants } from '@/Utils';
 
-const MapSelectionModal = () => {
+const fetchRoute = async (start, end, apiKey) => {
+  try {
+    const response = await fetch(
+      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${start.lng},${start.lat}&end=${end.lng},${end.lat}`,
+    );
+    const json = await response.json();
+    if (json.features && json.features.length > 0) {
+      return json.features[0].geometry.coordinates.map(c => ({
+        latitude: c[1],
+        longitude: c[0],
+      }));
+    }
+    return [];
+  } catch (e) {
+    console.error('Error fetching route:', e);
+    return [];
+  }
+};
+
+const AppMap = ({
+  initialLat,
+  initialLong,
+  firstMarkerLat,
+  firstMarkerLong,
+  secondMarkerLat,
+  secondMarkerLong,
+  minDelta = 0.02, // for maop zoom
+  latOffset = -0.01, // for map centering
+  onMapPress,
+  interactive = true,
+  style,
+}) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
-  const [pickupLocation, setPickupLocation] = useState(null); // store coords
+  const [region, setRegion] = useState({
+    latitude: initialLat,
+    longitude: initialLong,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  });
+  const [routeCoords, setRouteCoords] = useState([]);
+  const [selectedMarker, setSelectedMarker] = useState(null);
 
-  const navigation = useNavigation();
-  const route = useRoute();
+  // Recalculate route & region
+  useEffect(() => {
+    const apiKey = Constants.GOOGLE_MAP_API_KEY;
 
-  // Get the callback passed from InputLocation
-  const { onLocationSelect } = route.params || {};
+    if (firstMarkerLat != null && secondMarkerLat != null) {
+      fetchRoute(
+        { lat: parseFloat(firstMarkerLat), lng: parseFloat(firstMarkerLong) },
+        { lat: parseFloat(secondMarkerLat), lng: parseFloat(secondMarkerLong) },
+        apiKey,
+      ).then(setRouteCoords);
 
-  const handleTopRightPress = () => {
-    console.log('Top-right image button pressed');
-  };
+      const centerLat =
+        (parseFloat(firstMarkerLat) + parseFloat(secondMarkerLat)) / 2;
+      const centerLong =
+        (parseFloat(firstMarkerLong) + parseFloat(secondMarkerLong)) / 2;
+      const latDelta =
+        Math.abs(parseFloat(firstMarkerLat) - parseFloat(secondMarkerLat)) *
+        1.5;
+      const lonDelta =
+        Math.abs(parseFloat(firstMarkerLong) - parseFloat(secondMarkerLong)) *
+        1.5;
 
-  const handleChoosePickup = () => {
-    if (!pickupLocation) {return;}
-
-    console.log('Chosen location:', pickupLocation);
-
-    // Call the parent callback if provided
-    if (onLocationSelect) {
-      onLocationSelect(pickupLocation);
+      setRegion({
+        latitude: centerLat + latOffset,
+        longitude: centerLong,
+        latitudeDelta: Math.max(latDelta, minDelta),
+        longitudeDelta: Math.max(lonDelta, minDelta),
+      });
+    } else if (firstMarkerLat != null) {
+      setRegion({
+        latitude: parseFloat(firstMarkerLat),
+        longitude: parseFloat(firstMarkerLong),
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
+    } else {
+      setRegion({
+        latitude: initialLat,
+        longitude: initialLong,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
     }
-
-    navigation.goBack();
-  };
+  }, [firstMarkerLat, firstMarkerLong, secondMarkerLat, secondMarkerLong]);
 
   return (
-    <View style={styles.container}>
-      {/* ✅ Replace dummy image with AppMap */}
-      <AppMap
-        style={styles.map}
-        initialLat={14.5995} // Manila default
-        initialLong={120.9842}
-        onMapPress={coords => {
-          console.log('User clicked map:', coords);
-          setPickupLocation(coords);
-        }}
+    <MapView
+      style={[styles.container, style]}
+      region={region}
+      scrollEnabled={interactive}
+      zoomEnabled={interactive}
+      rotateEnabled={interactive}
+      pitchEnabled={interactive}
+      toolbarEnabled={interactive}
+      onPress={
+        interactive && onMapPress
+          ? e => {
+              const { latitude, longitude } = e.nativeEvent.coordinate;
+              setSelectedMarker({ latitude, longitude });
+              onMapPress({ latitude, longitude });
+            }
+          : null
+      }>
+      <UrlTile
+        urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        maximumZ={19}
+        flipY={false}
       />
 
-      {/* Top-right profile button */}
-      <TouchableOpacity
-        style={styles.profileButton}
-        onPress={handleTopRightPress}>
-        <Image
-          source={require('@/Assets/Common/HomeScreen/Profile_Icon_1.png')}
-          style={styles.iconImage}
+      {selectedMarker && (
+        <Marker coordinate={selectedMarker} title="Selected Location" />
+      )}
+      {firstMarkerLat != null && firstMarkerLong != null && (
+        <Marker
+          coordinate={{
+            latitude: parseFloat(firstMarkerLat),
+            longitude: parseFloat(firstMarkerLong),
+          }}
+          title="Pickup"
+          pinColor="blue"
+          anchor={{ x: 0.5, y: 1 }}
         />
-      </TouchableOpacity>
-
-      {/* Bottom panel */}
-      <View style={styles.bottomPanel}>
-        <TextInput
-          mode="flat"
-          underlineColor="transparent"
-          activeUnderlineColor="transparent"
-          placeholder="Tap on the map to choose location"
-          placeholderTextColor={colors.darkGrey}
-          value={
-            pickupLocation
-              ? `${pickupLocation.latitude}, ${pickupLocation.longitude}`
-              : ''
-          }
-          editable={false} // ✅ user cannot type, only click on map
-          style={styles.textInput}
+      )}
+      {secondMarkerLat != null && secondMarkerLong != null && (
+        <Marker
+          coordinate={{
+            latitude: parseFloat(secondMarkerLat),
+            longitude: parseFloat(secondMarkerLong),
+          }}
+          title="Dropoff"
+          pinColor="red"
+          anchor={{ x: 0.5, y: 1 }}
         />
-
-        <AppButton
-          title="Choose this pick up"
-          onPress={handleChoosePickup}
-          isBold
-          disabled={!pickupLocation} // ✅ disable until location chosen
+      )}
+      {routeCoords.length > 0 && (
+        <Polyline
+          coordinates={routeCoords}
+          strokeColor="blue"
+          strokeWidth={4}
         />
-      </View>
-    </View>
+      )}
+    </MapView>
   );
 };
 
-export default MapSelectionModal;
+export default AppMap;
 
-const { width, height } = Dimensions.get('window');
-
-const getStyles = ({ colors }) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      position: 'relative',
-    },
-    map: {
-      flex: 1,
-      width,
-      height,
-    },
-    profileButton: {
-      position: 'absolute',
-      top: 60,
-      right: 28,
-      zIndex: 15,
-    },
-    iconImage: {
-      width: 51,
-      height: 51,
-      resizeMode: 'contain',
-    },
-    bottomPanel: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: '#fff',
-      paddingHorizontal: 30,
-      paddingTop: 40,
-      paddingBottom: 30,
-      shadowColor: '#000',
-      shadowOpacity: 0.1,
-      shadowRadius: 10,
-      elevation: 10,
-    },
-    textInput: {
-      backgroundColor: colors.blueGrey,
-      height: 40,
-      borderRadius: 10,
-      fontFamily: 'Poppins Regular',
-      fontWeight: '400',
-      fontSize: 12,
-    },
-  });
+const getStyles = ({ colors }) => StyleSheet.create({ container: { flex: 1 } });

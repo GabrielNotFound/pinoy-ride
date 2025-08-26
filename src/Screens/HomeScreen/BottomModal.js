@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AppButton } from '@/Components';
 import { useTheme } from 'react-native-paper';
@@ -19,12 +19,36 @@ const buttons = [
   },
 ];
 
-const BottomModal = ({ selectedService, onBookPressed, onConfirmBooking }) => {
+const BottomModal = ({
+  selectedService,
+  onBookPressed,
+  onConfirmBooking,
+  onPickupChange,
+  onDropoffChange,
+}) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
   const [isConfirmed, setIsConfirmed] = useState(false);
+
+  const [pickup, setPickup] = useState(null);
+  const [dropoff, setDropoff] = useState(null);
+
+  const navigateToInputLocation = () => {
+    navigation.navigate('InputLocation', {
+      pickup,
+      dropoff,
+      onPickupSelect: item => {
+        setPickup(item);
+        onPickupChange?.(item);
+      },
+      onDropoffSelect: item => {
+        setDropoff(item);
+        onDropoffChange?.(item);
+      },
+    });
+  };
 
   return (
     <View style={styles.modalContainer}>
@@ -41,12 +65,17 @@ const BottomModal = ({ selectedService, onBookPressed, onConfirmBooking }) => {
             <View style={styles.locationGroup}>
               <TouchableOpacity
                 style={styles.locationButton}
-                onPress={() => navigation.navigate('InputLocation')}>
+                onPress={() => navigateToInputLocation()}>
                 <Image
                   source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
                   style={styles.locationIcon}
                 />
-                <Text style={styles.locationText}>Pick up From?</Text>
+                <Text
+                  style={styles.locationText}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {pickup?.description || 'Pick up From?'}
+                </Text>
               </TouchableOpacity>
 
               <View style={styles.dotLine}>
@@ -57,12 +86,17 @@ const BottomModal = ({ selectedService, onBookPressed, onConfirmBooking }) => {
 
               <TouchableOpacity
                 style={styles.locationButton}
-                onPress={() => navigation.navigate('InputLocation')}>
+                onPress={() => navigateToInputLocation()}>
                 <Image
                   source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
                   style={styles.locationIcon}
                 />
-                <Text style={styles.locationText}>Drop off To?</Text>
+                <Text
+                  style={styles.locationText}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {dropoff?.description || 'Drop of To?'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -137,7 +171,7 @@ const BottomModal = ({ selectedService, onBookPressed, onConfirmBooking }) => {
             title="Book"
             onPress={onBookPressed}
             isBold
-            buttonColor={colors.grey}
+            buttonColor={colors.primary}
           />
         </>
       )}
@@ -196,7 +230,7 @@ const getStyles = ({ colors }) =>
       backgroundColor: colors.grey,
     },
     locationButton: {
-      width: 150,
+      width: '90%',
       flexDirection: 'row',
       alignItems: 'center',
     },
@@ -207,9 +241,9 @@ const getStyles = ({ colors }) =>
       marginRight: 10,
     },
     locationText: {
-      fontSize: 14,
-      color: '#333',
-      fontFamily: 'Poppins Regular',
+      fontSize: 16,
+      color: colors.locationTextColor,
+      fontFamily: 'Poppins SemiBold',
     },
     optionButtonsRow: {
       flexDirection: 'row',
@@ -230,7 +264,7 @@ const getStyles = ({ colors }) =>
     divider: {
       width: 1,
       height: '60%',
-      backgroundColor: '#ccc',
+      backgroundColor: colors.grey,
       marginHorizontal: 10,
     },
     optionIcon: {
@@ -241,7 +275,7 @@ const getStyles = ({ colors }) =>
     },
     optionText: {
       fontSize: 13,
-      color: '#555',
+      color: colors.darkGrey,
       fontFamily: 'Poppins Regular',
     },
     fareBreakdown: {
@@ -256,6 +290,6 @@ const getStyles = ({ colors }) =>
     feeText: {
       fontFamily: 'Poppins Regular',
       fontSize: 16,
-      color: '#333',
+      color: colors.shadow,
     },
   });

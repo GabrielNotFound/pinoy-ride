@@ -11,6 +11,8 @@ const BASE_DEV = {
   WU_TIME_OUT_ERROR: -9,
 
   API_KEY: 'e6b9d7987f6d0633c31556a428a6197ef11f3b5be8ed8b3bc8a16c92e560e775',
+  GOOGLE_MAP_API_KEY:
+    'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImYyNTU1ODYxOTc4NDQ4MzA5MjNhZmUzZmM1OTdmMjJmIiwiaCI6Im11cm11cjY0In0=',
 
   BASE_URI: IS_DEV ? DEV_URL : PROD_URL,
 
@@ -21,6 +23,8 @@ const BASE_DEV = {
     //OTP
     GENERATE_OTP: 'otp/generate/',
     VERIFY_OTP: 'otp/verify/',
+    //BOOKING
+    SEARCH_LOCATION: 'booking/search_location/',
   },
 
   FEATURE_STATUS: {},

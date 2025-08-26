@@ -5,22 +5,26 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 const services = [
   {
+    id: 1,
     icon: require('@/Assets/Common/HomeScreen/Motorcycle.png'),
     title: 'Motorcycle',
     subtitle: 'Lorem ipsum dolor sit amet consectetur.',
   },
   {
+    id: 2,
     icon: require('@/Assets/Common/HomeScreen/Padala.png'),
     title: 'Padala',
     subtitle: 'Lorem ipsum dolor sit amet consectetur.',
   },
   {
+    id: 3,
     icon: require('@/Assets/Common/HomeScreen/Car.png'),
     title: 'Ride a Car',
     subtitle: 'Lorem ipsum dolor sit amet consectetur.',
@@ -33,42 +37,44 @@ const ServiceModal = ({ visible, onClose, onSelect }) => {
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={onClose}
-        style={styles.backdrop}
-      />
-      <View style={styles.modalContainer}>
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Lorem Ipsum</Text>
-            <Text style={styles.subtitle}>
-              Lorem ipsum dolor sit amet consectetur.
-            </Text>
-          </View>
-
-          <View style={styles.servicesContainer}>
-            {services.map((service, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.serviceItem,
-                  index === services.length - 1 && { marginBottom: 0 },
-                ]}
-                onPress={() => {
-                  onSelect(service);
-                  onClose();
-                }}>
-                <Image source={service.icon} style={styles.serviceIcon} />
-                <View>
-                  <Text style={styles.serviceTitle}>{service.title}</Text>
-                  <Text style={styles.serviceSubtitle}>{service.subtitle}</Text>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.backdrop}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.cardWrapper}>
+              <View style={styles.card}>
+                <View style={styles.header}>
+                  <Text style={styles.title}>Lorem Ipsum</Text>
+                  <Text style={styles.subtitle}>
+                    Lorem ipsum dolor sit amet consectetur.
+                  </Text>
                 </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+                <View style={styles.servicesContainer}>
+                  {services.map((service, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.serviceItem,
+                        index === services.length - 1 && { marginBottom: 0 },
+                      ]}
+                      onPress={() => {
+                        onSelect(service);
+                        onClose();
+                      }}>
+                      <Image source={service.icon} style={styles.serviceIcon} />
+                      <View>
+                        <Text style={styles.serviceTitle}>{service.title}</Text>
+                        <Text style={styles.serviceSubtitle}>
+                          {service.subtitle}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -80,13 +86,6 @@ const getStyles = ({ colors }) =>
     backdrop: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,

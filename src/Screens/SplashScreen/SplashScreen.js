@@ -1,21 +1,26 @@
 import { Image, StyleSheet, View } from 'react-native';
 import React, { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { selectUserInfo } from '@/Redux/Slices/userSlice'; // adjust path to your selector
 
 const SplashScreen = () => {
   const navigation = useNavigation();
-  const init = async () => {
-    await new Promise(resolve =>
-      setTimeout(() => {
-        resolve(true);
-      }, 1000),
-    );
-    navigation.navigate('OnboardingScreen');
-  };
+  const userInfo = useSelector(selectUserInfo); // persisted value from redux-persist
 
   useEffect(() => {
+    const init = async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      if (userInfo) {
+        navigation.replace('HomeScreen'); // user already logged in
+      } else {
+        navigation.replace('OnboardingScreen'); // first time or logged out
+      }
+    };
+
     init();
-  }, []);
+  }, [userInfo, navigation]);
 
   return (
     <View style={styles.container}>
