@@ -21,10 +21,10 @@ const buttons = [
 
 const BottomModal = ({
   selectedService,
-  onBookPressed,
   onConfirmBooking,
   onPickupChange,
   onDropoffChange,
+  onChangeService,
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
@@ -55,10 +55,12 @@ const BottomModal = ({
       {selectedService ? (
         <>
           <View style={styles.serviceHeader}>
-            <Text style={styles.modalTitle}>
-              {selectedService.title}
-              <Text style={styles.arrow}>{' >'}</Text>
-            </Text>
+            <TouchableOpacity onPress={onChangeService}>
+              <Text style={styles.modalTitle}>
+                {selectedService.title}
+                <Text style={styles.arrow}>{' >'}</Text>
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.locationColumn}>
@@ -132,7 +134,7 @@ const BottomModal = ({
                 <Text style={styles.feeText}>₱10.00</Text>
               </View>
               <View style={styles.fareRow}>
-                <Text style={styles.feeText}>Total</Text>
+                <Text style={styles.feeText}>Payment Method</Text>
                 <Image
                   source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
                   style={styles.optionIcon}
@@ -158,20 +160,24 @@ const BottomModal = ({
                 onConfirmBooking?.();
               }}
               isBold
-              buttonColor={colors.primary}
+              buttonColor={!pickup || !dropoff ? colors.grey5 : colors.primary}
+              disabled={!pickup || !dropoff}
             />
           )}
         </>
       ) : (
         <>
-          <Text style={styles.modalTitle}>
-            Choose a service <Text style={styles.arrow}>{'>'}</Text>
-          </Text>
+          <TouchableOpacity onPress={onChangeService}>
+            <Text style={styles.modalTitle}>
+              Choose a service <Text style={styles.arrow}>{'>'}</Text>
+            </Text>
+          </TouchableOpacity>
           <AppButton
             title="Book"
-            onPress={onBookPressed}
+            onPress={() => {}}
             isBold
-            buttonColor={colors.primary}
+            buttonColor={colors.grey5}
+            disabled={true}
           />
         </>
       )}
@@ -208,7 +214,7 @@ const getStyles = ({ colors }) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 16,
+      marginBottom: 20,
     },
     locationColumn: {
       marginBottom: 20,

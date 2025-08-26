@@ -144,8 +144,8 @@ const AppMap = ({
       {routeCoords.length > 0 && (
         <Polyline
           coordinates={routeCoords}
-          strokeColor="blue"
-          strokeWidth={4}
+          strokeColor={colors.primary}
+          strokeWidth={8}
         />
       )}
     </MapView>

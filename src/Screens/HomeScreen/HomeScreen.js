@@ -54,7 +54,9 @@ const HomeScreen = () => {
       successShownRef.current = true;
     }
     return () => {
-      if (riderFoundTimeout.current) {clearTimeout(riderFoundTimeout.current);}
+      if (riderFoundTimeout.current) {
+        clearTimeout(riderFoundTimeout.current);
+      }
     };
   }, []);
 
@@ -110,6 +112,7 @@ const HomeScreen = () => {
         dropoff={dropoffLocation}
         onPickupChange={setPickupLocation}
         onDropoffChange={setDropoffLocation}
+        onChangeService={() => setShowServiceModal(true)}
       />
 
       <ServiceModal

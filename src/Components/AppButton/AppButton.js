@@ -32,7 +32,7 @@ const AppButton = ({
         styles.button,
         {
           backgroundColor: isLight
-            ? '#fff'
+            ? colors.onPrimary
             : isOutlined
             ? colors.onPrimary
             : buttonColor || colors.primary,
