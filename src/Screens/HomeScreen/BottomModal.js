@@ -21,6 +21,7 @@ const buttons = [
 
 const BottomModal = ({
   selectedService,
+  onBookPressed,
   onConfirmBooking,
   onPickupChange,
   onDropoffChange,
@@ -169,7 +170,7 @@ const BottomModal = ({
         </>
       ) : (
         <>
-          <TouchableOpacity onPress={onChangeService}>
+          <TouchableOpacity onPress={onBookPressed}>
             <Text style={styles.modalTitle}>
               Choose a service <Text style={styles.arrow}>{'>'}</Text>
             </Text>
