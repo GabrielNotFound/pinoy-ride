@@ -25,6 +25,12 @@ const BASE_DEV = {
     VERIFY_OTP: 'otp/verify/',
     //BOOKING
     SEARCH_LOCATION: 'booking/search_location/',
+    INQUIRE_BOOKING: 'booking/inquire/',
+    CREATE_BOOKING: 'booking/create/',
+    UPDATE_BOOKING_STATUS: 'booking/update_status_for_customer/',
+    GET_BOOKING_HISTORY: 'booking/get_history/',
+
+    ADD_TIP: 'booking/add_tip/',
   },
 
   FEATURE_STATUS: {},
