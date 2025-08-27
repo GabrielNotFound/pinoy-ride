@@ -2,11 +2,15 @@ var qs = require('qs');
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { AppUtil, Constants } from '@/Utils';
+import { useSelector } from 'react-redux';
+import { selectUserInfo } from '@/Redux/Slices/userSlice';
 
 const usePostRequest = () => {
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const userInfo = useSelector(selectUserInfo);
 
   function isOK(res) {
     return res?.data?.status === Constants.API_OK;
@@ -17,7 +21,10 @@ const usePostRequest = () => {
   }
 
   async function buildParams(obj) {
-    const requiredParams = { user_type: 'customer' };
+    const requiredParams = {
+      user_type: 'customer',
+      customer_id: userInfo?.customer_id,
+    };
     const params = { ...requiredParams, ...obj };
 
     let stringParams = '';

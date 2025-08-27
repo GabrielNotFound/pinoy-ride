@@ -7,7 +7,9 @@ import { useNavigation } from '@react-navigation/native';
 const BottomModal = ({
   selectedService,
   onBookPressed,
-  onConfirmBooking,
+  onInquireBooking,
+  onCreateBooking,
+  onCancelBooking,
   onPickupChange,
   onDropoffChange,
   onChangeService,
@@ -15,8 +17,6 @@ const BottomModal = ({
   dropoff,
   isBooked,
   isConfirmed,
-  setIsBooked,
-  setIsConfirmed,
   setShowPaymentModal,
   selectedPayment,
   isLoading,
@@ -44,12 +44,8 @@ const BottomModal = ({
     navigation.navigate('InputLocation', {
       pickup,
       dropoff,
-      onPickupSelect: item => {
-        onPickupChange?.(item);
-      },
-      onDropoffSelect: item => {
-        onDropoffChange?.(item);
-      },
+      onPickupSelect: item => onPickupChange?.(item),
+      onDropoffSelect: item => onDropoffChange?.(item),
     });
   };
 
@@ -57,6 +53,7 @@ const BottomModal = ({
     <View style={styles.modalContainer}>
       {selectedService ? (
         <>
+          {/* Service Header */}
           <View style={styles.serviceHeader}>
             <TouchableOpacity onPress={onChangeService}>
               <Text style={styles.modalTitle}>
@@ -66,11 +63,12 @@ const BottomModal = ({
             </TouchableOpacity>
           </View>
 
+          {/* Pickup & Dropoff */}
           <View style={styles.locationColumn}>
             <View style={styles.locationGroup}>
               <TouchableOpacity
                 style={styles.locationButton}
-                onPress={() => navigateToInputLocation()}>
+                onPress={navigateToInputLocation}>
                 <Image
                   source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
                   style={styles.locationIcon}
@@ -91,7 +89,7 @@ const BottomModal = ({
 
               <TouchableOpacity
                 style={styles.locationButton}
-                onPress={() => navigateToInputLocation()}>
+                onPress={navigateToInputLocation}>
                 <Image
                   source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
                   style={styles.locationIcon}
@@ -100,12 +98,13 @@ const BottomModal = ({
                   style={styles.locationText}
                   numberOfLines={1}
                   ellipsizeMode="tail">
-                  {dropoff?.description || 'Drop of To?'}
+                  {dropoff?.description || 'Drop off To?'}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
 
+          {/* Options row or fare breakdown */}
           {!isBooked ? (
             <View style={styles.optionButtonsRow}>
               {buttons.map((btn, index) => (
@@ -114,11 +113,8 @@ const BottomModal = ({
                     <TouchableOpacity
                       style={styles.optionButton}
                       onPress={() => {
-                        if (index === 0) {
-                          setShowPaymentModal(true);
-                        } else {
-                          console.log(btn.text, 'pressed');
-                        }
+                        if (index === 0) {setShowPaymentModal(true);}
+                        else {console.log(btn.text, 'pressed');}
                       }}>
                       <Image source={btn.image} style={styles.optionIcon} />
                       <Text style={styles.optionText}>{btn.text}</Text>
@@ -156,12 +152,11 @@ const BottomModal = ({
             </View>
           )}
 
+          {/* Action buttons */}
           {!isBooked ? (
             <AppButton
               title="Book"
-              onPress={() => {
-                onConfirmBooking?.();
-              }}
+              onPress={onInquireBooking}
               isBold
               buttonColor={!pickup || !dropoff ? colors.grey5 : colors.primary}
               disabled={!pickup || !dropoff || isLoading}
@@ -169,9 +164,7 @@ const BottomModal = ({
           ) : !isConfirmed ? (
             <AppButton
               title="Confirm"
-              onPress={() => {
-                setIsConfirmed(true);
-              }}
+              onPress={onCreateBooking}
               isBold
               buttonColor={colors.primary}
               disabled={isLoading}
@@ -179,14 +172,12 @@ const BottomModal = ({
           ) : (
             <AppButton
               title="Cancel"
-              onPress={() => {
-                setIsConfirmed(false);
-                setIsBooked(false);
-              }}
+              onPress={onCancelBooking}
               isBold
               mode="outlined"
               buttonColor={colors.error}
               textColor={colors.error}
+              disabled={isLoading}
             />
           )}
         </>
@@ -197,13 +188,7 @@ const BottomModal = ({
               Choose a service <Text style={styles.arrow}>{'>'}</Text>
             </Text>
           </TouchableOpacity>
-          <AppButton
-            title="Book"
-            onPress={() => {}}
-            isBold
-            buttonColor={colors.grey5}
-            disabled={true}
-          />
+          <AppButton title="Book" isBold buttonColor={colors.grey5} disabled />
         </>
       )}
     </View>

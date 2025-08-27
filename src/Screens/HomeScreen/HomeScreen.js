@@ -52,7 +52,8 @@ const HomeScreen = () => {
 
   const inquireBooking = usePostRequest();
   const [inquireBookingResponse, setInquireBookingResponse] = useState([]);
-  const isLoading = inquireBooking.loading;
+  const createBooking = usePostRequest();
+  const isLoading = inquireBooking.loading || createBooking.loading;
 
   const onBookPressed = () => {
     setShowServiceModal(true);
@@ -73,7 +74,7 @@ const HomeScreen = () => {
     AppUtil.debugDeep(dropoffLocation?.long);
     AppUtil.debugDeep(selectedPayment.toLowerCase());
   }, [selectedService?.id, userInfo?.customer_id]);
-  // Show login success only once
+
   useEffect(() => {
     if (!successShownRef.current) {
       setShowSuccess(true);
@@ -87,8 +88,7 @@ const HomeScreen = () => {
   }, []);
 
   const triggerInquireBooking = () => {
-    inquireBooking.makePostRequest(Constants.ENDPOINT.INQUIRE_BOOKING, {
-      customer_id: userInfo?.customer_id,
+    const postdata = {
       booking_type: selectedService?.id,
       pickup_location: pickupLocation?.address,
       pickup_lat: pickupLocation?.lat,
@@ -96,7 +96,11 @@ const HomeScreen = () => {
       dropoff_location: dropoffLocation?.address,
       dropoff_lat: dropoffLocation?.lat,
       dropoff_long: dropoffLocation?.long,
-    });
+    };
+    inquireBooking.makePostRequest(
+      Constants.ENDPOINT.INQUIRE_BOOKING,
+      postdata,
+    );
   };
 
   const handleInquireBookingRequest = () => {
@@ -106,10 +110,12 @@ const HomeScreen = () => {
       return;
     }
 
-    if (!inquireBooking.response) {return;}
+    if (!inquireBooking.response) {
+      return;
+    }
 
     const results = inquireBooking.response;
-    AppUtil.debugDeep(results);
+    AppUtil.debugDeep(results.data);
 
     if (results?.code === 200) {
       setInquireBookingResponse(results.data);
@@ -120,6 +126,53 @@ const HomeScreen = () => {
   useEffect(() => {
     handleInquireBookingRequest();
   }, [inquireBooking.response, inquireBooking.error]);
+
+  const triggerCreateBooking = () => {
+    const payment_details = {
+      type: selectedPayment.toLowerCase(),
+      minimum_fare: inquireBookingResponse.minimum_fare,
+      pesos_per_km: inquireBookingResponse.pesos_per_km,
+      booking_fee: inquireBookingResponse.base_amount,
+      tip: 0, // until tip is added make sure this is 0, also add thsi to total_amount
+      total_amount: inquireBookingResponse.total_amount,
+    };
+    const postdata = {
+      booking_type: selectedService?.id,
+      pickup_location: pickupLocation?.address,
+      pickup_lat: pickupLocation?.lat,
+      pickup_long: pickupLocation?.long,
+      dropoff_location: dropoffLocation?.address,
+      dropoff_lat: dropoffLocation?.lat,
+      dropoff_long: dropoffLocation?.long,
+      payment_type: selectedPayment.toLowerCase(),
+      note_to_rider: 'test',
+      payment_details: JSON.stringify(payment_details),
+    };
+    createBooking.makePostRequest(Constants.ENDPOINT.CREATE_BOOKING, postdata);
+  };
+
+  const handleCreateBookingRequest = () => {
+    if (createBooking.error) {
+      setAlertMessage(createBooking.error);
+      setShowAlert(true);
+      return;
+    }
+
+    if (!createBooking.response) {
+      return;
+    }
+
+    const results = createBooking.response;
+    AppUtil.debugDeep(results);
+
+    if (results?.code === 200) {
+      setIsConfirmed(true);
+    }
+  };
+
+  useEffect(() => {
+    handleCreateBookingRequest();
+  }, [createBooking.response, createBooking.error]);
 
   return (
     <>
@@ -179,11 +232,14 @@ const HomeScreen = () => {
           onPickupChange={setPickupLocation}
           onDropoffChange={setDropoffLocation}
           onChangeService={() => setShowServiceModal(true)}
-          onConfirmBooking={triggerInquireBooking}
+          onInquireBooking={triggerInquireBooking} // First "Book" step
+          onCreateBooking={triggerCreateBooking} // Confirm booking API
+          onCancelBooking={() => {
+            setIsConfirmed(false);
+            setIsBooked(false);
+          }}
           isBooked={isBooked}
           isConfirmed={isConfirmed}
-          setIsBooked={setIsBooked}
-          setIsConfirmed={setIsConfirmed}
           showPaymentModal={showPaymentModal}
           setShowPaymentModal={setShowPaymentModal}
           selectedPayment={selectedPayment}
