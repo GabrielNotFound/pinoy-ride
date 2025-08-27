@@ -6,6 +6,7 @@ export { default as LoginScreen } from './Login/LoginScreen';
 export { default as GeneralTermsScreen } from './TermsScreen/GeneralTermsScreen';
 export { default as HomeScreen } from './HomeScreen/HomeScreen';
 export { default as BottomModal } from './HomeScreen/BottomModal';
+export { default as PaymentMethodModal } from './HomeScreen/PaymentMethodModal';
 export { default as ServiceModal } from './HomeScreen/ServiceModal';
 export { default as InputLocation } from './Location/InputLocation';
 export { default as MapSelectionModal } from './Location/MapSelectionModal';

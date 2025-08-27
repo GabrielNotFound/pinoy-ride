@@ -1,23 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AppButton } from '@/Components';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-
-const buttons = [
-  {
-    image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-    text: 'Cash',
-  },
-  {
-    image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-    text: 'Promo',
-  },
-  {
-    image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-    text: 'Note to Rider',
-  },
-];
 
 const BottomModal = ({
   selectedService,
@@ -26,26 +11,43 @@ const BottomModal = ({
   onPickupChange,
   onDropoffChange,
   onChangeService,
+  pickup,
+  dropoff,
+  isBooked,
+  isConfirmed,
+  setIsBooked,
+  setIsConfirmed,
+  setShowPaymentModal,
+  selectedPayment,
+  isLoading,
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
-  const [isConfirmed, setIsConfirmed] = useState(false);
-
-  const [pickup, setPickup] = useState(null);
-  const [dropoff, setDropoff] = useState(null);
+  const buttons = [
+    {
+      image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+      text: selectedPayment,
+    },
+    {
+      image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+      text: 'Promo',
+    },
+    {
+      image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+      text: 'Note to Rider',
+    },
+  ];
 
   const navigateToInputLocation = () => {
     navigation.navigate('InputLocation', {
       pickup,
       dropoff,
       onPickupSelect: item => {
-        setPickup(item);
         onPickupChange?.(item);
       },
       onDropoffSelect: item => {
-        setDropoff(item);
         onDropoffChange?.(item);
       },
     });
@@ -104,12 +106,20 @@ const BottomModal = ({
             </View>
           </View>
 
-          {!isConfirmed ? (
+          {!isBooked ? (
             <View style={styles.optionButtonsRow}>
               {buttons.map((btn, index) => (
                 <React.Fragment key={index}>
                   <View style={styles.optionWrapper}>
-                    <TouchableOpacity style={styles.optionButton}>
+                    <TouchableOpacity
+                      style={styles.optionButton}
+                      onPress={() => {
+                        if (index === 0) {
+                          setShowPaymentModal(true);
+                        } else {
+                          console.log(btn.text, 'pressed');
+                        }
+                      }}>
                       <Image source={btn.image} style={styles.optionIcon} />
                       <Text style={styles.optionText}>{btn.text}</Text>
                     </TouchableOpacity>
@@ -146,25 +156,37 @@ const BottomModal = ({
             </View>
           )}
 
-          {isConfirmed ? (
-            <AppButton
-              title="Cancel"
-              onPress={() => setIsConfirmed(false)}
-              isBold
-              mode="outlined"
-              buttonColor={colors.error}
-              textColor={colors.error}
-            />
-          ) : (
+          {!isBooked ? (
             <AppButton
               title="Book"
               onPress={() => {
-                setIsConfirmed(true);
                 onConfirmBooking?.();
               }}
               isBold
               buttonColor={!pickup || !dropoff ? colors.grey5 : colors.primary}
-              disabled={!pickup || !dropoff}
+              disabled={!pickup || !dropoff || isLoading}
+            />
+          ) : !isConfirmed ? (
+            <AppButton
+              title="Confirm"
+              onPress={() => {
+                setIsConfirmed(true);
+              }}
+              isBold
+              buttonColor={colors.primary}
+              disabled={isLoading}
+            />
+          ) : (
+            <AppButton
+              title="Cancel"
+              onPress={() => {
+                setIsConfirmed(false);
+                setIsBooked(false);
+              }}
+              isBold
+              mode="outlined"
+              buttonColor={colors.error}
+              textColor={colors.error}
             />
           )}
         </>
@@ -258,7 +280,6 @@ const getStyles = ({ colors }) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 20,
     },
     optionWrapper: {
       flex: 1,
