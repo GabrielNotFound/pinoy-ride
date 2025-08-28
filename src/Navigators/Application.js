@@ -7,11 +7,12 @@ import {
   BookingHistoryScreen,
   CashOutScreen,
   DownloadDocumentScreen,
-  GetStartedScreen,
+  HomeScreen,
   InputLocation,
   LandingScreen,
   LoginScreen,
   MapSelectionModal,
+  OTPScreen,
   PaymentOptionScreen,
   PromoReferralsScreen,
   RatingScreen,
@@ -50,8 +51,8 @@ const ApplicationNavigator = () => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="LoginScreen"
-              component={LoginScreen}
+              name="LandingScreen"
+              component={LandingScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen
@@ -70,13 +71,18 @@ const ApplicationNavigator = () => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="GetStartedScreen"
-              component={GetStartedScreen}
+              name="LoginScreen"
+              component={LoginScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="LandingScreen"
-              component={LandingScreen}
+              name="OTPScreen"
+              component={OTPScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="HomeScreen"
+              component={HomeScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

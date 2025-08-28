@@ -15,15 +15,15 @@ const PaymentOptionScreen = () => {
   const addMethods = [
     {
       label: 'Pinoy Ride Wallet',
-      icon: require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png'),
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     },
     {
       label: 'Cards',
-      icon: require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png'),
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     },
     {
       label: 'Gcash',
-      icon: require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png'),
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     },
   ];
 
@@ -45,7 +45,7 @@ const PaymentOptionScreen = () => {
       <View style={styles.contents}>
         <View style={styles.row}>
           <Image
-            source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png')}
+            source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
             style={styles.icon}
             resizeMode="contain"
           />

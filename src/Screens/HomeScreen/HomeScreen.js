@@ -1,18 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import ServiceModal from './ServiceModal';
 import BottomModal from './BottomModal';
-import { OfflineAlertBox } from '@/Components';
+import { AppMap, OfflineAlertBox } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 
-const LandingScreen = () => {
+const HomeScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
 
   const [showOffline, setShowOffline] = useState(false);
-  const [showServiceModal, setShowServiceModal] = useState(false);
-  const [selectedService, setSelectedService] = useState(null);
 
   const riderFoundTimeout = useRef(null);
 
@@ -29,10 +26,11 @@ const LandingScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('@/Assets/Common/Map_Dummy.png')}
+      <AppMap
+        initialLat={14.5995}
+        initialLong={120.9842}
+        interactive
         style={styles.map}
-        resizeMode="cover"
       />
 
       {/* ✅ Offline Alert */}
@@ -44,20 +42,11 @@ const LandingScreen = () => {
       )}
 
       <BottomModal />
-
-      <ServiceModal
-        visible={showServiceModal}
-        onClose={() => setShowServiceModal(false)}
-        onSelect={service => {
-          setSelectedService(service);
-          setShowServiceModal(false);
-        }}
-      />
     </View>
   );
 };
 
-export default LandingScreen;
+export default HomeScreen;
 
 const { width, height } = Dimensions.get('window');
 

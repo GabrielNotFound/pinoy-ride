@@ -10,7 +10,7 @@ const AppTransactionComplete = () => {
   const navigation = useNavigation();
 
   const handleDone = () => {
-    navigation.navigate('LoginScreen');
+    navigation.navigate('LandingScreen');
   };
 
   return (

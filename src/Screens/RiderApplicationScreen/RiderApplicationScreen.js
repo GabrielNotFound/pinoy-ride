@@ -93,7 +93,7 @@ const RiderApplicationScreen = () => {
 
   const handleBack = () => {
     if (step === 0) {
-      navigation.navigate('LoginScreen');
+      navigation.navigate('LandingScreen');
     } else {
       setStep(prev => prev - 1);
     }

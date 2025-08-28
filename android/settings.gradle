@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'pinoy-ride'
+rootProject.name = 'pinoy-ride-rider'
 
 dependencyResolutionManagement {
   versionCatalogs {

@@ -3,12 +3,29 @@
     "name": "pinoyriderider",
     "slug": "pinoyriderider",
     "version": "1.0.0",
-    "plugins": ["expo-font", "expo-build-properties"],
+    "plugins": [
+      "expo-font",
+      "expo-build-properties",
+      [
+        "react-native-permissions",
+        {
+          "iosPermissions": ["Camera", "Microphone"]
+        }
+      ]
+    ],
     "android": {
-      "package": "com.gabriel1337.pinoyriderider"
+      "package": "com.gabriel1337.pinoyriderider",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "ios": {
-      "bundleIdentifier": "com.gabriel1337.pinoyriderider"
+      "bundleIdentifier": "com.gabriel1337.pinoyriderider",
+      "infoPlist": {
+        "NSCameraUsageDescription": "[REASON]",
+        "NSMicrophoneUsageDescription": "[REASON]"
+      }
     }
   }
 }

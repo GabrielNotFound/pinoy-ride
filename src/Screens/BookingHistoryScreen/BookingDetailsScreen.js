@@ -65,7 +65,7 @@ const BookingDetailsScreen = () => {
         <Text style={styles.paymentLabel}>Payment Method</Text>
         <View style={styles.paymentMethodContainer}>
           <Image
-            source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_9.png')}
+            source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
             style={styles.iconSmall}
             resizeMode="contain"
           />
@@ -150,7 +150,7 @@ const BookingDetailsScreen = () => {
 
             <View style={styles.locationRow}>
               <Image
-                source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_5.png')}
+                source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
                 style={styles.iconSmall}
                 resizeMode="contain"
               />
@@ -158,7 +158,7 @@ const BookingDetailsScreen = () => {
             </View>
             <View style={styles.locationRow}>
               <Image
-                source={require('@/Assets/Common/LandingScreen/BottomModal/Ellipse_8.png')}
+                source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
                 style={styles.iconSmall}
                 resizeMode="contain"
               />

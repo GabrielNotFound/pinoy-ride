@@ -1,12 +1,12 @@
 export { default as SplashScreen } from './SplashScreen/SplashScreen';
-export { default as LoginScreen } from './Login/LoginScreen';
+export { default as LandingScreen } from './Login/LandingScreen';
 export { default as RegisterScreen } from './Login/RegisterScreen';
 export { default as RiderApplicationScreen } from './RiderApplicationScreen/RiderApplicationScreen';
 export { default as DownloadDocumentScreen } from './RiderApplicationScreen/DownloadDocumentScreen';
-export { default as GetStartedScreen } from './Login/GetStartedScreen';
-export { default as LandingScreen } from './LandingScreen/LandingScreen';
-export { default as BottomModal } from './LandingScreen/BottomModal';
-export { default as ServiceModal } from './LandingScreen/ServiceModal';
+export { default as LoginScreen } from './Login/LoginScreen';
+export { default as OTPScreen } from './Login/OTPScreen';
+export { default as HomeScreen } from './HomeScreen/HomeScreen';
+export { default as BottomModal } from './HomeScreen/BottomModal';
 export { default as InputLocation } from './Location/InputLocation';
 export { default as MapSelectionModal } from './Location/MapSelectionModal';
 export { default as RatingScreen } from './RatingScreen/RatingScreen';

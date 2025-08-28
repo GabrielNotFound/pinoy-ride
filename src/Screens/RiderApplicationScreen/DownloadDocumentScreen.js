@@ -10,7 +10,7 @@ const DownloadDocumentScreen = () => {
   const navigation = useNavigation();
 
   const handleNext = () => {
-    navigation.navigate('LandingScreen');
+    navigation.navigate('HomeScreen');
   };
 
   const handleBack = () => {
