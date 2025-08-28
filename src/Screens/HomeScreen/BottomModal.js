@@ -19,6 +19,7 @@ const BottomModal = ({
   isConfirmed,
   setShowPaymentModal,
   selectedPayment,
+  inquireBookingResponse,
   isLoading,
 }) => {
   const { colors } = useTheme();
@@ -55,12 +56,25 @@ const BottomModal = ({
         <>
           {/* Service Header */}
           <View style={styles.serviceHeader}>
-            <TouchableOpacity onPress={onChangeService}>
-              <Text style={styles.modalTitle}>
-                {selectedService.title}
-                <Text style={styles.arrow}>{' >'}</Text>
-              </Text>
-            </TouchableOpacity>
+            {isBooked && !isConfirmed ? (
+              // Back button if on Confirm step
+              <TouchableOpacity onPress={onCancelBooking} disabled={isLoading}>
+                <Text style={styles.arrow}>
+                  {'< '}
+                  <Text style={styles.modalTitle}>Back</Text>
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              // Default: show service title
+              <TouchableOpacity
+                onPress={onChangeService}
+                disabled={isConfirmed}>
+                <Text style={styles.modalTitle}>
+                  {selectedService.title}
+                  <Text style={styles.arrow}>{' >'}</Text>
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Pickup & Dropoff */}
@@ -68,7 +82,8 @@ const BottomModal = ({
             <View style={styles.locationGroup}>
               <TouchableOpacity
                 style={styles.locationButton}
-                onPress={navigateToInputLocation}>
+                onPress={navigateToInputLocation}
+                disabled={isBooked}>
                 <Image
                   source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
                   style={styles.locationIcon}
@@ -89,7 +104,8 @@ const BottomModal = ({
 
               <TouchableOpacity
                 style={styles.locationButton}
-                onPress={navigateToInputLocation}>
+                onPress={navigateToInputLocation}
+                disabled={isBooked}>
                 <Image
                   source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
                   style={styles.locationIcon}
@@ -113,8 +129,11 @@ const BottomModal = ({
                     <TouchableOpacity
                       style={styles.optionButton}
                       onPress={() => {
-                        if (index === 0) {setShowPaymentModal(true);}
-                        else {console.log(btn.text, 'pressed');}
+                        if (index === 0) {
+                          setShowPaymentModal(true);
+                        } else {
+                          console.log(btn.text, 'pressed');
+                        }
                       }}>
                       <Image source={btn.image} style={styles.optionIcon} />
                       <Text style={styles.optionText}>{btn.text}</Text>
@@ -135,19 +154,20 @@ const BottomModal = ({
                 </Text>
                 <Text
                   style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
-                  ₱120.00
+                  {inquireBookingResponse?.total_amount}
                 </Text>
               </View>
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Total Fare w/ Discount</Text>
-                <Text style={styles.feeText}>₱10.00</Text>
+                {/* TODO: subtract with the discount */}
+                <Text style={styles.feeText}>
+                  {inquireBookingResponse.total_amount}
+                </Text>
               </View>
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Payment Method</Text>
-                <Image
-                  source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
-                  style={styles.optionIcon}
-                />
+                {/* TODO: This should be an Icon but the Figma doesnt provide one */}
+                <Text>{selectedPayment}</Text>
               </View>
             </View>
           )}

@@ -1,27 +1,64 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Constants } from '@/Utils';
 
 const fetchRoute = async (start, end, apiKey) => {
   try {
     const response = await fetch(
-      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${start.lng},${start.lat}&end=${end.lng},${end.lat}`,
+      `https://maps.googleapis.com/maps/api/directions/json?origin=${start.lat},${start.lng}&destination=${end.lat},${end.lng}&mode=driving&key=${apiKey}`,
     );
     const json = await response.json();
-    if (json.features && json.features.length > 0) {
-      return json.features[0].geometry.coordinates.map(c => ({
-        latitude: c[1],
-        longitude: c[0],
-      }));
+
+    if (json.routes && json.routes.length > 0) {
+      const points = json.routes[0].overview_polyline.points;
+
+      // decode polyline → array of lat/lng
+      return decodePolyline(points);
     }
     return [];
   } catch (e) {
-    console.error('Error fetching route:', e);
+    console.error('Error fetching Google route:', e);
     return [];
   }
 };
+
+// Polyline decoder for Google Directions API
+// https://github.com/heremaps/flexible-polyline
+function decodePolyline(encoded) {
+  let points = [];
+  let index = 0,
+    lat = 0,
+    lng = 0;
+
+  while (index < encoded.length) {
+    let b,
+      shift = 0,
+      result = 0;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    const dlat = result & 1 ? ~(result >> 1) : result >> 1;
+    lat += dlat;
+
+    shift = 0;
+    result = 0;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    const dlng = result & 1 ? ~(result >> 1) : result >> 1;
+    lng += dlng;
+
+    points.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
+  }
+
+  return points;
+}
 
 const AppMap = ({
   initialLat,
@@ -30,8 +67,8 @@ const AppMap = ({
   firstMarkerLong,
   secondMarkerLat,
   secondMarkerLong,
-  minDelta = 0.02, // for maop zoom
-  latOffset = -0.01, // for map centering
+  minDelta = 0.02,
+  latOffset = -0.01,
   onMapPress,
   interactive = true,
   style,
@@ -47,7 +84,6 @@ const AppMap = ({
   const [routeCoords, setRouteCoords] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
 
-  // Recalculate route & region
   useEffect(() => {
     const apiKey = Constants.GOOGLE_MAP_API_KEY;
 
@@ -96,6 +132,7 @@ const AppMap = ({
     <MapView
       style={[styles.container, style]}
       region={region}
+      provider="google" // ✅ force Google Maps tiles
       scrollEnabled={interactive}
       zoomEnabled={interactive}
       rotateEnabled={interactive}
@@ -110,12 +147,6 @@ const AppMap = ({
             }
           : null
       }>
-      <UrlTile
-        urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maximumZ={19}
-        flipY={false}
-      />
-
       {selectedMarker && (
         <Marker coordinate={selectedMarker} title="Selected Location" />
       )}
@@ -145,7 +176,7 @@ const AppMap = ({
         <Polyline
           coordinates={routeCoords}
           strokeColor={colors.primary}
-          strokeWidth={8}
+          strokeWidth={6}
         />
       )}
     </MapView>

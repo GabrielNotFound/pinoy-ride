@@ -16,9 +16,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     GoogleSignin.configure({
       webClientId:
-        '795310358519-nkaov0blvvc86rtqbadc2ntl5oak3e01.apps.googleusercontent.com',
+        '822593340499-5d4deh6t8m7l9gnhmu7mkfh7rbbt8lp3.apps.googleusercontent.com',
       iosClientId:
-        '795310358519-iquibpbcn5uhrhja0nb8nsdagq38c76l.apps.googleusercontent.com',
+        '822593340499-gfkpsn81s1kop39lr8i10p28mdo3hsv4.apps.googleusercontent.com',
     });
   }, []);
 

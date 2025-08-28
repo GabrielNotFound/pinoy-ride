@@ -8,7 +8,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    [GMSServices provideAPIKey:@"AIzaSyCy-3C367WAU4SJZuLQxXb8z8p4rNI94Qo"];
+    [GMSServices provideAPIKey:@"AIzaSyDH5_5MOexjcOzOqpA3c86Jj79rEVoPWos"];
   // GMSServices.provideAPIKey("AIzaSyD8AjX-V2EAk4ddyNPFzUGfqjxIu4ZkIZA")
   self.moduleName = @"main";
   
