@@ -7,6 +7,7 @@ export { default as LoginScreen } from './Login/LoginScreen';
 export { default as OTPScreen } from './Login/OTPScreen';
 export { default as HomeScreen } from './HomeScreen/HomeScreen';
 export { default as BottomModal } from './HomeScreen/BottomModal';
+export { default as PendingBookingModal } from './HomeScreen/PendingBookingModal';
 export { default as InputLocation } from './Location/InputLocation';
 export { default as MapSelectionModal } from './Location/MapSelectionModal';
 export { default as RatingScreen } from './RatingScreen/RatingScreen';

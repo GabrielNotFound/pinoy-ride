@@ -6,7 +6,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { AppButton } from '@/Components';
@@ -35,12 +34,17 @@ const credits = [
   },
 ];
 
-const BottomModal = () => {
+const BottomModal = ({
+  bookings = [],
+  loading,
+  onAcceptBooking,
+  onViewBooking,
+}) => {
   const { colors } = useTheme();
-  const { width, height } = useWindowDimensions(); // ✅ responsive hook
-  const styles = getStyles({ colors, width, height });
+  const styles = getStyles({ colors });
 
   const [isEnabled, setIsEnabled] = useState(false);
+
   const toggleSwitch = () => setIsEnabled(prev => !prev);
   const navigation = useNavigation();
 
@@ -49,9 +53,11 @@ const BottomModal = () => {
       <View style={styles.top}>
         <Text style={styles.title}>Pinoy Rider</Text>
         <Text style={styles.title}>Credit</Text>
-        <Text style={styles.creditScore}>100.50</Text>
+        <View style={styles.creditScoreContainer}>
+          <Text style={styles.creditScore}>100.50</Text>
+        </View>
       </View>
-      {/* credits Row */}
+
       <View style={styles.creditsRow}>
         {credits.map((item, index) => (
           <View key={index} style={styles.creditsCard}>
@@ -62,7 +68,6 @@ const BottomModal = () => {
         ))}
       </View>
 
-      {/* Light Mode Toggle */}
       <TouchableOpacity style={styles.card} onPress={toggleSwitch}>
         <View style={styles.cardContent}>
           <Image
@@ -79,7 +84,6 @@ const BottomModal = () => {
         </View>
       </TouchableOpacity>
 
-      {/* Wallet */}
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('WalletScreen')}>
@@ -92,20 +96,20 @@ const BottomModal = () => {
         </View>
       </TouchableOpacity>
 
-      {/* Bottom Button */}
-      <AppButton title="View Booking" onPress={() => {}} />
+      {/* ✅ Booking button only (modal handled in HomeScreen) */}
+      <AppButton title="View Booking" onPress={onViewBooking} />
     </View>
   );
 };
 
 export default BottomModal;
 
-const getStyles = ({ colors, width, height }) =>
+const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
-      paddingHorizontal: width * 0.06, // ~6% of screen width
-      paddingBottom: height * 0.025,
-      paddingTop: height * 0.015,
+      paddingHorizontal: 24,
+      paddingBottom: 20,
+      paddingTop: 12,
       backgroundColor: colors.background,
     },
     top: {
@@ -113,20 +117,20 @@ const getStyles = ({ colors, width, height }) =>
     },
     title: {
       fontFamily: 'Poppins SemiBold',
-      fontSize: width * 0.02, // responsive font
-      color: colors.shadow,
+      fontSize: 8,
+      color: colors.primary,
     },
     creditsRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: height * 0.025,
+      marginBottom: 20,
     },
     creditsCard: {
       flex: 1,
       alignItems: 'center',
       backgroundColor: colors.onPrimary,
-      padding: width * 0.025,
-      marginHorizontal: width * 0.01,
+      padding: 10,
+      marginHorizontal: 4,
       borderRadius: 12,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
@@ -134,40 +138,42 @@ const getStyles = ({ colors, width, height }) =>
       shadowRadius: 6,
       elevation: 6,
     },
+    creditScoreContainer: {
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      paddingHorizontal: 13,
+      paddingVertical: 2,
+      marginTop: 5,
+      marginBottom: 20,
+    },
     creditScore: {
       fontFamily: 'Poppins SemiBold',
-      fontSize: width * 0.045,
+      fontSize: 18,
       color: colors.onPrimary,
-      backgroundColor: colors.primary,
-      paddingHorizontal: width * 0.035,
-      paddingVertical: height * 0.005,
-      borderRadius: 10,
-      marginTop: height * 0.01,
-      marginBottom: height * 0.025,
     },
     creditsIcon: {
-      width: width * 0.09,
-      height: width * 0.09,
-      marginBottom: height * 0.008,
+      width: 35,
+      height: 35,
+      marginBottom: 6,
       resizeMode: 'contain',
     },
     creditsValue: {
       fontFamily: 'Poppins SemiBold',
-      fontSize: width * 0.05,
+      fontSize: 20,
       color: colors.shadow,
     },
     creditsLabel: {
       fontFamily: 'Poppins Medium',
-      fontSize: width * 0.023,
+      fontSize: 10,
       color: colors.shadow,
     },
     card: {
-      height: height * 0.07, // ~7% of screen height
+      height: 56,
       borderRadius: 10,
       backgroundColor: colors.onPrimary,
-      paddingHorizontal: width * 0.05,
-      paddingVertical: height * 0.015,
-      marginBottom: height * 0.02,
+      paddingHorizontal: 22,
+      paddingVertical: 12,
+      marginBottom: 15,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 5 },
       shadowOpacity: 0.15,
@@ -177,17 +183,17 @@ const getStyles = ({ colors, width, height }) =>
     cardContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: width * 0.03,
+      gap: 12,
     },
     leftIcon: {
-      width: width * 0.085,
-      height: width * 0.085,
+      width: 34,
+      height: 34,
       resizeMode: 'contain',
     },
     titleText: {
       fontFamily: 'Poppins Medium',
       flex: 1,
-      fontSize: width * 0.035,
+      fontSize: 16,
       color: colors.shadow,
     },
   });

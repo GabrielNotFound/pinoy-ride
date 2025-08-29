@@ -22,6 +22,9 @@ const BASE_DEV = {
     //OTP
     GENERATE_OTP: 'otp/generate/',
     VERIFY_OTP: 'otp/verify/',
+    //BOOKING
+    GET_PENDING: 'booking/get_pending/',
+    ACCEPT_BOOKING: 'booking/accept_booking/',
   },
 
   FEATURE_STATUS: {},

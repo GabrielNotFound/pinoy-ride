@@ -1,20 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Constants } from '@/Utils';
 
-const fetchRoute = async (start, end, apiKey) => {
+const fetchRoute = async (waypoints, apiKey) => {
   try {
+    const origin = `${waypoints[0].lat},${waypoints[0].lng}`;
+    const destination = `${waypoints[waypoints.length - 1].lat},${
+      waypoints[waypoints.length - 1].lng
+    }`;
+    const wp =
+      waypoints.length > 2
+        ? `&waypoints=${waypoints
+            .slice(1, -1)
+            .map(p => `${p.lat},${p.lng}`)
+            .join('|')}`
+        : '';
+
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/directions/json?origin=${start.lat},${start.lng}&destination=${end.lat},${end.lng}&mode=driving&key=${apiKey}`,
+      `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}${wp}&mode=driving&key=${apiKey}`,
     );
     const json = await response.json();
 
     if (json.routes && json.routes.length > 0) {
       const points = json.routes[0].overview_polyline.points;
-
-      // decode polyline → array of lat/lng
       return decodePolyline(points);
     }
     return [];
@@ -24,8 +34,7 @@ const fetchRoute = async (start, end, apiKey) => {
   }
 };
 
-// Polyline decoder for Google Directions API
-// https://github.com/heremaps/flexible-polyline
+// Decode Google polyline
 function decodePolyline(encoded) {
   let points = [];
   let index = 0,
@@ -63,6 +72,8 @@ function decodePolyline(encoded) {
 const AppMap = ({
   initialLat,
   initialLong,
+  riderLat,
+  riderLong,
   firstMarkerLat,
   firstMarkerLong,
   secondMarkerLat,
@@ -87,52 +98,56 @@ const AppMap = ({
   useEffect(() => {
     const apiKey = Constants.GOOGLE_MAP_API_KEY;
 
-    if (firstMarkerLat != null && secondMarkerLat != null) {
-      fetchRoute(
-        { lat: parseFloat(firstMarkerLat), lng: parseFloat(firstMarkerLong) },
-        { lat: parseFloat(secondMarkerLat), lng: parseFloat(secondMarkerLong) },
-        apiKey,
-      ).then(setRouteCoords);
+    const waypoints = [];
+    if (riderLat && riderLong) {
+      waypoints.push({ lat: parseFloat(riderLat), lng: parseFloat(riderLong) });
+    }
+    if (firstMarkerLat && firstMarkerLong) {
+      waypoints.push({
+        lat: parseFloat(firstMarkerLat),
+        lng: parseFloat(firstMarkerLong),
+      });
+    }
+    if (secondMarkerLat && secondMarkerLong) {
+      waypoints.push({
+        lat: parseFloat(secondMarkerLat),
+        lng: parseFloat(secondMarkerLong),
+      });
+    }
 
-      const centerLat =
-        (parseFloat(firstMarkerLat) + parseFloat(secondMarkerLat)) / 2;
-      const centerLong =
-        (parseFloat(firstMarkerLong) + parseFloat(secondMarkerLong)) / 2;
-      const latDelta =
-        Math.abs(parseFloat(firstMarkerLat) - parseFloat(secondMarkerLat)) *
-        1.5;
-      const lonDelta =
-        Math.abs(parseFloat(firstMarkerLong) - parseFloat(secondMarkerLong)) *
-        1.5;
+    if (waypoints.length >= 2) {
+      fetchRoute(waypoints, apiKey).then(setRouteCoords);
+
+      const lats = waypoints.map(p => p.lat);
+      const lngs = waypoints.map(p => p.lng);
+
+      const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+      const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+
+      const latDelta = (Math.max(...lats) - Math.min(...lats)) * 1.5;
+      const lonDelta = (Math.max(...lngs) - Math.min(...lngs)) * 1.5;
 
       setRegion({
         latitude: centerLat + latOffset,
-        longitude: centerLong,
+        longitude: centerLng,
         latitudeDelta: Math.max(latDelta, minDelta),
         longitudeDelta: Math.max(lonDelta, minDelta),
       });
-    } else if (firstMarkerLat != null) {
-      setRegion({
-        latitude: parseFloat(firstMarkerLat),
-        longitude: parseFloat(firstMarkerLong),
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      });
-    } else {
-      setRegion({
-        latitude: initialLat,
-        longitude: initialLong,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      });
     }
-  }, [firstMarkerLat, firstMarkerLong, secondMarkerLat, secondMarkerLong]);
+  }, [
+    riderLat,
+    riderLong,
+    firstMarkerLat,
+    firstMarkerLong,
+    secondMarkerLat,
+    secondMarkerLong,
+  ]);
 
   return (
     <MapView
       style={[styles.container, style]}
       region={region}
-      provider="google" // ✅ force Google Maps tiles
+      provider="google"
       scrollEnabled={interactive}
       zoomEnabled={interactive}
       rotateEnabled={interactive}
@@ -150,7 +165,23 @@ const AppMap = ({
       {selectedMarker && (
         <Marker coordinate={selectedMarker} title="Selected Location" />
       )}
-      {firstMarkerLat != null && firstMarkerLong != null && (
+      {routeCoords.length > 0 && (
+        <Marker
+          coordinate={routeCoords[0]}
+          title="Rider"
+          anchor={{ x: 0.5, y: 0.5 }}>
+          <Image
+            source={require('@/Assets/Common/Rider_Pin.png')}
+            style={{
+              width: 75,
+              height: 75,
+              resizeMode: 'contain',
+              tintColor: 'red',
+            }}
+          />
+        </Marker>
+      )}
+      {firstMarkerLat && firstMarkerLong && (
         <Marker
           coordinate={{
             latitude: parseFloat(firstMarkerLat),
@@ -161,7 +192,7 @@ const AppMap = ({
           anchor={{ x: 0.5, y: 1 }}
         />
       )}
-      {secondMarkerLat != null && secondMarkerLong != null && (
+      {secondMarkerLat && secondMarkerLong && (
         <Marker
           coordinate={{
             latitude: parseFloat(secondMarkerLat),
