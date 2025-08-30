@@ -3,6 +3,7 @@ import {
   Dimensions,
   Image,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -29,6 +30,7 @@ const HomeScreen = () => {
   const userInfo = useSelector(selectUserInfo);
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
+  const [modalHeight, setModalHeight] = useState(0);
 
   // Parse initial user coordinates
   const initialLat = parseFloat(userInfo.latitude.replace('° N', '').trim());
@@ -53,6 +55,10 @@ const HomeScreen = () => {
   const inquireBooking = usePostRequest();
   const [inquireBookingResponse, setInquireBookingResponse] = useState([]);
   const createBooking = usePostRequest();
+  const [bookingDetails, setBookingDetails] = useState([]);
+  const updateBookingStatus = usePostRequest();
+  const getBookingDetails = usePostRequest();
+  const [riderDetails, setRiderDetails] = useState(null);
   const isLoading = inquireBooking.loading || createBooking.loading;
 
   const onBookPressed = () => {
@@ -87,6 +93,7 @@ const HomeScreen = () => {
     };
   }, []);
 
+  //INQUIRE BOOKING
   const triggerInquireBooking = () => {
     const postdata = {
       booking_type: selectedService?.id,
@@ -114,8 +121,8 @@ const HomeScreen = () => {
       return;
     }
 
-    const results = inquireBooking.response;
-    AppUtil.debugDeep(results.data);
+    const results = inquireBooking?.response;
+    AppUtil.debugDeep(results?.data);
 
     if (results?.code === 200) {
       setInquireBookingResponse(results.data);
@@ -127,6 +134,7 @@ const HomeScreen = () => {
     handleInquireBookingRequest();
   }, [inquireBooking.response, inquireBooking.error]);
 
+  //CREATE BOOKING
   const triggerCreateBooking = () => {
     const payment_details = {
       type: selectedPayment.toLowerCase(),
@@ -162,17 +170,106 @@ const HomeScreen = () => {
       return;
     }
 
-    const results = createBooking.response;
+    const results = createBooking?.response;
     AppUtil.debugDeep(results);
 
     if (results?.code === 200) {
       setIsConfirmed(true);
+      setBookingDetails(results?.data);
     }
   };
 
   useEffect(() => {
     handleCreateBookingRequest();
   }, [createBooking.response, createBooking.error]);
+
+  //GET BOOKING DETAILS
+  const triggeGetBookingDetails = () => {
+    const postdata = {
+      booking_id: bookingDetails?.id,
+    };
+    getBookingDetails.makePostRequest(
+      Constants.ENDPOINT.GET_BOOKING_DETAILS,
+      postdata,
+    );
+  };
+
+  const handleGetBookingDetails = () => {
+    if (getBookingDetails.error) {
+      setAlertMessage(getBookingDetails.error);
+      setShowAlert(true);
+      return;
+    }
+
+    if (!getBookingDetails.response) {
+      return;
+    }
+
+    const results = getBookingDetails.response;
+    AppUtil.debugDeep(results);
+
+    if (results?.code === 200) {
+      if (results?.data?.status === 1) {
+        setIsConfirmed(false);
+        setRiderDetails(results?.data?.rider_details);
+        setShowRiderFound(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    handleGetBookingDetails();
+  }, [getBookingDetails.response, getBookingDetails.error]);
+
+  // Poll booking details when confirmed
+  useEffect(() => {
+    let intervalId;
+
+    if (isConfirmed && bookingDetails?.id) {
+      intervalId = setInterval(() => {
+        triggeGetBookingDetails();
+      }, 1000);
+    }
+    return () => {
+      if (intervalId) {clearInterval(intervalId);}
+    };
+  }, [isConfirmed, bookingDetails?.id]);
+
+  //UPDATE BOOKING STATUS
+  const triggerUpdateBookingStatus = () => {
+    const postdata = {
+      booking_id: bookingDetails?.id,
+      status: '4',
+    };
+    updateBookingStatus.makePostRequest(
+      Constants.ENDPOINT.UPDATE_BOOKING_STATUS,
+      postdata,
+    );
+  };
+
+  const handleUpdateBookingStatus = () => {
+    if (updateBookingStatus.error) {
+      setAlertMessage(updateBookingStatus.error);
+      setShowAlert(true);
+      return;
+    }
+
+    if (!updateBookingStatus.response) {
+      return;
+    }
+
+    const results = updateBookingStatus.response;
+    AppUtil.debugDeep(results);
+
+    if (results?.code === 200) {
+      setIsConfirmed(false);
+      setIsBooked(false);
+    }
+  };
+
+  useEffect(() => {
+    handleUpdateBookingStatus();
+  }, [updateBookingStatus.response, updateBookingStatus.error]);
 
   return (
     <>
@@ -218,13 +315,34 @@ const HomeScreen = () => {
         <RiderFoundAlertBox
           visible={showRiderFound}
           onClose={() => setShowRiderFound(false)}
-          riderName="Juan Dela Cruz"
-          plateNumber="XYZ 5678"
-          vehicle="Yamaha NMAX"
-          imageSource={require('@/Assets/Common/Sample_Profile.png')}
+          riderName={
+            riderDetails
+              ? `${riderDetails.first_name} ${riderDetails.last_name}`
+              : ''
+          }
+          plateNumber={riderDetails?.vehicle_details?.[0]?.plate_number || ''}
+          vehicle={
+            riderDetails?.vehicle_details?.[0]
+              ? `${riderDetails.vehicle_details[0].brand} ${riderDetails.vehicle_details[0].model}`
+              : ''
+          }
+          imageSource={
+            riderDetails?.motorcyle_img
+              ? { uri: riderDetails.vehicle_details?.[0]?.motorcyle_img }
+              : require('@/Assets/Common/Sample_Profile.png')
+          }
         />
 
+        {isConfirmed && (
+          <View style={[styles.banner, { bottom: modalHeight + 20 }]}>
+            <Text style={styles.bannerText}>
+              Waiting for the Rider to accept your Booking
+            </Text>
+          </View>
+        )}
+
         <BottomModal
+          onLayout={e => setModalHeight(e.nativeEvent.layout.height)}
           selectedService={selectedService}
           onBookPressed={onBookPressed}
           pickup={pickupLocation}
@@ -235,8 +353,7 @@ const HomeScreen = () => {
           onInquireBooking={triggerInquireBooking} // First "Book" step
           onCreateBooking={triggerCreateBooking} // Confirm booking API
           onCancelBooking={() => {
-            setIsConfirmed(false);
-            setIsBooked(false);
+            triggerUpdateBookingStatus();
           }}
           isBooked={isBooked}
           isConfirmed={isConfirmed}
@@ -296,5 +413,20 @@ const getStyles = ({ colors }) =>
       width: 51,
       height: 51,
       resizeMode: 'contain',
+    },
+    banner: {
+      position: 'absolute',
+      left: 20,
+      right: 20,
+      padding: 12,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      zIndex: 999,
+      elevation: 999,
+    },
+    bannerText: {
+      fontWeight: '600',
+      color: colors.onPrimary,
     },
   });

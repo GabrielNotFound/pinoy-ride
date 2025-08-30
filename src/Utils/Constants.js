@@ -27,6 +27,7 @@ const BASE_DEV = {
     CREATE_BOOKING: 'booking/create/',
     UPDATE_BOOKING_STATUS: 'booking/update_status_for_customer/',
     GET_BOOKING_HISTORY: 'booking/get_history/',
+    GET_BOOKING_DETAILS: 'booking/get_details/',
 
     ADD_TIP: 'booking/add_tip/',
   },

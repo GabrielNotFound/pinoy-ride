@@ -68,6 +68,16 @@ const LandingScreen = () => {
           onPress={() => navigation.navigate('LoginScreen')}
           featureStyle={{ marginTop: 0 }}
         />
+        <View style={styles.registerContainer}>
+          <Text style={styles.registerText}>
+            Don’t have an account?{' '}
+            <Text
+              style={styles.registerLink}
+              onPress={() => navigation.navigate('GeneralTermsScreen')}>
+              Register
+            </Text>
+          </Text>
+        </View>
       </View>
       <View />
     </Container>
@@ -105,5 +115,18 @@ const getStyles = ({ colors }) =>
       fontSize: 16,
       color: colors.onSurfaceGrey,
       fontFamily: 'Poppins Regular',
+    },
+    registerContainer: {
+      alignItems: 'center',
+      marginTop: 20,
+    },
+    registerText: {
+      fontSize: 14,
+      color: colors.onSurfaceGrey,
+      fontFamily: 'Poppins Regular',
+    },
+    registerLink: {
+      color: colors.primary,
+      fontFamily: 'Poppins SemiBold',
     },
   });

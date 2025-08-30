@@ -39,6 +39,7 @@ const OTPScreen = () => {
   const handleGetOtp = () => {
     if (getOtpCode.error) {
       setAlertMessage(getOtpCode.error);
+      setShowAlert(true);
       return;
     }
     const results = getOtpCode.response?.data;
@@ -69,6 +70,7 @@ const OTPScreen = () => {
   const handleVerifyOtp = () => {
     if (verifyOtpCode.error) {
       setAlertMessage(verifyOtpCode.error);
+      setShowAlert(true);
       return;
     }
     const results = verifyOtpCode.response;
@@ -94,6 +96,7 @@ const OTPScreen = () => {
   const handleLoginUser = () => {
     if (loginUser.error) {
       setAlertMessage(loginUser.error);
+      setShowAlert(true);
       return;
     }
     const results = loginUser.response;
@@ -129,7 +132,9 @@ const OTPScreen = () => {
   const [resendDisabled, setResendDisabled] = useState(false);
 
   const handleResendOtp = async () => {
-    if (resendDisabled) {return;}
+    if (resendDisabled) {
+      return;
+    }
 
     setResendDisabled(true);
     setTimeout(() => setResendDisabled(false), 60000); // 30s cooldown

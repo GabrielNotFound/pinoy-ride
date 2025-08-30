@@ -16,8 +16,24 @@ const GeneralTermsScreen = () => {
     navigation.replace('RegisterScreen');
   };
 
+  const handleBack = () => {
+    navigation.replace('LandingScreen');
+  };
+
   return (
     <Container style={styles.container}>
+      {/* Back button */}
+      <View style={styles.backWrapper}>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+          <Image
+            source={require('@/Assets/Common/Back.png')}
+            style={styles.backIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
           source={require('@/Assets/Common/GeneralTerms/Accept_Terms.png')}
@@ -26,27 +42,47 @@ const GeneralTermsScreen = () => {
         />
       </View>
 
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>Accept Our Terms</Text>
-        <Text style={styles.subtitle}>
-          To start booking, please review and accept our Terms and Conditions.
-          Your safety and privacy matters to us.
-        </Text>
-      </View>
+      {/* Text & Checkbox */}
+      <View>
+        <View style={styles.textContainer}>
+          <Text style={styles.title}>Accept Our Terms</Text>
+          <Text style={styles.subtitle}>
+            To start booking, please review and accept our Terms and Conditions.
+            Your safety and privacy matters to us.
+          </Text>
+        </View>
 
-      <View style={styles.checkboxContainer}>
-        <TouchableOpacity
-          style={[
-            styles.customCheckbox,
-            checked && styles.checkedCheckbox,
-            { borderColor: colors.primary },
-          ]}
-          onPress={() => setChecked(!checked)}>
-          {checked && <Ionicons name="checkmark" size={16} color="white" />}
-        </TouchableOpacity>
-        <Text style={styles.label}>I Accept the Terms and Conditions</Text>
+        <View style={styles.checkboxContainer}>
+          <TouchableOpacity
+            style={[
+              styles.customCheckbox,
+              checked && styles.checkedCheckbox,
+              { borderColor: colors.primary },
+            ]}
+            onPress={() => setChecked(!checked)}>
+            {checked && <Ionicons name="checkmark" size={16} color="white" />}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              /* later open modal */
+            }}>
+            <Text style={styles.label}>
+              I Accept the{' '}
+              <Text style={{ textDecorationLine: 'underline' }}>
+                Terms and Conditions
+              </Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <AppButton
+          title="Submit"
+          onPress={handleNext}
+          isBold
+          disabled={!checked}
+        />
       </View>
-      <AppButton title="Submit" onPress={handleNext} isBold />
     </Container>
   );
 };
@@ -58,6 +94,13 @@ const getStyles = ({ colors }) =>
     container: {
       flex: 1,
       paddingHorizontal: 15,
+    },
+    backButton: {
+      marginTop: 10,
+    },
+    backIcon: {
+      width: 23,
+      height: 23,
     },
     logoContainer: {
       flex: 1,

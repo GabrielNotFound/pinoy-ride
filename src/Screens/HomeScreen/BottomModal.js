@@ -5,6 +5,7 @@ import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
 const BottomModal = ({
+  onLayout,
   selectedService,
   onBookPressed,
   onInquireBooking,
@@ -51,7 +52,7 @@ const BottomModal = ({
   };
 
   return (
-    <View style={styles.modalContainer}>
+    <View style={styles.modalContainer} onLayout={onLayout}>
       {selectedService ? (
         <>
           {/* Service Header */}
@@ -316,7 +317,6 @@ const getStyles = ({ colors }) =>
     },
     fareBreakdown: {
       marginTop: 10,
-      marginBottom: 20,
     },
     fareRow: {
       flexDirection: 'row',
