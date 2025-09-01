@@ -45,11 +45,11 @@ const getStyles = ({ colors }) =>
       backgroundColor: 'rgba(0,0,0,0.5)',
       justifyContent: 'center',
       alignItems: 'center',
-      zIndex: 999,
+      zIndex: 20,
     },
     container: {
       width: 321,
-      height: 330,
+      paddingVertical: 26,
       alignItems: 'center',
       backgroundColor: 'white',
       borderRadius: 20,
@@ -64,7 +64,6 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins SemiBold',
       fontWeight: '600',
       color: colors.shadow,
-      marginTop: 36,
       marginBottom: 4,
     },
     subtitle: {

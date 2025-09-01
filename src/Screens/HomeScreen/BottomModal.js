@@ -29,16 +29,48 @@ const BottomModal = ({
 
   const buttons = [
     {
+      id: 'payment',
       image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
       text: selectedPayment,
+      onPress: () => setShowPaymentModal(true),
     },
     {
+      id: 'promo',
       image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
       text: 'Promo',
+      onPress: () => console.log('Promo'),
     },
     {
+      id: 'note',
       image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
       text: 'Note to Rider',
+      onPress: () => console.log('Note to Rider'),
+    },
+  ];
+
+  const actionButtons = [
+    {
+      visible: !isBooked,
+      title: 'Book',
+      onPress: onInquireBooking,
+      color: pickup && dropoff ? colors.primary : colors.grey5,
+      disabled: !pickup || !dropoff || isLoading,
+    },
+    {
+      visible: isBooked && !isConfirmed,
+      title: 'Confirm',
+      onPress: onCreateBooking,
+      color: colors.primary,
+      disabled: isLoading,
+    },
+    {
+      visible: isConfirmed,
+      title: 'Cancel',
+      onPress: onCancelBooking,
+      color: colors.error,
+      outlined: true,
+      textColor: colors.error,
+      disabled: isLoading,
     },
   ];
 
@@ -51,6 +83,24 @@ const BottomModal = ({
     });
   };
 
+  // ✅ Extracted helper renderer
+  const renderActionButton = () => {
+    const btn = actionButtons.find(b => b.visible);
+    if (!btn) {return null;}
+
+    return (
+      <AppButton
+        title={btn.title}
+        onPress={btn.onPress}
+        isBold
+        mode={btn.outlined ? 'outlined' : 'contained'}
+        buttonColor={btn.color}
+        textColor={btn.textColor}
+        disabled={btn.disabled}
+      />
+    );
+  };
+
   return (
     <View style={styles.modalContainer} onLayout={onLayout}>
       {selectedService ? (
@@ -58,7 +108,6 @@ const BottomModal = ({
           {/* Service Header */}
           <View style={styles.serviceHeader}>
             {isBooked && !isConfirmed ? (
-              // Back button if on Confirm step
               <TouchableOpacity onPress={onCancelBooking} disabled={isLoading}>
                 <Text style={styles.arrow}>
                   {'< '}
@@ -66,7 +115,6 @@ const BottomModal = ({
                 </Text>
               </TouchableOpacity>
             ) : (
-              // Default: show service title
               <TouchableOpacity
                 onPress={onChangeService}
                 disabled={isConfirmed}>
@@ -89,10 +137,7 @@ const BottomModal = ({
                   source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
                   style={styles.locationIcon}
                 />
-                <Text
-                  style={styles.locationText}
-                  numberOfLines={1}
-                  ellipsizeMode="tail">
+                <Text style={styles.locationText} numberOfLines={1}>
                   {pickup?.description || 'Pick up From?'}
                 </Text>
               </TouchableOpacity>
@@ -111,10 +156,7 @@ const BottomModal = ({
                   source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
                   style={styles.locationIcon}
                 />
-                <Text
-                  style={styles.locationText}
-                  numberOfLines={1}
-                  ellipsizeMode="tail">
+                <Text style={styles.locationText} numberOfLines={1}>
                   {dropoff?.description || 'Drop off To?'}
                 </Text>
               </TouchableOpacity>
@@ -160,47 +202,17 @@ const BottomModal = ({
               </View>
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Total Fare w/ Discount</Text>
-                {/* TODO: subtract with the discount */}
                 <Text style={styles.feeText}>
-                  {inquireBookingResponse.total_amount}
+                  {inquireBookingResponse?.total_amount}
                 </Text>
               </View>
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Payment Method</Text>
-                {/* TODO: This should be an Icon but the Figma doesnt provide one */}
                 <Text>{selectedPayment}</Text>
               </View>
             </View>
           )}
-
-          {/* Action buttons */}
-          {!isBooked ? (
-            <AppButton
-              title="Book"
-              onPress={onInquireBooking}
-              isBold
-              buttonColor={!pickup || !dropoff ? colors.grey5 : colors.primary}
-              disabled={!pickup || !dropoff || isLoading}
-            />
-          ) : !isConfirmed ? (
-            <AppButton
-              title="Confirm"
-              onPress={onCreateBooking}
-              isBold
-              buttonColor={colors.primary}
-              disabled={isLoading}
-            />
-          ) : (
-            <AppButton
-              title="Cancel"
-              onPress={onCancelBooking}
-              isBold
-              mode="outlined"
-              buttonColor={colors.error}
-              textColor={colors.error}
-              disabled={isLoading}
-            />
-          )}
+          {renderActionButton()}
         </>
       ) : (
         <>

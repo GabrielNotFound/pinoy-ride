@@ -19,3 +19,4 @@ export { default as PromoReferralsScreen } from './PromoReferralsScreen/PromoRef
 export { default as PaymentOptionScreen } from './PaymentOptionScreen/PaymentOptionScreen';
 export { default as WalletScreen } from './WalletScreen/WalletScreen';
 export { default as OTPScreen } from './Login/OTPScreen';
+export { default as BookingStatusModal } from './HomeScreen/BookingStatusModal';

@@ -22,6 +22,7 @@ import { selectUserInfo } from '@/Redux/Slices/userSlice';
 import { AppUtil, Constants } from '@/Utils';
 import PaymentMethodModal from './PaymentMethodModal';
 import usePostRequest from '@/Services/Api';
+import BookingStatusModal from './BookingStatusModal';
 
 const HomeScreen = () => {
   const { colors } = useTheme();
@@ -38,10 +39,17 @@ const HomeScreen = () => {
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showRiderFound, setShowRiderFound] = useState(false);
+  const riderAlertShownRef = useRef(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState('Cash');
+
+  const statusMessages = {
+    0: 'Waiting for the Rider to accept your Booking',
+    1: 'Your Rider will arrive soon',
+    2: 'In transit, Don’t Use your Phone',
+  };
 
   const riderFoundTimeout = useRef(null);
   const successShownRef = useRef(false);
@@ -58,8 +66,10 @@ const HomeScreen = () => {
   const [bookingDetails, setBookingDetails] = useState([]);
   const updateBookingStatus = usePostRequest();
   const getBookingDetails = usePostRequest();
+  const [bookingStatus, setBookingStatus] = useState(0);
   const [riderDetails, setRiderDetails] = useState(null);
   const isLoading = inquireBooking.loading || createBooking.loading;
+  const [showWaitingBanner, setShowWaitingBanner] = useState(false);
 
   const onBookPressed = () => {
     setShowServiceModal(true);
@@ -176,6 +186,7 @@ const HomeScreen = () => {
     if (results?.code === 200) {
       setIsConfirmed(true);
       setBookingDetails(results?.data);
+      setShowWaitingBanner(true);
     }
   };
 
@@ -201,18 +212,34 @@ const HomeScreen = () => {
       return;
     }
 
-    if (!getBookingDetails.response) {
-      return;
-    }
+    const response = getBookingDetails.response;
+    if (!response) {return;}
 
-    const results = getBookingDetails.response;
-    AppUtil.debugDeep(results);
+    const { code, data } = response;
+    AppUtil.debugDeep(response);
 
-    if (results?.code === 200) {
-      if (results?.data?.status === 1) {
-        setIsConfirmed(false);
-        setRiderDetails(results?.data?.rider_details);
-        setShowRiderFound(true);
+    if (code === 200 && data) {
+      const { status, rider_details } = data;
+
+      setBookingStatus(status);
+
+      if (status === 1) {
+        setRiderDetails(rider_details);
+        if (!riderAlertShownRef.current) {
+          setShowRiderFound(true);
+          riderAlertShownRef.current = true;
+        }
+      }
+      if (status === 3) {
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'RatingScreen',
+              params: { bookingDetails: data },
+            },
+          ],
+        });
       }
     }
   };
@@ -223,17 +250,19 @@ const HomeScreen = () => {
 
   // Poll booking details when confirmed
   useEffect(() => {
-    let intervalId;
+    if (!bookingDetails?.id) {return;}
 
-    if (isConfirmed && bookingDetails?.id) {
-      intervalId = setInterval(() => {
-        triggeGetBookingDetails();
-      }, 1000);
-    }
+    let intervalId;
+    const intervalTime = bookingStatus === 0 ? 1000 : 5000;
+
+    intervalId = setInterval(() => {
+      triggeGetBookingDetails();
+    }, intervalTime);
+
     return () => {
-      if (intervalId) {clearInterval(intervalId);}
+      clearInterval(intervalId);
     };
-  }, [isConfirmed, bookingDetails?.id]);
+  }, [bookingStatus, bookingDetails?.id]);
 
   //UPDATE BOOKING STATUS
   const triggerUpdateBookingStatus = () => {
@@ -264,6 +293,8 @@ const HomeScreen = () => {
     if (results?.code === 200) {
       setIsConfirmed(false);
       setIsBooked(false);
+      riderAlertShownRef.current = false;
+      setBookingStatus(0);
     }
   };
 
@@ -302,16 +333,6 @@ const HomeScreen = () => {
           />
         </TouchableOpacity>
 
-        {showSuccess && (
-          <SuccessAlertBox
-            visible={showSuccess}
-            onClose={() => setShowSuccess(false)}
-            imageSource={require('@/Assets/Common/Check.png')}
-            title="Success"
-            message="You are now successfully Login."
-          />
-        )}
-
         <RiderFoundAlertBox
           visible={showRiderFound}
           onClose={() => setShowRiderFound(false)}
@@ -333,36 +354,60 @@ const HomeScreen = () => {
           }
         />
 
-        {isConfirmed && (
-          <View style={[styles.banner, { bottom: modalHeight + 20 }]}>
+        {showSuccess && (
+          <SuccessAlertBox
+            visible={showSuccess}
+            onClose={() => setShowSuccess(false)}
+            imageSource={require('@/Assets/Common/Check.png')}
+            title="Success"
+            message="You are now successfully Login."
+          />
+        )}
+
+        {showWaitingBanner && (
+          <View style={[styles.banner, { bottom: modalHeight + 15 }]}>
             <Text style={styles.bannerText}>
-              Waiting for the Rider to accept your Booking
+              {statusMessages[bookingStatus] || ''}
             </Text>
           </View>
         )}
 
-        <BottomModal
-          onLayout={e => setModalHeight(e.nativeEvent.layout.height)}
-          selectedService={selectedService}
-          onBookPressed={onBookPressed}
-          pickup={pickupLocation}
-          dropoff={dropoffLocation}
-          onPickupChange={setPickupLocation}
-          onDropoffChange={setDropoffLocation}
-          onChangeService={() => setShowServiceModal(true)}
-          onInquireBooking={triggerInquireBooking} // First "Book" step
-          onCreateBooking={triggerCreateBooking} // Confirm booking API
-          onCancelBooking={() => {
-            triggerUpdateBookingStatus();
-          }}
-          isBooked={isBooked}
-          isConfirmed={isConfirmed}
-          showPaymentModal={showPaymentModal}
-          setShowPaymentModal={setShowPaymentModal}
-          selectedPayment={selectedPayment}
-          inquireBookingResponse={inquireBookingResponse}
-          isLoading={isLoading}
-        />
+        {(bookingStatus === 0 || bookingStatus === 4) && (
+          <BottomModal
+            onLayout={e => setModalHeight(e.nativeEvent.layout.height)}
+            selectedService={selectedService}
+            onBookPressed={onBookPressed}
+            pickup={pickupLocation}
+            dropoff={dropoffLocation}
+            onPickupChange={setPickupLocation}
+            onDropoffChange={setDropoffLocation}
+            onChangeService={() => setShowServiceModal(true)}
+            onInquireBooking={triggerInquireBooking}
+            onCreateBooking={triggerCreateBooking}
+            onCancelBooking={() => {
+              triggerUpdateBookingStatus();
+            }}
+            isBooked={isBooked}
+            isConfirmed={isConfirmed}
+            showPaymentModal={showPaymentModal}
+            setShowPaymentModal={setShowPaymentModal}
+            selectedPayment={selectedPayment}
+            inquireBookingResponse={inquireBookingResponse}
+            isLoading={isLoading}
+          />
+        )}
+
+        {bookingStatus !== 0 && (
+          <BookingStatusModal
+            onLayout={e => setModalHeight(e.nativeEvent.layout.height)}
+            visible={bookingStatus !== 0}
+            riderDetails={riderDetails}
+            bookingDetails={bookingDetails}
+            bookingStatus={bookingStatus}
+            pickup={pickupLocation}
+            dropoff={dropoffLocation}
+          />
+        )}
 
         {showPaymentModal && (
           <PaymentMethodModal
@@ -422,7 +467,7 @@ const getStyles = ({ colors }) =>
       borderRadius: 8,
       backgroundColor: colors.primary,
       alignItems: 'center',
-      zIndex: 999,
+      zIndex: 10,
       elevation: 999,
     },
     bannerText: {
