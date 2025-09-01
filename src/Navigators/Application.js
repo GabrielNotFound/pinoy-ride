@@ -20,6 +20,7 @@ import {
   RiderApplicationScreen,
   SettingsScreen,
   SplashScreen,
+  SuccessfulBooking,
   TopUpScreen,
   WalletScreen,
 } from '@/Screens';
@@ -83,6 +84,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="HomeScreen"
               component={HomeScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="SuccessfulBooking"
+              component={SuccessfulBooking}
               options={{ headerShown: false }}
             />
             <Stack.Screen

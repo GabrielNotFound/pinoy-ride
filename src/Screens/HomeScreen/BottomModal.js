@@ -39,15 +39,106 @@ const BottomModal = ({
   loading,
   onAcceptBooking,
   onViewBooking,
+  activeBooking,
+  onUpdateStatus,
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
-
-  const [isEnabled, setIsEnabled] = useState(false);
-
-  const toggleSwitch = () => setIsEnabled(prev => !prev);
   const navigation = useNavigation();
 
+  const [isEnabled, setIsEnabled] = useState(false);
+  const toggleSwitch = () => setIsEnabled(prev => !prev);
+
+  // New local state to manage button text and status
+  const [buttonStatus, setButtonStatus] = useState(1);
+
+  const getButtonTitle = status => {
+    switch (status) {
+      case 1:
+        return 'Go to Pick Up Location';
+      case 2:
+        return "Let's go to your location";
+      case 3:
+        return 'Drop Off';
+      default:
+        return 'Button';
+    }
+  };
+
+  // If booking is active → show passenger info modal
+  if (activeBooking) {
+    return (
+      <View style={styles.containerBooking}>
+        <View style={styles.rowBetween}>
+          <View style={styles.row}>
+            <Image
+              source={{
+                uri:
+                  activeBooking?.customer?.avatar ||
+                  'https://ui-avatars.com/api/?name=' +
+                    activeBooking.customer.fname,
+              }}
+              style={styles.avatar}
+            />
+            <Text style={styles.name}>
+              {`${activeBooking?.customer?.fname || ''} ${
+                activeBooking?.customer?.lname || ''
+              }`}
+            </Text>
+          </View>
+          <View style={styles.rowEnd}>
+            <Text style={styles.amount}>
+              +₱{activeBooking?.payment_details?.total_amount}
+            </Text>
+            <Text style={styles.paymentType}>
+              {activeBooking?.payment_type}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.rowAddress}>
+          <Image
+            source={require('@/Assets/Common/Location.png')}
+            style={styles.icon}
+          />
+          <Text style={styles.address}>{activeBooking?.pickup_location}</Text>
+        </View>
+
+        <View style={styles.rowAddress}>
+          <Image
+            source={require('@/Assets/Common/Pin.png')}
+            style={[styles.icon, { tintColor: 'red' }]}
+          />
+          <Text style={styles.address}>{activeBooking?.dropoff_location}</Text>
+        </View>
+
+        <AppButton
+          title={getButtonTitle(buttonStatus)}
+          onPress={() => {
+            if (buttonStatus === 0 || buttonStatus === 1) {
+              // Advance locally, don't call API yet
+              const nextStatus = buttonStatus + 1;
+              setButtonStatus(nextStatus);
+              onUpdateStatus(activeBooking, nextStatus);
+            } else if (buttonStatus === 2) {
+              // Pressing "Let's go to your location"
+              onUpdateStatus(activeBooking, 2); // no 'true' flag
+              setButtonStatus(3); // button text now shows "Drop Off"
+            } else if (buttonStatus === 3) {
+              // Drop Off → final API call
+              onUpdateStatus(activeBooking, 3);
+              navigation.navigate('SuccessfulBooking', activeBooking);
+            }
+          }}
+          buttonColor={colors.primary}
+          textColor={colors.onPrimary}
+          isBold
+        />
+      </View>
+    );
+  }
+
+  // Default modal (credits, wallet, theme toggle, view booking button)
   return (
     <View style={styles.container}>
       <View style={styles.top}>
@@ -96,7 +187,6 @@ const BottomModal = ({
         </View>
       </TouchableOpacity>
 
-      {/* ✅ Booking button only (modal handled in HomeScreen) */}
       <AppButton title="View Booking" onPress={onViewBooking} />
     </View>
   );
@@ -106,15 +196,14 @@ export default BottomModal;
 
 const getStyles = ({ colors }) =>
   StyleSheet.create({
+    // === Default layout ===
     container: {
       paddingHorizontal: 24,
       paddingBottom: 20,
       paddingTop: 12,
       backgroundColor: colors.background,
     },
-    top: {
-      alignItems: 'center',
-    },
+    top: { alignItems: 'center' },
     title: {
       fontFamily: 'Poppins SemiBold',
       fontSize: 8,
@@ -195,5 +284,89 @@ const getStyles = ({ colors }) =>
       flex: 1,
       fontSize: 16,
       color: colors.shadow,
+    },
+
+    // === Booking layout ===
+    containerBooking: {
+      paddingHorizontal: 30,
+      paddingVertical: 45,
+      backgroundColor: colors.onPrimary,
+      shadowOffset: { width: 0, height: -3 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 6,
+    },
+    row: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+    rowBetween: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    rowEnd: { alignItems: 'flex-end' },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    name: {
+      fontFamily: 'Poppins Medium',
+      fontSize: 16,
+      color: colors.shadow,
+    },
+    amount: {
+      fontFamily: 'Poppins SemiBold',
+      fontSize: 16,
+      color: colors.primary,
+    },
+    paymentType: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 12,
+      color: colors.grey3,
+    },
+    rowAddress: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 6,
+    },
+    icon: { width: 17, height: 17, marginRight: 15, resizeMode: 'contain' },
+    address: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 16,
+      color: colors.shadow,
+      flexShrink: 1,
+      letterSpacing: -0.45,
+    },
+    actionsRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginVertical: 12,
+      gap: 12,
+    },
+    circleBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    circleIcon: {
+      width: 20,
+      height: 20,
+      tintColor: colors.onPrimary,
+      resizeMode: 'contain',
+    },
+    mainButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 14,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    mainButtonText: {
+      fontFamily: 'Poppins SemiBold',
+      fontSize: 16,
+      color: colors.onPrimary,
     },
   });

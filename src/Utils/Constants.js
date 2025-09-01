@@ -25,6 +25,7 @@ const BASE_DEV = {
     //BOOKING
     GET_PENDING: 'booking/get_pending/',
     ACCEPT_BOOKING: 'booking/accept_booking/',
+    UPDATE_BOOKING_STATUS: 'booking/update_status_for_rider/',
   },
 
   FEATURE_STATUS: {},

@@ -176,7 +176,6 @@ const AppMap = ({
               width: 75,
               height: 75,
               resizeMode: 'contain',
-              tintColor: 'red',
             }}
           />
         </Marker>

@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import { Ionicons } from '@expo/vector-icons'; // or react-native-vector-icons/Ionicons
 
 const PendingBookingModal = ({
   visible,
@@ -71,7 +70,6 @@ const PendingBookingModal = ({
                     </Text>
                   </View>
 
-                  {/* Dropoff */}
                   <View style={styles.locationRow}>
                     <Image
                       source={require('@/Assets/Common/Pin.png')}
@@ -84,7 +82,6 @@ const PendingBookingModal = ({
 
                   <View style={styles.divider} />
 
-                  {/* Footer actions */}
                   <View style={styles.footer}>
                     <TouchableOpacity
                       onPress={onIgnore}
@@ -179,6 +176,7 @@ const getStyles = ({ colors }) =>
       paddingHorizontal: 20,
       paddingVertical: 8,
       borderRadius: 8,
+      marginRight: 10,
     },
     ignoreText: {
       fontSize: 16,

@@ -32,19 +32,41 @@ const HomeScreen = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const [userLocation, setUserLocation] = useState({});
-  const [showDropoff, setShowDropoff] = useState(false); // NEW toggle state
+  const [showDropoff, setShowDropoff] = useState(false);
+
+  const [bookingStatus, setBookingStatus] = useState('0'); // 0 = Pending
 
   const dummyLocation = { lat: '14.542896', long: '120.988921' };
 
   const initialLat = userLocation?.latitude || userInfo?.current_lat;
   const initialLong = userLocation?.longitude || userInfo?.current_long;
+  const showRiderMarker = activeBooking?.status !== 3;
+
+  const firstMarkerLat =
+    activeBooking?.status === 2 || activeBooking?.status === 3
+      ? activeBooking.pickup_lat
+      : activeBooking?.status === 0
+      ? activeBooking.dropoff_lat
+      : null;
+
+  const firstMarkerLong =
+    activeBooking?.status === 2 || activeBooking?.status === 3
+      ? activeBooking.pickup_long
+      : activeBooking?.status === 0
+      ? activeBooking.dropoff_long
+      : null;
+
+  const secondMarkerLat =
+    activeBooking?.status === 3 ? activeBooking.dropoff_lat : null;
+  const secondMarkerLong =
+    activeBooking?.status === 3 ? activeBooking.dropoff_long : null;
 
   const getPendingBooking = usePostRequest();
   const acceptBooking = usePostRequest();
+  const updateBookingStatus = usePostRequest();
 
   useEffect(() => {
     setShowOffline(true);
-    AppUtil.debugDeep(userInfo);
     getUserLocation();
   }, []);
 
@@ -65,10 +87,11 @@ const HomeScreen = () => {
     );
   };
 
+  /** ───── GET PENDING BOOKINGS ───── */
   const triggerGetPendingBooking = () => {
     const postdata = {
       rider_id: userInfo.id,
-      current_lat: dummyLocation.lat,
+      current_lat: dummyLocation.lat, // TODO: replace with actual
       current_long: dummyLocation.long,
     };
     getPendingBooking.makePostRequest(Constants.ENDPOINT.GET_PENDING, postdata);
@@ -80,13 +103,9 @@ const HomeScreen = () => {
       setShowAlert(true);
       return;
     }
-
-    if (!getPendingBooking.response) {
-      return;
-    }
+    if (!getPendingBooking.response) {return;}
 
     const results = getPendingBooking.response;
-    AppUtil.debugDeep(results);
     if (results?.code === 200) {
       setPendingBookings(results.data.bookings);
     }
@@ -96,11 +115,9 @@ const HomeScreen = () => {
     handleGetPendingBookingRequest();
   }, [getPendingBooking.response, getPendingBooking.error]);
 
+  /** ───── ACCEPT BOOKING ───── */
   const triggerAcceptBooking = bookingId => {
-    const postdata = {
-      rider_id: userInfo.id,
-      booking_id: bookingId,
-    };
+    const postdata = { rider_id: userInfo.id, booking_id: bookingId };
     acceptBooking.makePostRequest(Constants.ENDPOINT.ACCEPT_BOOKING, postdata);
   };
 
@@ -110,18 +127,14 @@ const HomeScreen = () => {
       setShowAlert(true);
       return;
     }
-
-    if (!acceptBooking.response) {
-      return;
-    }
+    if (!acceptBooking.response) {return;}
 
     const results = acceptBooking.response;
-    AppUtil.debugDeep(results);
-
-    if (results?.code === 200 && results.data) {
+    if (results?.code === 200) {
       setActiveBooking(results.data);
       setShowBooking(false);
-      setShowDropoff(false); // reset toggle → always start at pickup
+      setShowDropoff(false);
+      setBookingStatus(1);
     }
   };
 
@@ -129,7 +142,42 @@ const HomeScreen = () => {
     handleAcceptBookingRequest();
   }, [acceptBooking.response, acceptBooking.error]);
 
+  /** ───── UPDATE BOOKING STATUS ───── */
+  const triggerUpdateBookingStatus = (bookingId, status) => {
+    const postdata = {
+      rider_id: userInfo.id,
+      booking_id: bookingId,
+      current_lat: dummyLocation.lat, // TODO: replace with actual
+      current_long: dummyLocation.long,
+      status,
+    };
+    updateBookingStatus.makePostRequest(
+      Constants.ENDPOINT.UPDATE_BOOKING_STATUS,
+      postdata,
+    );
+  };
+
+  const handleUpdateBookingStatusResponse = () => {
+    if (updateBookingStatus.error) {
+      setAlertMessage(updateBookingStatus.error);
+      setShowAlert(true);
+      return;
+    }
+    if (!updateBookingStatus.response) {return;}
+
+    const results = updateBookingStatus.response;
+    if (results?.code === 200) {
+      AppUtil.debugDeep(results?.data);
+    }
+  };
+
+  useEffect(() => {
+    handleUpdateBookingStatusResponse();
+  }, [updateBookingStatus.response, updateBookingStatus.error]);
+
+  /** ───── HANDLERS ───── */
   const handleAccept = booking => {
+    setActiveBooking(booking);
     triggerAcceptBooking(booking.id);
   };
 
@@ -137,8 +185,15 @@ const HomeScreen = () => {
     if (currentIndex < pendingBookings.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      setShowBooking(false); // no more bookings
+      setShowBooking(false);
     }
+  };
+
+  const handleUpdateBookingStatus = (booking, newStatus) => {
+    setActiveBooking(prev => (prev ? { ...prev, status: newStatus } : prev));
+
+    setBookingStatus(newStatus);
+    triggerUpdateBookingStatus(booking.id, newStatus);
   };
 
   return (
@@ -151,31 +206,22 @@ const HomeScreen = () => {
           setVisible={setShowAlert}
         />
       ) : null}
+
       <View style={styles.container}>
         <AppMap
           initialLat={initialLat}
           initialLong={initialLong}
-          riderLat={activeBooking ? dummyLocation.lat : null}
-          riderLong={activeBooking ? dummyLocation.long : null}
-          firstMarkerLat={
-            showDropoff ? activeBooking?.dropoff_lat : activeBooking?.pickup_lat
+          riderLat={
+            showRiderMarker ? (activeBooking ? dummyLocation.lat : null) : null
           }
-          firstMarkerLong={
-            showDropoff
-              ? activeBooking?.dropoff_long
-              : activeBooking?.pickup_long
+          riderLong={
+            showRiderMarker ? (activeBooking ? dummyLocation.long : null) : null
           }
+          firstMarkerLat={firstMarkerLat}
+          firstMarkerLong={firstMarkerLong}
+          secondMarkerLat={secondMarkerLat}
+          secondMarkerLong={secondMarkerLong}
         />
-
-        {activeBooking && (
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => setShowDropoff(!showDropoff)}>
-            <Text style={styles.toggleButtonText}>
-              {showDropoff ? 'Show Pickup' : 'Show Dropoff'}
-            </Text>
-          </TouchableOpacity>
-        )}
 
         {showOffline && (
           <OfflineAlertBox
@@ -192,6 +238,9 @@ const HomeScreen = () => {
             triggerGetPendingBooking();
             setShowBooking(true);
           }}
+          activeBooking={activeBooking}
+          onUpdateStatus={handleUpdateBookingStatus}
+          bookingStatus={bookingStatus}
         />
 
         <PendingBookingModal
@@ -216,35 +265,6 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: { flex: 1, position: 'relative' },
     map: { flex: 1, width, height },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.3)',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    alertBox: {
-      backgroundColor: colors.onPrimary,
-      padding: 20,
-      borderRadius: 12,
-      width: '80%',
-      alignItems: 'center',
-    },
-    alertName: {
-      fontFamily: 'Poppins SemiBold',
-      fontSize: 16,
-      marginBottom: 10,
-    },
-    alertAmount: {
-      fontFamily: 'Poppins SemiBold',
-      fontSize: 18,
-      marginVertical: 10,
-    },
-    actions: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '100%',
-      marginTop: 15,
-    },
     toggleButton: {
       position: 'absolute',
       bottom: 40,
