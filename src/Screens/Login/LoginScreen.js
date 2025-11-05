@@ -8,6 +8,8 @@ import {
   ensureLocationPermission,
   requestLocationPermission,
 } from '@/Utils/Permissions';
+import usePostRequest from '@/Services/Api';
+import { AppUtil, Constants } from '@/Utils';
 
 const LoginScreen = () => {
   const { colors } = useTheme();
@@ -17,6 +19,9 @@ const LoginScreen = () => {
 
   const [mobileNumber, setMobileNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const getEKYCUrl = usePostRequest();
 
   useEffect(() => {
     (async () => {
@@ -26,6 +31,38 @@ const LoginScreen = () => {
       }
     })();
   }, []);
+
+  const fetchEKYCUrl = user_id => {
+    getEKYCUrl.makePostRequest(Constants.ENDPOINT.GET_EKYC_URL, {
+      user_id,
+    });
+  };
+
+  const handleGetEKYCUrl = () => {
+    if (getEKYCUrl.error) {
+      setAlertMessage(getEKYCUrl.error);
+      setShowAlert(true);
+      return;
+    }
+    const results = getEKYCUrl.response?.data;
+    AppUtil.debugDeep(results);
+
+    // Check if we got the zkyc_url from the response
+    if (results?.zkyc_url) {
+      console.log('eKYC URL received:', results.zkyc_url);
+      navigation.navigate('EKYCScreen', {
+        ekycData: results, // Pass the entire response
+      });
+    } else if (getEKYCUrl.response) {
+      console.log('API response but no URL');
+      setAlertMessage('Failed to get eKYC URL. Please try again.');
+      setShowAlert(true);
+    }
+  };
+
+  useEffect(() => {
+    handleGetEKYCUrl();
+  }, [getEKYCUrl.response, getEKYCUrl.error]);
 
   const handleRetryPermission = async () => {
     const result = await requestLocationPermission();
@@ -44,17 +81,21 @@ const LoginScreen = () => {
       return;
     }
     setErrorMessage('');
-    // navigate to OTPScreen, pass mobile number
-    navigation.navigate('OTPScreen', { mobileNumber });
+
+    fetchEKYCUrl(mobileNumber);
   };
 
   return (
     <Container style={styles.container}>
       {showAlert && (
         <AlertBox
-          title="Location Required"
-          message="This app cannot continue without location access."
-          onConfirm={handleRetryPermission}
+          title={alertMessage ? 'Error' : 'Location Required'}
+          message={
+            alertMessage || 'This app cannot continue without location access.'
+          }
+          visible={showAlert}
+          setVisible={setShowAlert}
+          onConfirm={alertMessage ? undefined : handleRetryPermission}
         />
       )}
       {/* Header */}
@@ -89,7 +130,12 @@ const LoginScreen = () => {
           Enter your active number to receive a verification code. This helps us
           keep your account secure.
         </Text>
-        <AppButton title="Next" onPress={handleNext} isBold />
+        <AppButton
+          title="Next"
+          onPress={handleNext}
+          isBold
+          loading={getEKYCUrl.loading}
+        />
       </View>
     </Container>
   );
