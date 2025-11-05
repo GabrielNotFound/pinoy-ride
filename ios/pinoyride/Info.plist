@@ -70,6 +70,8 @@
       <true/>
     </dict>
 
+    <key>NSCameraUsageDescription</key>
+    <string>We need access to your camera for eKYC verification and identity confirmation.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSLocationAlwaysUsageDescription</key>
