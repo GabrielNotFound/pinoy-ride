@@ -88,8 +88,7 @@ const OTPScreen = () => {
   const login = () => {
     loginUser.makePostRequest(Constants.ENDPOINT.LOGIN, {
       // mobile_no: mobileNumber,
-      mobile_no: '6394612221512',
-      otp_code: otpCode,
+      mobile_no: mobileNumber,
     });
   };
 
@@ -102,16 +101,14 @@ const OTPScreen = () => {
     const results = loginUser.response;
 
     if (results?.code === 200 && results.data) {
-      const userData = results.data;
-      // merge customer_address directly
-      const flattenedUser = {
-        ...userData,
-        ...(userData.customer_address?.[0] || {}),
-      };
-      // remove original customer_address array
-      delete flattenedUser.customer_address;
+      const { id, ...userData } = results.data;
 
-      dispatch(setUserInfo(flattenedUser));
+      // Rename id to customer_id and keep all other fields
+      const restructuredUser = {
+        customer_id: id,
+        ...userData,
+      };
+      dispatch(setUserInfo(restructuredUser));
     }
   };
 

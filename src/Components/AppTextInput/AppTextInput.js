@@ -1,15 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import IntlPhoneInput from 'react-native-intl-phone-input';
 import { useTheme } from 'react-native-paper';
-import useAmountFormattedValue from '@/Hooks/useAmountFormattedValue';
-import numeral from 'numeral';
 
 const AppTextInput = ({
   label,
   value,
   onChangeText,
-  onChangeFormattedText,
+  onBlur,
   placeholder,
   inputMode = 'text', // 'text' | 'phone' | 'amount' | 'comment'
   error,
@@ -21,16 +19,71 @@ const AppTextInput = ({
   const isAmount = inputMode === 'amount';
   const isComment = inputMode === 'comment';
 
-  const {
-    formattedValue: amountFormattedValue,
-    onChangeValue: handleAmountChange,
-  } = useAmountFormattedValue({
-    value,
-    onChange: onChangeText,
-    getFormattedValue: val => (val ? numeral(val).format('0,0[.]00') : ''),
-    getUnformattedValue: val => val.replace(/,/g, ''),
-    isFormattedPartially: val => /[^0-9.,]/.test(val),
-  });
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Format amount with 2 decimals and commas
+  const formatAmount = val => {
+    if (!val || val === '') {return '';}
+    const number = parseFloat(val.replace(/,/g, ''));
+    if (isNaN(number)) {return '';}
+
+    const formatted = number.toFixed(2);
+    const parts = formatted.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  };
+
+  // Clean input - only allow numbers and one decimal point
+  const cleanAmount = val => {
+    return val
+      .replace(/[^0-9.]/g, '') // Only numbers and decimal
+      .replace(/(\..*?)\.+/g, '$1') // Only one decimal point
+      .replace(/^0+(?=\d)/, ''); // Remove leading zeros (except "0.")
+  };
+
+  const handleAmountChange = val => {
+    const cleaned = cleanAmount(val);
+    if (onChangeText) {
+      onChangeText(cleaned);
+    }
+  };
+
+  const handleAmountBlur = e => {
+    setIsFocused(false);
+
+    // Format the value when user leaves the field
+    if (value) {
+      const formatted = formatAmount(value);
+      if (onChangeText) {
+        onChangeText(formatted);
+      }
+    }
+
+    if (onBlur) {
+      onBlur(e);
+    }
+  };
+
+  const handleAmountFocus = () => {
+    setIsFocused(true);
+
+    // Remove formatting when user focuses (remove commas)
+    if (value) {
+      const unformatted = value.replace(/,/g, '');
+      if (onChangeText) {
+        onChangeText(unformatted);
+      }
+    }
+  };
+
+  // Display value: show raw while typing, formatted when not focused
+  const displayValue = isAmount
+    ? isFocused
+      ? value
+      : value
+      ? formatAmount(value)
+      : ''
+    : value;
 
   return (
     <View style={styles.container}>
@@ -42,14 +95,16 @@ const AppTextInput = ({
 
       {isPhone ? (
         <IntlPhoneInput
-          defaultCountry="PH" // Philippines flag & code
+          defaultCountry="PH"
           value={value}
           onChangeText={({ phoneNumber, dialCode, unmaskedPhoneNumber }) => {
             const fullNumber = `${dialCode.replace(
               '+',
               '',
             )}${unmaskedPhoneNumber}`;
-            if (onChangeText) {onChangeText(fullNumber);}
+            if (onChangeText) {
+              onChangeText(fullNumber);
+            }
           }}
           placeholder={placeholder || '9XXXXXXXXX'}
           containerStyle={styles.phoneContainer}
@@ -57,15 +112,17 @@ const AppTextInput = ({
         />
       ) : (
         <TextInput
-          value={isAmount ? amountFormattedValue : value}
+          value={displayValue}
           onChangeText={isAmount ? handleAmountChange : onChangeText}
+          onBlur={isAmount ? handleAmountBlur : onBlur}
+          onFocus={isAmount ? handleAmountFocus : undefined}
           placeholder={placeholder}
           placeholderTextColor={colors.darkGrey}
           style={[
             isComment ? styles.commentBox : styles.input,
             error && styles.inputError,
           ]}
-          keyboardType={isAmount ? 'numeric' : 'default'}
+          keyboardType={isAmount ? 'decimal-pad' : 'default'}
           multiline={isComment}
           numberOfLines={isComment ? 4 : 1}
           textAlignVertical={isComment ? 'top' : 'center'}
@@ -95,6 +152,7 @@ const getStyles = ({ colors }) =>
       borderColor: colors.surfaceVariant,
       fontSize: 16,
       backgroundColor: 'white',
+      paddingVertical: 8,
     },
     inputError: {
       borderColor: 'red',

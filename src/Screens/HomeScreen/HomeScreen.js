@@ -33,9 +33,9 @@ const HomeScreen = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [modalHeight, setModalHeight] = useState(0);
 
-  // Parse initial user coordinates
-  const initialLat = parseFloat(userInfo.latitude.replace('° N', '').trim());
-  const initialLong = parseFloat(userInfo.longitude.replace('° E', '').trim());
+  // Parse initial map location
+  const initialLat = 14.5995;
+  const initialLong = 120.9842;
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showRiderFound, setShowRiderFound] = useState(false);
@@ -83,15 +83,7 @@ const HomeScreen = () => {
   };
 
   useEffect(() => {
-    AppUtil.debugDeep(selectedService?.id);
-    AppUtil.debugDeep(userInfo?.customer_id);
-    AppUtil.debugDeep(dropoffLocation?.address);
-    AppUtil.debugDeep(dropoffLocation?.lat);
-    AppUtil.debugDeep(dropoffLocation?.long);
-    AppUtil.debugDeep(selectedPayment.toLowerCase());
-  }, [selectedService?.id, userInfo?.customer_id]);
-
-  useEffect(() => {
+    AppUtil.debugDeep(userInfo.wallet_details.user_type);
     if (!successShownRef.current) {
       setShowSuccess(true);
       successShownRef.current = true;
@@ -148,9 +140,13 @@ const HomeScreen = () => {
   const triggerCreateBooking = () => {
     const payment_details = {
       type: selectedPayment.toLowerCase(),
+      distance_km_round: inquireBookingResponse.distance_km_round,
       minimum_fare: inquireBookingResponse.minimum_fare,
       pesos_per_km: inquireBookingResponse.pesos_per_km,
-      booking_fee: inquireBookingResponse.base_amount,
+      booking_fee: inquireBookingResponse.booking_fee,
+      base_amount: inquireBookingResponse.base_amount,
+      commission: inquireBookingResponse.commission,
+      rider_net_amount: inquireBookingResponse.rider_net_amount,
       tip: 0, // until tip is added make sure this is 0, also add thsi to total_amount
       total_amount: inquireBookingResponse.total_amount,
     };
@@ -213,7 +209,9 @@ const HomeScreen = () => {
     }
 
     const response = getBookingDetails.response;
-    if (!response) {return;}
+    if (!response) {
+      return;
+    }
 
     const { code, data } = response;
     AppUtil.debugDeep(response);
@@ -250,7 +248,9 @@ const HomeScreen = () => {
 
   // Poll booking details when confirmed
   useEffect(() => {
-    if (!bookingDetails?.id) {return;}
+    if (!bookingDetails?.id) {
+      return;
+    }
 
     let intervalId;
     const intervalTime = bookingStatus === 0 ? 1000 : 5000;

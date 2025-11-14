@@ -4,14 +4,11 @@ import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { AppButton } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '@/Services/AuthProvider';
-// adjust path as needed
 
 const LandingScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
-  const { signInWithGoogle, signInWithFacebook } = useAuth();
 
   return (
     <Container>
@@ -24,53 +21,13 @@ const LandingScreen = () => {
       </View>
       <View style={styles.buttonContainer}>
         <AppButton
-          title="Continue with Facebook"
-          leftIcon={require('@/Assets/Common/Socials/facebook.png')}
-          onPress={async () => {
-            const token = await signInWithFacebook();
-            if (token) {
-              navigation.navigate('HomeScreen');
-              console.log('Facebook token:', token);
-            }
-          }}
-          mode="light"
-          featureStyle={{ marginBottom: 10 }}
-        />
-        <AppButton
-          title="Continue with Google"
-          leftIcon={require('@/Assets/Common/Socials/google.png')}
-          onPress={async () => {
-            const userInfo = await signInWithGoogle();
-            if (userInfo) {
-              navigation.navigate('HomeScreen');
-              console.log('Google user:', userInfo);
-            }
-          }}
-          mode="light"
-          featureStyle={{ marginTop: 0 }}
-        />
-        <View style={styles.separatorContainer}>
-          <Image
-            source={require('@/Assets/Common/LandingScreen/Line.png')}
-            style={styles.line}
-            resizeMode="contain"
-          />
-          <Text style={styles.orText}>or</Text>
-          <Image
-            source={require('@/Assets/Common/LandingScreen/Line.png')}
-            style={styles.line}
-            resizeMode="contain"
-          />
-        </View>
-        <AppButton
           title="Continue with Mobile Number"
           leftIcon={require('@/Assets/Common/LandingScreen/phone_icon.png')}
           onPress={() => navigation.navigate('LoginScreen')}
-          featureStyle={{ marginTop: 0 }}
         />
         <View style={styles.registerContainer}>
           <Text style={styles.registerText}>
-            Don’t have an account?{' '}
+            Don't have an account?{' '}
             <Text
               style={styles.registerLink}
               onPress={() => navigation.navigate('GeneralTermsScreen')}>
@@ -99,22 +56,6 @@ const getStyles = ({ colors }) =>
     },
     buttonContainer: {
       paddingBottom: 30,
-    },
-    separatorContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 15,
-    },
-    line: {
-      width: 150,
-      height: 2,
-      marginHorizontal: 8,
-    },
-    orText: {
-      fontSize: 16,
-      color: colors.onSurfaceGrey,
-      fontFamily: 'Poppins Regular',
     },
     registerContainer: {
       alignItems: 'center',

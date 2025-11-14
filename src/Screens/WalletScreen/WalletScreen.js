@@ -20,18 +20,25 @@ const WalletScreen = () => {
     navigation.goBack();
   };
 
+  const handleCashIn = () => {
+    navigation.navigate('CashInScreen');
+  };
+
   const actionButtons = [
     {
       label: 'Cash In',
       icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+      onPress: handleCashIn,
     },
     {
       label: 'Transfer',
       icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+      onPress: () => {}, // Add transfer functionality
     },
     {
       label: 'Send',
       icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+      onPress: () => {}, // Add send functionality
     },
   ];
 
@@ -96,7 +103,10 @@ const WalletScreen = () => {
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
           {actionButtons.map((btn, index) => (
-            <TouchableOpacity key={index} style={styles.actionButton}>
+            <TouchableOpacity
+              key={index}
+              style={styles.actionButton}
+              onPress={btn.onPress}>
               <Image
                 source={btn.icon}
                 style={styles.actionIcon}
@@ -177,7 +187,6 @@ const getStyles = ({ colors }) =>
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
     },
-
     walletCardImage: {
       borderRadius: 20,
       resizeMode: 'cover',
@@ -197,7 +206,6 @@ const getStyles = ({ colors }) =>
       gap: 10,
       paddingVertical: 10,
     },
-
     activationCard: {
       width: 245,
       height: 42,
@@ -218,7 +226,7 @@ const getStyles = ({ colors }) =>
       color: 'white',
     },
     activationSubtitle: {
-      fontFamily: 'Poppins MEdium',
+      fontFamily: 'Poppins Medium',
       fontSize: 8,
       color: 'white',
     },

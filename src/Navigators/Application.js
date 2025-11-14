@@ -5,6 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   BookingDetailsScreen,
   BookingHistoryScreen,
+  CashInScreen,
+  EKYCScreen,
   GeneralTermsScreen,
   HomeScreen,
   InputLocation,
@@ -15,6 +17,7 @@ import {
   OnboardingScreen,
   PaymentOptionScreen,
   PromoReferralsScreen,
+  QRPHScreen,
   RatingScreen,
   RegisterScreen,
   SettingsScreen,
@@ -73,6 +76,11 @@ const ApplicationNavigator = () => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
+              name="EKYCScreen"
+              component={EKYCScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
               name="GeneralTermsScreen"
               component={GeneralTermsScreen}
               options={{ headerShown: false }}
@@ -120,6 +128,17 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="WalletScreen"
               component={WalletScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="CashInScreen"
+              component={CashInScreen}
+              options={{ headerShown: false }}
+            />
+
+            <Stack.Screen
+              name="QRPHScreen"
+              component={QRPHScreen}
               options={{ headerShown: false }}
             />
 

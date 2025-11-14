@@ -17,7 +17,10 @@ const usePostRequest = () => {
   }
 
   function isNotOK(res) {
-    return res?.data?.status === Constants.API_NOT_OK;
+    return (
+      res?.data?.status === 'error' ||
+      res?.data?.status === Constants.API_NOT_OK
+    );
   }
 
   async function buildParams(obj) {
@@ -46,7 +49,13 @@ const usePostRequest = () => {
 
   const baseUrl = Constants.BASE_URI;
 
-  const makePostRequest = async (endpoint, obj, config = {}) => {
+  // Added contentType parameter with default 'form'
+  const makePostRequest = async (
+    endpoint,
+    obj,
+    config = {},
+    contentType = 'form',
+  ) => {
     setLoading(true);
     setError(null);
 
@@ -58,15 +67,22 @@ const usePostRequest = () => {
       AppUtil.debug(url);
       AppUtil.debugDeep(params);
 
-      const res = await axios.post(url, qs.stringify(params), {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'x-api-key': Constants.API_KEY,
-        },
+      // ✅ Determine content type and data format
+      const isJson = contentType === 'json';
+      const requestData = isJson ? params : qs.stringify(params);
+      const headers = {
+        'Content-Type': isJson
+          ? 'application/json'
+          : 'application/x-www-form-urlencoded',
+        'x-api-key': Constants.API_KEY,
+      };
+
+      const res = await axios.post(url, requestData, {
+        headers,
         ...config,
       });
 
-      // Always set response (don’t leave it null if request succeeded)
+      // Always set response (don't leave it null if request succeeded)
       setResponse(res.data);
 
       if (isOK(res)) {
@@ -80,13 +96,21 @@ const usePostRequest = () => {
       }
     } catch (err) {
       let message = '';
-      if (err.response) {
+
+      // ✅ Check if error response has a message from your API
+      if (err.response?.data?.message) {
+        // Use the actual error message from your API
+        message = err.response.data.message;
+      } else if (err.response) {
+        // Generic server error
         message =
           'We are currently under system maintenance. Please try again later.';
       } else if (err.request) {
+        // Network error
         message =
           'Oops, you may have weak or no data connection... Keep calm, wait for a few minutes and try again.';
       } else {
+        // Other error
         message = err.message;
       }
 

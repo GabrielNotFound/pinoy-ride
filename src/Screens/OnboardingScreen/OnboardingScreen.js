@@ -18,7 +18,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
 import { AlertBox, AppButton } from '@/Components';
 import {
+  ensureCameraPermission,
   ensureLocationPermission,
+  requestCameraPermission,
   requestLocationPermission,
 } from '@/Utils/Permissions';
 import { openSettings } from 'react-native-permissions';
@@ -68,29 +70,59 @@ const OnboardingScreen = () => {
   const insets = useSafeAreaInsets();
   const [showAlert, setShowAlert] = useState(false);
 
+  const [alertType, setAlertType] = useState('location');
+
   const appState = useRef(AppState.currentState);
 
+  // Initial permission request (Location + Camera)
   useEffect(() => {
     (async () => {
-      const granted = await ensureLocationPermission();
-      if (!granted) {
+      const loc = await ensureLocationPermission();
+      const cam = await ensureCameraPermission();
+
+      if (!loc) {
+        setAlertType('location');
+        setShowAlert(true);
+      } else if (!cam) {
+        setAlertType('camera');
         setShowAlert(true);
       }
     })();
   }, []);
 
+  // Retry based on alert type
   const handleRetryPermission = async () => {
-    const result = await requestLocationPermission();
+    if (alertType === 'location') {
+      const result = await requestLocationPermission();
 
-    if (result === 'granted') {
-      setShowAlert(false);
-    } else if (result === 'blocked') {
-      openSettings();
+      if (result === 'granted') {
+        // Now check camera next
+        const cam = await ensureCameraPermission();
+        if (!cam) {
+          setAlertType('camera');
+          setShowAlert(true);
+        } else {
+          setShowAlert(false);
+        }
+      } else if (result === 'blocked') {
+        openSettings();
+      } else {
+        setShowAlert(true);
+      }
     } else {
-      setShowAlert(true);
+      const result = await requestCameraPermission();
+
+      if (result === 'granted') {
+        setShowAlert(false);
+      } else if (result === 'blocked') {
+        openSettings();
+      } else {
+        setShowAlert(true);
+      }
     }
   };
 
+  // Re-check when app returns foreground
   useEffect(() => {
     const subscription = AppState.addEventListener(
       'change',
@@ -99,9 +131,16 @@ const OnboardingScreen = () => {
           appState.current.match(/inactive|background/) &&
           nextAppState === 'active'
         ) {
-          // App came back to foreground, check location permission
-          const granted = await ensureLocationPermission();
-          setShowAlert(!granted);
+          const loc = await ensureLocationPermission();
+          const cam = await ensureCameraPermission();
+
+          if (!loc) {
+            setAlertType('location');
+            setShowAlert(true);
+          } else if (!cam) {
+            setAlertType('camera');
+            setShowAlert(true);
+          }
         }
         appState.current = nextAppState;
       },
@@ -134,10 +173,17 @@ const OnboardingScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* ✅ Permission Alert for Location + Camera */}
       {showAlert && (
         <AlertBox
-          title="Location Required"
-          message="We need your location to provide rides. Please enable it."
+          title={
+            alertType === 'location' ? 'Location Required' : 'Camera Required'
+          }
+          message={
+            alertType === 'location'
+              ? 'We need your location to provide rides. Please enable it.'
+              : 'Camera access is required to verify your identity. Please enable it.'
+          }
           visible={showAlert}
           setVisible={setShowAlert}
           onConfirm={handleRetryPermission}

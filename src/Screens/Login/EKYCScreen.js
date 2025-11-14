@@ -12,6 +12,8 @@ import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AlertBox } from '@/Components';
 import { WebView } from 'react-native-webview';
+import usePostRequest from '@/Services/Api';
+import { AppUtil, Constants } from '@/Utils';
 
 const EKYCScreen = () => {
   const { colors } = useTheme();
@@ -19,27 +21,105 @@ const EKYCScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { ekycData } = route.params || {};
-  const { user_id, zkyc_id, zkyc_url } = ekycData || {};
+  const { request_user_id, zkyc_url } = ekycData || {};
 
   const webViewRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
 
-  const handleNavigationStateChange = navState => {
-    // Check for success/completion URLs
-    if (navState.url.includes('success') || navState.url.includes('complete')) {
-      setAlertMessage('eKYC verification completed successfully!');
-      setShowAlert(true);
-      // Navigate to next screen after a delay
-      setTimeout(() => {
-        navigation.navigate('EKYCScreen', {
-          mobileNumber: user_id,
-          ekycCompleted: true,
-        });
-      }, 2000);
+  const [isCheckStatusActive, setIsCheckStatusActive] = useState(false);
+  const [isVerificationComplete, setIsVerificationComplete] = useState(false);
+
+  const checkEKYCstatus = usePostRequest();
+  const checkStatusIntervalRef = useRef(null);
+  const requestUserIdRef = useRef(request_user_id);
+
+  // Update requestUserIdRef when request_user_id changes
+  useEffect(() => {
+    requestUserIdRef.current = request_user_id;
+  }, [request_user_id]);
+
+  // Start polling when request_user_id and zkyc_url are available
+  useEffect(() => {
+    if (request_user_id && zkyc_url) {
+      setIsCheckStatusActive(true);
+    }
+  }, [request_user_id, zkyc_url]);
+
+  // Polling mechanism — check status every 10 seconds
+  useEffect(() => {
+    if (isCheckStatusActive && !isVerificationComplete) {
+      checkStatusIntervalRef.current = setInterval(() => {
+        if (requestUserIdRef.current) {
+          checkEKYCstatus.makePostRequest(
+            Constants.ENDPOINT.EKYC_CHECK_STATUS,
+            {
+              request_user_id: '639273313232-C1762937816',
+            },
+            {},
+            'json',
+          );
+        }
+      }, 10000); // 10 seconds
+    }
+
+    return () => {
+      if (checkStatusIntervalRef.current) {
+        clearInterval(checkStatusIntervalRef.current);
+        checkStatusIntervalRef.current = null;
+      }
+    };
+  }, [isCheckStatusActive, isVerificationComplete]);
+
+  const handleCheckEKYCStatus = () => {
+    if (checkEKYCstatus.error) {
+      console.warn('eKYC status check error:', checkEKYCstatus.error);
+      return;
+    }
+
+    if (
+      checkEKYCstatus.response &&
+      Object.keys(checkEKYCstatus.response).length > 0
+    ) {
+      const result = checkEKYCstatus.response?.data;
+      if (result?.status === 'success') {
+        setIsCheckStatusActive(false);
+        setIsVerificationComplete(true);
+
+        if (checkStatusIntervalRef.current) {
+          clearInterval(checkStatusIntervalRef.current);
+          checkStatusIntervalRef.current = null;
+        }
+
+        setAlertMessage('eKYC verification completed successfully!');
+        setShowAlert(true);
+        console.log(result);
+
+        setTimeout(() => {
+          console.log('test');
+          navigation.navigate('HomeScreen', {
+            ekycCompleted: true,
+            verificationData: result,
+          });
+        }, 2000);
+      }
     }
   };
+
+  // Handle eKYC status check response
+  useEffect(() => {
+    handleCheckEKYCStatus();
+  }, [checkEKYCstatus.response, checkEKYCstatus.error]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (checkStatusIntervalRef.current) {
+        clearInterval(checkStatusIntervalRef.current);
+      }
+    };
+  }, []);
 
   const handleError = syntheticEvent => {
     const { nativeEvent } = syntheticEvent;
@@ -77,7 +157,13 @@ const EKYCScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            setIsCheckStatusActive(false);
+            if (checkStatusIntervalRef.current) {
+              clearInterval(checkStatusIntervalRef.current);
+            }
+            navigation.goBack();
+          }}
           style={styles.backButton}>
           <Image
             source={require('@/Assets/Common/Back.png')}
@@ -116,7 +202,6 @@ const EKYCScreen = () => {
             onLoadStart={() => setLoading(true)}
             onLoadEnd={() => setLoading(false)}
             onError={handleError}
-            onNavigationStateChange={handleNavigationStateChange}
             javaScriptEnabled={true}
             domStorageEnabled={true}
             thirdPartyCookiesEnabled={true}
@@ -166,20 +251,6 @@ const getStyles = ({ colors }) =>
     },
     pageContainer: {
       flex: 1,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: '400',
-      marginBottom: 15,
-      fontFamily: 'Poppins Regular',
-      textAlign: 'center',
-    },
-    subtitle: {
-      fontSize: 11,
-      textAlign: 'center',
-      fontFamily: 'Poppins Regular',
-      color: colors.onSurfaceGrey,
-      marginBottom: 20,
     },
     webViewContainer: {
       flex: 1,
