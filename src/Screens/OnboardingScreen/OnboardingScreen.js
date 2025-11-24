@@ -173,7 +173,7 @@ const OnboardingScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* ✅ Permission Alert for Location + Camera */}
+      {/*  Permission Alert for Location + Camera */}
       {showAlert && (
         <AlertBox
           title={

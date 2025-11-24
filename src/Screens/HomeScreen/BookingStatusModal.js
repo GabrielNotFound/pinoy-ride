@@ -15,7 +15,9 @@ const BookingStatusModal = ({
   const { colors } = useTheme();
   const styles = getStyles({ colors });
 
-  if (!riderDetails) {return null;}
+  if (!riderDetails) {
+    return null;
+  }
 
   return (
     <View style={styles.overlay} onLayout={onLayout}>
@@ -61,7 +63,7 @@ const BookingStatusModal = ({
               </View>
             </View>
 
-            {/* ✅ Fare Breakdown */}
+            {/*  Fare Breakdown */}
             <View style={styles.fareBreakdown}>
               <View style={styles.fareRow}>
                 <Text
@@ -133,7 +135,7 @@ const BookingStatusModal = ({
           </View>
         </View>
 
-        {/* ✅ Share Trip using AppButton */}
+        {/*  Share Trip using AppButton */}
         <AppButton
           title="Share Your Trip Details"
           onPress={onShareTrip}

@@ -33,7 +33,7 @@ const SettingsScreen = () => {
   ];
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('HomeScreen');
   };
 
   return (

@@ -18,6 +18,7 @@ const BASE_DEV = {
     //AUTH
     LOGIN: 'customers/login/',
     SIGN_UP: 'customers/sign_up/',
+    GET_CUSTOMER_DETAILS: 'customers/get_customer_details/',
     //OTP
     GENERATE_OTP: 'otp/generate/',
     VERIFY_OTP: 'otp/verify/',
@@ -28,11 +29,13 @@ const BASE_DEV = {
     UPDATE_BOOKING_STATUS: 'booking/update_status_for_customer/',
     GET_BOOKING_HISTORY: 'booking/get_history/',
     GET_BOOKING_DETAILS: 'booking/get_details/',
+    RATE_BOOKING: 'booking/rate/',
 
     ADD_TIP: 'booking/add_tip/',
-
+    //EKYC
     GET_EKYC_URL: 'ekyc/get-ekyc-url/',
     EKYC_CHECK_STATUS: 'ekyc/check_status/',
+    //PAYMENT
     QRPH_REQUEST_TO_PAY: 'qrph/request-to-pay/',
     QRPH_CHECK_STATUS: 'qrph/check_status/',
   },

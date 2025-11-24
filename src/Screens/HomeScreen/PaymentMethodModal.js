@@ -14,7 +14,7 @@ const PaymentMethodModal = ({
   visible,
   onClose,
   onSelect,
-  selectedPayment,
+  selectedPayment = 'Wallet',
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
@@ -28,8 +28,32 @@ const PaymentMethodModal = ({
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
+
       <View style={styles.modalContainer}>
         <Text style={styles.title}>Select Payment</Text>
+
+        {/* Wallet option */}
+        <TouchableOpacity
+          style={[
+            styles.option,
+            selectedPayment === 'Wallet' && styles.optionSelected,
+          ]}
+          onPress={() => {
+            onSelect?.('Wallet');
+            onClose();
+          }}>
+          <Image
+            source={require('@/Assets/Common/HomeScreen/BottomModal/cash.png')}
+            style={styles.icon}
+          />
+          <Text style={styles.optionText}>Wallet</Text>
+          {selectedPayment === 'Wallet' && (
+            <View style={styles.radioCircle}>
+              <View style={styles.radioInner} />
+            </View>
+          )}
+        </TouchableOpacity>
+
         {/* Cash option */}
         <TouchableOpacity
           style={[
@@ -73,6 +97,7 @@ const PaymentMethodModal = ({
             </View>
           )}
         </TouchableOpacity>
+
         <TouchableOpacity onPress={() => {}}>
           <Text style={styles.manageText}>Manage Payment Methods</Text>
         </TouchableOpacity>

@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
+import Geolocation from 'react-native-geolocation-service';
 import ServiceModal from './ServiceModal';
 import BottomModal from './BottomModal';
 import {
@@ -33,9 +34,11 @@ const HomeScreen = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [modalHeight, setModalHeight] = useState(0);
 
-  // Parse initial map location
-  const initialLat = 14.5995;
-  const initialLong = 120.9842;
+  // State for user's actual GPS location
+  const [userLocation, setUserLocation] = useState({
+    latitude: 14.5995, // Manila as fallback
+    longitude: 120.9842,
+  });
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showRiderFound, setShowRiderFound] = useState(false);
@@ -43,7 +46,7 @@ const HomeScreen = () => {
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState('Cash');
+  const [selectedPayment, setSelectedPayment] = useState('Wallet');
 
   const statusMessages = {
     0: 'Waiting for the Rider to accept your Booking',
@@ -83,17 +86,67 @@ const HomeScreen = () => {
   };
 
   useEffect(() => {
-    AppUtil.debugDeep(userInfo.wallet_details.user_type);
+    AppUtil.debugDeep(userInfo);
+    // Get user's GPS location on mount
+    getUserLocation();
+
+    // ✅ OPTIONAL: Add real-time location tracking
+    const watchId = Geolocation.watchPosition(
+      pos => {
+        setUserLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+        console.log(
+          'User location updated:',
+          pos.coords.latitude,
+          pos.coords.longitude,
+        );
+      },
+      error => console.warn('Location watch error:', error),
+      {
+        enableHighAccuracy: true,
+        distanceFilter: 10, // Update every 10 meters
+        interval: 5000, // Update every 5 seconds
+      },
+    );
+
     if (!successShownRef.current) {
       setShowSuccess(true);
       successShownRef.current = true;
     }
+
     return () => {
       if (riderFoundTimeout.current) {
         clearTimeout(riderFoundTimeout.current);
       }
+      Geolocation.clearWatch(watchId); // ✅ Cleanup location watcher
     };
   }, []);
+
+  // Get the user's real GPS location
+  const getUserLocation = () => {
+    Geolocation.getCurrentPosition(
+      pos => {
+        setUserLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+        console.log(
+          'User location:',
+          pos.coords.latitude,
+          pos.coords.longitude,
+        );
+      },
+      error => {
+        console.warn('Location error:', error);
+        // Keep Manila as fallback if GPS fails
+        setAlertMessage('Unable to get your location. Using default location.');
+        setShowAlert(true);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+    );
+  };
 
   //INQUIRE BOOKING
   const triggerInquireBooking = () => {
@@ -314,8 +367,8 @@ const HomeScreen = () => {
       ) : null}
       <View style={styles.container}>
         <AppMap
-          initialLat={initialLat}
-          initialLong={initialLong}
+          initialLat={userLocation.latitude}
+          initialLong={userLocation.longitude}
           firstMarkerLat={pickupLocation?.lat}
           firstMarkerLong={pickupLocation?.long}
           secondMarkerLat={dropoffLocation?.lat}

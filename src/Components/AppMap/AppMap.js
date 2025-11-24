@@ -25,7 +25,6 @@ const fetchRoute = async (start, end, apiKey) => {
 };
 
 // Polyline decoder for Google Directions API
-// https://github.com/heremaps/flexible-polyline
 function decodePolyline(encoded) {
   let points = [];
   let index = 0,
@@ -88,6 +87,7 @@ const AppMap = ({
     const apiKey = Constants.GOOGLE_MAP_API_KEY;
 
     if (firstMarkerLat != null && secondMarkerLat != null) {
+      // Both markers present - show route between them
       fetchRoute(
         { lat: parseFloat(firstMarkerLat), lng: parseFloat(firstMarkerLong) },
         { lat: parseFloat(secondMarkerLat), lng: parseFloat(secondMarkerLong) },
@@ -112,6 +112,7 @@ const AppMap = ({
         longitudeDelta: Math.max(lonDelta, minDelta),
       });
     } else if (firstMarkerLat != null) {
+      // Only first marker (pickup) - center on it
       setRegion({
         latitude: parseFloat(firstMarkerLat),
         longitude: parseFloat(firstMarkerLong),
@@ -119,6 +120,7 @@ const AppMap = ({
         longitudeDelta: 0.05,
       });
     } else {
+      // No markers - use initial location (user's GPS or fallback)
       setRegion({
         latitude: initialLat,
         longitude: initialLong,
@@ -126,13 +128,20 @@ const AppMap = ({
         longitudeDelta: 0.05,
       });
     }
-  }, [firstMarkerLat, firstMarkerLong, secondMarkerLat, secondMarkerLong]);
+  }, [
+    initialLat, // Added to dependencies
+    initialLong, // Added to dependencies
+    firstMarkerLat,
+    firstMarkerLong,
+    secondMarkerLat,
+    secondMarkerLong,
+  ]);
 
   return (
     <MapView
       style={[styles.container, style]}
       region={region}
-      provider="google" // ✅ force Google Maps tiles
+      provider="google"
       scrollEnabled={interactive}
       zoomEnabled={interactive}
       rotateEnabled={interactive}

@@ -59,7 +59,7 @@ export async function requestCameraPermission() {
   }
 }
 
-// ✅ Check first, then request ONLY IF denied
+//  Check first, then request ONLY IF denied
 export async function ensureCameraPermission() {
   const status = await check(CAMERA_PERMISSION);
 

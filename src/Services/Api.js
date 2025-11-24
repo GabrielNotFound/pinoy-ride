@@ -26,7 +26,7 @@ const usePostRequest = () => {
   async function buildParams(obj) {
     const requiredParams = {
       user_type: 'customer',
-      customer_id: userInfo?.customer_id,
+      customer_id: userInfo?.id,
     };
     const params = { ...requiredParams, ...obj };
 
@@ -41,6 +41,80 @@ const usePostRequest = () => {
     return { ...params, signature: sig };
   }
 
+  const extractErrorMessage = errorData => {
+    // Handle string errors
+    if (typeof errorData === 'string') {
+      return errorData;
+    }
+
+    // Handle object errors
+    if (errorData && typeof errorData === 'object') {
+      // Check for non_field_errors array (most common Django/DRF format)
+      if (Array.isArray(errorData.non_field_errors)) {
+        return errorData.non_field_errors.join('\n');
+      }
+
+      // Check for non_field_errors string
+      if (typeof errorData.non_field_errors === 'string') {
+        return errorData.non_field_errors;
+      }
+
+      // Check for message field (could be string or object)
+      if (errorData.message) {
+        // If message is an object, recursively extract from it
+        if (typeof errorData.message === 'object') {
+          return extractErrorMessage(errorData.message);
+        }
+        return errorData.message;
+      }
+
+      // Check for detail field (common in Django REST Framework)
+      if (errorData.detail) {
+        if (typeof errorData.detail === 'object') {
+          return extractErrorMessage(errorData.detail);
+        }
+        return errorData.detail;
+      }
+
+      // Check for error field
+      if (errorData.error) {
+        if (typeof errorData.error === 'object') {
+          return extractErrorMessage(errorData.error);
+        }
+        return errorData.error;
+      }
+
+      // Handle field-specific errors (e.g., {email: ["Invalid email"], password: ["Too short"]})
+      const fieldErrors = [];
+      for (const [key, value] of Object.entries(errorData)) {
+        // Skip common metadata fields
+        if (['status', 'code', 'timestamp'].includes(key)) {
+          continue;
+        }
+
+        if (Array.isArray(value)) {
+          // If it's an array, extract all messages
+          const messages = value.filter(v => typeof v === 'string');
+          if (messages.length > 0) {
+            fieldErrors.push(messages.join('\n'));
+          }
+        } else if (typeof value === 'string') {
+          fieldErrors.push(value);
+        }
+      }
+
+      if (fieldErrors.length > 0) {
+        return fieldErrors.join('\n');
+      }
+
+      // Last resort: return a generic message instead of stringified object
+      return 'An error occurred. Please try again.';
+    }
+
+    // Fallback
+    return 'An unknown error occurred';
+  };
+
   useEffect(() => {
     if (error) {
       AppUtil.debug('❌ Error:', error);
@@ -49,7 +123,6 @@ const usePostRequest = () => {
 
   const baseUrl = Constants.BASE_URI;
 
-  // Added contentType parameter with default 'form'
   const makePostRequest = async (
     endpoint,
     obj,
@@ -67,7 +140,7 @@ const usePostRequest = () => {
       AppUtil.debug(url);
       AppUtil.debugDeep(params);
 
-      // ✅ Determine content type and data format
+      // Determine content type and data format
       const isJson = contentType === 'json';
       const requestData = isJson ? params : qs.stringify(params);
       const headers = {
@@ -82,25 +155,26 @@ const usePostRequest = () => {
         ...config,
       });
 
-      // Always set response (don't leave it null if request succeeded)
+      // Always set response
       setResponse(res.data);
 
       if (isOK(res)) {
         return { response: res.data, error: null };
       } else if (isNotOK(res)) {
-        setError(res.data.message);
-        return { response: null, error: res.data.message };
+        //  Extract error message properly
+        const errorMessage = extractErrorMessage(res.data.message || res.data);
+        setError(errorMessage);
+        return { response: null, error: errorMessage };
       } else {
-        // Catch-all if API returns something unexpected
         return { response: res.data, error: null };
       }
     } catch (err) {
       let message = '';
 
-      // ✅ Check if error response has a message from your API
-      if (err.response?.data?.message) {
-        // Use the actual error message from your API
-        message = err.response.data.message;
+      //  Handle error response with proper extraction
+      if (err.response?.data) {
+        // Try to extract message from response data
+        message = extractErrorMessage(err.response.data);
       } else if (err.response) {
         // Generic server error
         message =
@@ -111,7 +185,7 @@ const usePostRequest = () => {
           'Oops, you may have weak or no data connection... Keep calm, wait for a few minutes and try again.';
       } else {
         // Other error
-        message = err.message;
+        message = err.message || 'An unknown error occurred';
       }
 
       setError(message);

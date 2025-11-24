@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -9,26 +9,29 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import usePostRequest from '@/Services/Api';
-import { Constants } from '@/Utils';
+import { AppUtil, Constants } from '@/Utils';
 import { AlertBox, AppButton, AppTextError, AppTextInput } from '@/Components';
 import { selectUserInfo } from '@/Redux/Slices/userSlice';
 import { useSelector } from 'react-redux';
 
-// Validation Schema - Only business rules, formatting is handled by AppTextInput
 const cashInValidationSchema = Yup.object().shape({
   amount: Yup.string()
     .required('Amount is required')
     .test('min-amount', 'Minimum amount is ₱1', value => {
-      if (!value) {return false;}
+      if (!value) {
+        return false;
+      }
       const numValue = parseFloat(value.replace(/,/g, ''));
       return numValue >= 1;
     })
     .test('max-amount', 'Maximum amount is ₱50,000', value => {
-      if (!value) {return false;}
+      if (!value) {
+        return false;
+      }
       const numValue = parseFloat(value.replace(/,/g, ''));
       return numValue <= 50000;
     }),
@@ -39,6 +42,8 @@ const CashInScreen = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
   const requestToPay = usePostRequest();
+  const route = useRoute();
+  const available_balance = route?.params?.available_balance;
 
   const userInfo = useSelector(selectUserInfo);
 
@@ -49,13 +54,9 @@ const CashInScreen = () => {
     navigation.goBack();
   };
 
-  // API call method outside Formik
   const handleCashInRequest = amount => {
-    // ✅ The amount is already in "1.00" format from the formatter
-    // Just remove commas if any
+    // the value is already formatted, just a second line i added to amke sure
     const numAmount = parseFloat(amount.replace(/,/g, ''));
-
-    console.log('Making API request with amount:', numAmount);
 
     requestToPay.makePostRequest(
       Constants.ENDPOINT.QRPH_REQUEST_TO_PAY,
@@ -77,7 +78,7 @@ const CashInScreen = () => {
   useEffect(() => {
     if (requestToPay.error) {
       console.warn('Request to pay error:', requestToPay.error);
-      // ✅ Use actual error message from API
+      //  Use actual error message from API
       setAlertMessage(requestToPay.error);
       setShowAlert(true);
       return;
@@ -129,7 +130,6 @@ const CashInScreen = () => {
         validateOnChange={false}
         validateOnBlur={false}
         onSubmit={values => {
-          console.log('Form submitted with values:', values);
           handleCashInRequest(values.amount);
         }}>
         {({
@@ -142,10 +142,6 @@ const CashInScreen = () => {
           setTouched,
         }) => {
           const handleProceed = async () => {
-            console.log('Proceed button clicked');
-            console.log('Current amount value:', values.amount);
-
-            // Format amount to 2 decimals before validation
             if (values.amount) {
               const numValue = parseFloat(values.amount.replace(/,/g, ''));
               if (!isNaN(numValue)) {
@@ -153,20 +149,14 @@ const CashInScreen = () => {
                 setFieldValue('amount', formattedAmount);
               }
             }
-
-            // Validate form
             const formErrors = await validateForm();
-            console.log('Validation errors:', formErrors);
 
-            // Mark field as touched to show errors
             setTouched({ amount: true });
 
-            // If no errors, submit
             if (Object.keys(formErrors).length === 0) {
-              console.log('No validation errors, calling handleSubmit');
               handleSubmit();
             } else {
-              console.log('Validation failed, not submitting');
+              AppUtil.debugDeep('Validation failed, not submitting');
             }
           };
 
@@ -184,7 +174,11 @@ const CashInScreen = () => {
                 style={styles.walletCard}
                 imageStyle={styles.walletCardImage}>
                 <Text style={styles.walletTitle}>PinoyRide Wallet</Text>
-                <Text style={styles.walletAmount}>₱0.00</Text>
+                <Text style={styles.walletAmount}>
+                  {available_balance !== undefined
+                    ? `₱${AppUtil.fn(available_balance)}`
+                    : '₱0.00'}
+                </Text>
               </ImageBackground>
 
               {/* Amount Input */}
@@ -193,15 +187,7 @@ const CashInScreen = () => {
                   label="Amount"
                   value={values.amount}
                   onChangeText={value => {
-                    console.log(
-                      'AppTextInput onChangeText called with:',
-                      value,
-                    );
                     setFieldValue('amount', value);
-                    console.log(
-                      'After setFieldValue, values.amount:',
-                      values.amount,
-                    );
                   }}
                   placeholder="0.00"
                   inputMode="amount"
@@ -224,17 +210,9 @@ const CashInScreen = () => {
                       key={index}
                       style={styles.quickAmountButton}
                       onPress={() => {
-                        console.log('Quick amount selected:', quickAmount);
                         const formattedAmount = quickAmount.toFixed(2);
-                        console.log('Setting amount to:', formattedAmount);
-                        // ✅ Set with .00 format
                         setFieldValue('amount', formattedAmount);
-                        // Clear any validation errors
                         setTouched({ amount: false });
-                        console.log(
-                          'Amount after setFieldValue:',
-                          values.amount,
-                        );
                       }}
                       disabled={requestToPay.loading}>
                       <Text style={styles.quickAmountText}>₱{quickAmount}</Text>

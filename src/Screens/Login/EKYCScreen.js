@@ -37,6 +37,7 @@ const EKYCScreen = () => {
 
   // Update requestUserIdRef when request_user_id changes
   useEffect(() => {
+    console.log(route?.params?.mobile_number);
     requestUserIdRef.current = request_user_id;
   }, [request_user_id]);
 
@@ -92,13 +93,9 @@ const EKYCScreen = () => {
           checkStatusIntervalRef.current = null;
         }
 
-        setAlertMessage('eKYC verification completed successfully!');
-        setShowAlert(true);
-        console.log(result);
-
         setTimeout(() => {
-          console.log('test');
           navigation.navigate('HomeScreen', {
+            mobileNumber: route?.params?.mobile_number,
             ekycCompleted: true,
             verificationData: result,
           });

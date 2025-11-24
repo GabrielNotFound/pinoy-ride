@@ -27,6 +27,7 @@ import {
 import { Text } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import LightTheme from '../Theme/LightTheme';
+import { AppTransactionComplete } from '@/Components';
 
 const Stack = createNativeStackNavigator();
 
@@ -139,6 +140,12 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="QRPHScreen"
               component={QRPHScreen}
+              options={{ headerShown: false }}
+            />
+
+            <Stack.Screen
+              name="AppTransactionComplete"
+              component={AppTransactionComplete}
               options={{ headerShown: false }}
             />
 

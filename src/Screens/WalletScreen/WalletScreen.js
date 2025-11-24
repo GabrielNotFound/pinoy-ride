@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   ImageBackground,
@@ -10,18 +10,60 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
+import usePostRequest from '@/Services/Api';
+import { AppUtil, Constants } from '@/Utils';
+import { useSelector } from 'react-redux';
+import { selectUserInfo } from '@/Redux/Slices/userSlice';
 
 const WalletScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const userInfo = useSelector(selectUserInfo);
+  const [walletDetails, setWalletDetails] = useState([]);
+
+  const getWalletDetails = usePostRequest();
+
+  useEffect(() => {
+    if (userInfo?.customer_id) {
+      getWalletDetails.makePostRequest(
+        Constants.ENDPOINT.GET_CUSTOMER_DETAILS,
+        {
+          customer_id: userInfo.customer_id,
+        },
+      );
+    }
+  }, [userInfo?.customer_id]);
+
+  const handleGetWalletDetails = () => {
+    if (getWalletDetails.error) {
+      console.warn('wallet status check error:', getWalletDetails.error);
+      return;
+    }
+
+    if (
+      getWalletDetails.response &&
+      Object.keys(getWalletDetails.response).length > 0
+    ) {
+      const result = getWalletDetails.response?.data.wallet_details;
+      AppUtil.debugDeep(result);
+      setWalletDetails(result);
+    }
+  };
+
+  // Handle eKYC status check response
+  useEffect(() => {
+    handleGetWalletDetails();
+  }, [getWalletDetails.response, getWalletDetails.error]);
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('SettingsScreen');
   };
 
   const handleCashIn = () => {
-    navigation.navigate('CashInScreen');
+    navigation.navigate('CashInScreen', {
+      available_balance: walletDetails.avail_balance,
+    });
   };
 
   const actionButtons = [
@@ -73,7 +115,11 @@ const WalletScreen = () => {
           style={styles.walletCard}
           imageStyle={styles.walletCardImage}>
           <Text style={styles.walletTitle}>PinoyRide Wallet</Text>
-          <Text style={styles.walletAmount}>₱0.00</Text>
+          <Text style={styles.walletAmount}>
+            {walletDetails?.avail_balance !== undefined
+              ? `₱${AppUtil.fn(walletDetails.avail_balance)}`
+              : '₱0.00'}
+          </Text>
         </ImageBackground>
 
         {/* Activation Promos */}

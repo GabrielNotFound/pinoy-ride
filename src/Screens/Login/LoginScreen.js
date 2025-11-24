@@ -15,8 +15,9 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const [showAlert, setShowAlert] = useState(false);
 
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [mobileNumber, setMobileNumber] = useState(''); // Stores as 63XXXXXXXXXX
   const [errorMessage, setErrorMessage] = useState('');
+  const [isPhoneValid, setIsPhoneValid] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -43,8 +44,14 @@ const LoginScreen = () => {
       setErrorMessage('Mobile number is required');
       return;
     }
+
+    if (!isPhoneValid) {
+      setErrorMessage('Please enter a valid mobile number');
+      return;
+    }
+
     setErrorMessage('');
-    // navigate to OTPScreen, pass mobile number
+    // Pass the number in 63XXXXXXXXXX format
     navigation.navigate('OTPScreen', { mobileNumber });
   };
 
@@ -57,7 +64,6 @@ const LoginScreen = () => {
           onConfirm={handleRetryPermission}
         />
       )}
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Image
@@ -71,19 +77,18 @@ const LoginScreen = () => {
         </View>
       </View>
 
-      {/* Input */}
       <View style={styles.pageContainer}>
         <AppTextInput
           label="Mobile"
           value={mobileNumber}
           onChangeText={setMobileNumber}
+          onValidationChange={setIsPhoneValid}
           inputMode="phone"
-          placeholder="9XXX-XXX-XXX"
+          placeholder="09XX-XXX-XXXX"
           error={errorMessage}
         />
       </View>
 
-      {/* Footer */}
       <View>
         <Text style={styles.footerText}>
           Enter your active number to receive a verification code. This helps us

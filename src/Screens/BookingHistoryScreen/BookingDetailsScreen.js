@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FlatList,
   Image,
@@ -18,42 +18,138 @@ const BookingDetailsScreen = () => {
   const route = useRoute();
   const { bookingDetails } = route.params;
 
-  const handleBack = () => navigation.goBack();
-  const handleRebook = () =>
-    console.log('Rebooking from details:', bookingDetails.destination);
-  const handleReportIssue = () =>
-    console.log('Reporting issue for booking:', bookingDetails.id);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
-  const renderStars = rating => (
-    <View style={styles.starContainer}>
-      {[...Array(5)].map((_, i) => (
-        <Icon
-          key={i}
-          name={i < rating ? 'star' : 'star-outline'}
-          size={16}
-          color={colors.primary}
-          style={styles.starIcon}
-        />
-      ))}
-    </View>
-  );
+  const handleBack = () => navigation.goBack();
+
+  const handleRebook = () => {
+    navigation.navigate('HomeScreen', {
+      rebookData: {
+        pickup: {
+          address: bookingDetails.pickup_location,
+          lat: bookingDetails.pickup_lat,
+          long: bookingDetails.pickup_long,
+        },
+        dropoff: {
+          address: bookingDetails.dropoff_location,
+          lat: bookingDetails.dropoff_lat,
+          long: bookingDetails.dropoff_long,
+        },
+        bookingType: bookingDetails.booking_type,
+      },
+    });
+  };
+
+  const handleReportIssue = () => {
+    // Navigate to report issue screen or show modal
+    console.log('Reporting issue for booking:', bookingDetails.id);
+  };
+
+  const renderStars = rating => {
+    const ratingNum = rating ? Math.floor(parseFloat(rating)) : 0;
+    return (
+      <View style={styles.starContainer}>
+        {[...Array(5)].map((_, i) => (
+          <Icon
+            key={i}
+            name={i < ratingNum ? 'star' : 'star-outline'}
+            size={16}
+            color={colors.primary}
+            style={styles.starIcon}
+          />
+        ))}
+      </View>
+    );
+  };
+
+  //  Helper to get status badge color
+  const getStatusColor = status => {
+    const statusColors = {
+      Completed: colors.completed || '#4CAF50',
+      Cancelled: colors.cancelled || '#F44336',
+      Pending: '#FFA726',
+      Accepted: '#42A5F5',
+      'On the way': '#66BB6A',
+    };
+    return statusColors[status] || '#9E9E9E';
+  };
+
+  //  Format date and time
+  const formatDateTime = () => {
+    const dateTimeParts = bookingDetails.date.split(' - ');
+    return {
+      date: dateTimeParts[0] || bookingDetails.date_created,
+      time: dateTimeParts[1] || bookingDetails.time_created,
+    };
+  };
+
+  const { date, time } = formatDateTime();
 
   const data = [{ key: 'infoSection' }];
 
   const renderItem = () => (
     <View style={styles.infoContainer}>
+      {/* Fare Section */}
       <View style={styles.fareRow}>
         <Text style={styles.fareLabel}>Total Fare w/Discount</Text>
         <Text style={styles.fareValue}>₱{bookingDetails.price}</Text>
       </View>
 
-      <TouchableOpacity style={styles.breakdownButton}>
-        <Text style={styles.breakdownText}>View Breakdown</Text>
-        <Icon name="chevron-down" size={10} color={colors.blue} />
+      {/* Breakdown Toggle */}
+      <TouchableOpacity
+        style={styles.breakdownButton}
+        onPress={() => setShowBreakdown(!showBreakdown)}>
+        <Text style={styles.breakdownText}>
+          {showBreakdown ? 'Hide Breakdown' : 'View Breakdown'}
+        </Text>
+        <Icon
+          name={showBreakdown ? 'chevron-up' : 'chevron-down'}
+          size={10}
+          color={colors.blue}
+        />
       </TouchableOpacity>
+
+      {/*  Breakdown Details (Collapsible) */}
+      {showBreakdown && bookingDetails.payment_details && (
+        <View style={styles.breakdownContainer}>
+          <View style={styles.breakdownRow}>
+            <Text style={styles.breakdownLabel}>Minimum Fare:</Text>
+            <Text style={styles.breakdownValue}>
+              ₱{bookingDetails.payment_details.minimum_fare?.toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.breakdownRow}>
+            <Text style={styles.breakdownLabel}>
+              Distance ({bookingDetails.distance_km} km):
+            </Text>
+            <Text style={styles.breakdownValue}>
+              ₱
+              {(
+                parseFloat(bookingDetails.distance_km || 0) *
+                parseFloat(bookingDetails.payment_details.pesos_per_km || 0)
+              ).toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.breakdownRow}>
+            <Text style={styles.breakdownLabel}>Booking Fee:</Text>
+            <Text style={styles.breakdownValue}>
+              ₱{bookingDetails.payment_details.booking_fee?.toFixed(2)}
+            </Text>
+          </View>
+          {bookingDetails.payment_details.tip > 0 && (
+            <View style={styles.breakdownRow}>
+              <Text style={styles.breakdownLabel}>Tip:</Text>
+              <Text style={styles.breakdownValue}>
+                ₱{bookingDetails.payment_details.tip?.toFixed(2)}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       <View style={styles.divider} />
 
+      {/* Final Fare */}
       <View style={styles.finalFareRow}>
         <Text style={styles.finalFareLabel}>Final Fare</Text>
         <Text style={styles.finalFareValue}>₱{bookingDetails.price}</Text>
@@ -61,6 +157,7 @@ const BookingDetailsScreen = () => {
 
       <View style={styles.divider} />
 
+      {/* Payment Method */}
       <View style={styles.paymentRow}>
         <Text style={styles.paymentLabel}>Payment Method</Text>
         <View style={styles.paymentMethodContainer}>
@@ -77,20 +174,33 @@ const BookingDetailsScreen = () => {
 
       <View style={styles.divider} />
 
-      <View style={styles.riderRow}>
-        <Image
-          source={require('@/Assets/Common/Sample_Profile.png')}
-          style={styles.profileImage}
-        />
-        <Text style={styles.riderName}>{bookingDetails.riderName}</Text>
-        <View style={styles.riderRatingContainer}>
-          <Text style={styles.riderRatingLabel}>Biker Rating</Text>
-          {renderStars(bookingDetails.riderRating)}
-        </View>
-      </View>
+      {/* Rider Details */}
+      {bookingDetails.riderName !== 'No rider assigned' && (
+        <>
+          <View style={styles.riderRow}>
+            <Image
+              source={
+                bookingDetails.rider_details?.selfie
+                  ? { uri: bookingDetails.rider_details.selfie }
+                  : require('@/Assets/Common/Sample_Profile.png')
+              }
+              style={styles.profileImage}
+            />
+            <Text style={styles.riderName}>{bookingDetails.riderName}</Text>
+            <View style={styles.riderRatingContainer}>
+              <Text style={styles.riderRatingLabel}>Rider Rating</Text>
+              {bookingDetails.riderRating ? (
+                renderStars(bookingDetails.riderRating)
+              ) : (
+                <Text style={styles.noRatingText}>No rating yet</Text>
+              )}
+            </View>
+          </View>
+          <View style={styles.divider} />
+        </>
+      )}
 
-      <View style={styles.divider} />
-
+      {/* Report Issue */}
       <Text style={styles.reportIssueText}>
         Have concern or issue about this trip?
       </Text>
@@ -102,6 +212,7 @@ const BookingDetailsScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
@@ -113,11 +224,9 @@ const BookingDetailsScreen = () => {
           </TouchableOpacity>
 
           <View style={styles.headerCenterRow}>
-            <Text style={styles.headerDateTime}>
-              {bookingDetails.date.split(' - ')[0]} |
-            </Text>
+            <Text style={styles.headerDateTime}>{date} |</Text>
             <Text style={[styles.headerDateTime, { marginLeft: 8 }]}>
-              {bookingDetails.date.split(' - ')[1]}
+              {time}
             </Text>
           </View>
 
@@ -125,51 +234,59 @@ const BookingDetailsScreen = () => {
         </View>
       </View>
 
+      {/* Content */}
       <FlatList
         ListHeaderComponent={
           <View style={styles.card}>
+            {/* Status Badge */}
             <View style={styles.upperDetails}>
               <View
                 style={[
                   styles.statusBadge,
                   {
-                    backgroundColor:
-                      bookingDetails.status === 'Completed'
-                        ? colors.completed
-                        : colors.cancelled,
+                    backgroundColor: getStatusColor(bookingDetails.status),
                   },
                 ]}>
                 <Text style={styles.statusText}>{bookingDetails.status}</Text>
               </View>
 
+              {/* Booking ID */}
               <Text style={styles.bookingIdText}>Booking ID:</Text>
               <Text style={styles.bookingIdNumber}>
-                {bookingDetails.bookingId}
+                {bookingDetails.bookingId || bookingDetails.ref_code}
               </Text>
             </View>
 
+            {/* Pickup Location */}
             <View style={styles.locationRow}>
               <Image
                 source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
                 style={styles.iconSmall}
                 resizeMode="contain"
               />
-              <Text style={styles.locationText}>{bookingDetails.pickup}</Text>
+              <Text style={styles.locationText} numberOfLines={2}>
+                {bookingDetails.pickup || bookingDetails.pickup_location}
+              </Text>
             </View>
+
+            {/* Dropoff Location */}
             <View style={styles.locationRow}>
               <Image
                 source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
                 style={styles.iconSmall}
                 resizeMode="contain"
               />
-              <Text style={styles.locationText}>
-                {bookingDetails.destination}
+              <Text style={styles.locationText} numberOfLines={2}>
+                {bookingDetails.destination || bookingDetails.dropoff_location}
               </Text>
             </View>
 
-            <TouchableOpacity style={styles.rebookBtn} onPress={handleRebook}>
-              <Text style={styles.rebookText}>Rebook</Text>
-            </TouchableOpacity>
+            {/* Rebook Button - Only show for completed rides */}
+            {bookingDetails.status === 'Completed' && (
+              <TouchableOpacity style={styles.rebookBtn} onPress={handleRebook}>
+                <Text style={styles.rebookText}>Rebook</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
         data={data}
@@ -200,7 +317,6 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-
     headerCenterRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -209,14 +325,12 @@ const getStyles = ({ colors }) =>
       left: 0,
       right: 0,
     },
-
     headerDateTime: {
       fontFamily: 'Poppins Regular',
       fontWeight: '400',
       fontSize: 16,
       color: colors.onPrimary,
     },
-
     iconButton: {
       width: 25,
       marginRight: 10,
@@ -224,19 +338,6 @@ const getStyles = ({ colors }) =>
     backIcon: {
       width: 23,
       height: 23,
-    },
-    headerDate: {
-      fontFamily: 'Poppins Regular',
-      fontSize: 14,
-      fontWeight: '400',
-      color: colors.onPrimary,
-    },
-    headerTime: {
-      fontFamily: 'Poppins Regular',
-      fontSize: 14,
-      fontWeight: '400',
-      color: colors.onPrimary,
-      marginLeft: 5,
     },
     scrollViewContent: {
       paddingVertical: 10,
@@ -300,6 +401,7 @@ const getStyles = ({ colors }) =>
       fontWeight: 400,
       fontSize: 12,
       color: colors.shadow,
+      flex: 1,
     },
     rebookBtn: {
       alignSelf: 'flex-start',
@@ -312,20 +414,8 @@ const getStyles = ({ colors }) =>
     rebookText: {
       fontWeight: 400,
       color: colors.onPrimary,
-      fontFamily: 'Poppins Regular', // Ensure consistent font
+      fontFamily: 'Poppins Regular',
       fontSize: 12,
-    },
-
-    // Fare Section
-    fareContainer: {
-      backgroundColor: colors.onPrimary,
-      marginVertical: 8,
-      padding: 16,
-      borderRadius: 16,
-      shadowColor: colors.shadow,
-      shadowOpacity: 0.1,
-      shadowRadius: 10,
-      elevation: 3,
     },
     fareRow: {
       flexDirection: 'row',
@@ -346,7 +436,7 @@ const getStyles = ({ colors }) =>
       flexDirection: 'row',
       alignItems: 'center',
       alignSelf: 'flex-start',
-      marginBottom: 10,
+      marginVertical: 10,
     },
     breakdownText: {
       fontFamily: 'Poppins Regular',
@@ -354,6 +444,27 @@ const getStyles = ({ colors }) =>
       fontSize: 8,
       color: colors.blue,
       marginRight: 2,
+    },
+    breakdownContainer: {
+      backgroundColor: colors.background || '#F5F5F5',
+      padding: 12,
+      borderRadius: 8,
+      marginTop: 8,
+    },
+    breakdownRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 6,
+    },
+    breakdownLabel: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 11,
+      color: colors.shadow,
+    },
+    breakdownValue: {
+      fontFamily: 'Poppins Medium',
+      fontSize: 11,
+      color: colors.shadow,
     },
     divider: {
       borderBottomWidth: 0.5,
@@ -378,8 +489,6 @@ const getStyles = ({ colors }) =>
       fontSize: 12,
       color: colors.grey4,
     },
-
-    // Payment Method Section
     paymentRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -395,16 +504,11 @@ const getStyles = ({ colors }) =>
       flexDirection: 'row',
       alignItems: 'center',
     },
-    paymentIcon: {
-      marginRight: 5,
-    },
     paymentMethodText: {
       fontFamily: 'Poppins Light',
       fontSize: 12,
       color: colors.shadow,
     },
-
-    // rider Details Section
     riderRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -422,7 +526,7 @@ const getStyles = ({ colors }) =>
       fontWeight: 400,
       fontSize: 12,
       color: colors.shadow,
-      flex: 1, // Take available space
+      flex: 1,
     },
     riderRatingContainer: {
       alignItems: 'flex-end',
@@ -438,6 +542,12 @@ const getStyles = ({ colors }) =>
     },
     starIcon: {
       marginHorizontal: 1,
+    },
+    noRatingText: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 10,
+      color: colors.grey4,
+      fontStyle: 'italic',
     },
     reportIssueText: {
       fontFamily: 'Poppins Regular',

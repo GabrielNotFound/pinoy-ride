@@ -17,9 +17,10 @@ const RegisterScreen = () => {
   const navigation = useNavigation();
   const [showAlert, setShowAlert] = useState(false);
 
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [mobileNumber, setMobileNumber] = useState(''); // Stores as 63XXXXXXXXXX
   const [errorMessage, setErrorMessage] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
+  const [isPhoneValid, setIsPhoneValid] = useState(false);
 
   const getEKYCUrl = usePostRequest();
 
@@ -47,11 +48,11 @@ const RegisterScreen = () => {
     const results = getEKYCUrl.response?.data;
     AppUtil.debugDeep(results);
 
-    // Check if we got the zkyc_url from the response
     if (results?.zkyc_url) {
       console.log('eKYC URL received:', results.zkyc_url);
       navigation.navigate('EKYCScreen', {
-        ekycData: results, // Pass the entire response
+        ekycData: results,
+        mobile_number: mobileNumber, // Passes as 63XXXXXXXXXX
       });
     } else if (getEKYCUrl.response) {
       console.log('API response but no URL');
@@ -80,9 +81,14 @@ const RegisterScreen = () => {
       setErrorMessage('Mobile number is required');
       return;
     }
-    setErrorMessage('');
 
-    fetchEKYCUrl(mobileNumber);
+    if (!isPhoneValid) {
+      setErrorMessage('Please enter a valid mobile number');
+      return;
+    }
+
+    setErrorMessage('');
+    fetchEKYCUrl(mobileNumber); // Sends 63XXXXXXXXXX format
   };
 
   return (
@@ -98,7 +104,6 @@ const RegisterScreen = () => {
           onConfirm={alertMessage ? undefined : handleRetryPermission}
         />
       )}
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Image
@@ -112,19 +117,18 @@ const RegisterScreen = () => {
         </View>
       </View>
 
-      {/* Input */}
       <View style={styles.pageContainer}>
         <AppTextInput
           label="Mobile"
           value={mobileNumber}
           onChangeText={setMobileNumber}
+          onValidationChange={setIsPhoneValid}
           inputMode="phone"
-          placeholder="9XXX-XXX-XXX"
+          placeholder="09XX-XXX-XXXX"
           error={errorMessage}
         />
       </View>
 
-      {/* Footer */}
       <View>
         <Text style={styles.footerText}>
           Enter your active number to receive a verification code. This helps us

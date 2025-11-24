@@ -21,10 +21,9 @@ const QRPHScreen = () => {
   const route = useRoute();
   const { paymentData } = route.params || {};
 
-  // ✅ Support both camelCase (new API) and snake_case (old format)
+  //  Support both camelCase (new API) and snake_case (old format)
   const payment_url = paymentData?.paymentUrl || paymentData?.payment_url;
-  const transaction_id =
-    paymentData?.referenceId || paymentData?.transaction_id;
+  const reference_id = paymentData?.referenceId || paymentData?.reference_id;
 
   const webViewRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -36,30 +35,30 @@ const QRPHScreen = () => {
 
   const checkPaymentStatus = usePostRequest();
   const checkStatusIntervalRef = useRef();
-  const transactionIdRef = useRef(transaction_id);
+  const referenceIdRef = useRef(reference_id);
 
-  // Update transactionIdRef when transaction_id changes
+  // Update referenceIdRef when reference_id changes
   useEffect(() => {
-    console.log(transactionIdRef);
-    transactionIdRef.current = transaction_id;
-  }, [transaction_id]);
+    console.log(referenceIdRef);
+    referenceIdRef.current = reference_id;
+  }, [reference_id]);
 
-  // Start polling when transaction_id and payment_url are available
+  // Start polling when reference_id and payment_url are available
   useEffect(() => {
-    if (transaction_id && payment_url) {
+    if (reference_id && payment_url) {
       setIsCheckStatusActive(true);
     }
-  }, [transaction_id, payment_url]);
+  }, [reference_id, payment_url]);
 
   // Polling mechanism — check status every 5 seconds
   useEffect(() => {
     if (isCheckStatusActive && !isPaymentComplete) {
       checkStatusIntervalRef.current = setInterval(() => {
-        if (transactionIdRef.current) {
+        if (referenceIdRef.current) {
           checkPaymentStatus.makePostRequest(
             Constants.ENDPOINT.QRPH_CHECK_STATUS,
             {
-              reference_id: transactionIdRef.current,
+              reference_id: referenceIdRef.current,
             },
             {},
             'json',
@@ -89,46 +88,31 @@ const QRPHScreen = () => {
     ) {
       const result = checkPaymentStatus.response?.data?.results;
 
-      if (
-        result?.status === 'COMPLETED' ||
-        result?.status === 'SUCCESS' ||
-        result?.status === 'PAID'
-      ) {
-        setIsCheckStatusActive(false);
-        setIsPaymentComplete(true);
+      setIsCheckStatusActive(false);
+      setIsPaymentComplete(true);
 
-        if (checkStatusIntervalRef.current) {
-          clearInterval(checkStatusIntervalRef.current);
-          checkStatusIntervalRef.current = null;
-        }
-
-        setAlertMessage('Payment completed successfully!');
-        setShowAlert(true);
-
-        setTimeout(() => {
-          console.log(result);
-          navigation.goBack();
-        }, 2000);
-      } else if (
-        result?.status === 'FAILED' ||
-        result?.status === 'CANCELLED' ||
-        result?.status === 'EXPIRED'
-      ) {
-        setIsCheckStatusActive(false);
-        setIsPaymentComplete(true);
-
-        if (checkStatusIntervalRef.current) {
-          clearInterval(checkStatusIntervalRef.current);
-          checkStatusIntervalRef.current = null;
-        }
-
-        setAlertMessage('Payment was cancelled or failed.');
-        setShowAlert(true);
-
-        setTimeout(() => {
-          navigation.goBack();
-        }, 2000);
+      if (checkStatusIntervalRef.current) {
+        clearInterval(checkStatusIntervalRef.current);
+        checkStatusIntervalRef.current = null;
       }
+
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'AppTransactionComplete',
+            params: {
+              referenceData: {
+                amount: paymentData?.amount || result?.amount || '0.00',
+                referenceId: reference_id,
+                status: result?.status,
+                timestamp: result?.timestamp || new Date().toISOString(),
+                paymentMethod: 'QRPH',
+              },
+            },
+          },
+        ],
+      });
     }
   }, [checkPaymentStatus.response, checkPaymentStatus.error]);
 

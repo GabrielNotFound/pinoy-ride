@@ -116,6 +116,18 @@ android {
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
         }
     }
+
+    // <-- Rename APKs without package name
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def vName = variant.versionName
+            def buildType = variant.buildType.name
+
+            // Example: pinoyriderider.release.v1.0.0.apk
+            outputFileName = "pinoyride.customer.${buildType}.v${vName}.apk"
+        }
+    }
+
     packagingOptions {
         jniLibs {
             useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
@@ -176,4 +188,6 @@ dependencies {
 
     // <-- Add this line for Facebook SDK
     implementation 'com.facebook.android:facebook-android-sdk:15.0.1'
+
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
 }

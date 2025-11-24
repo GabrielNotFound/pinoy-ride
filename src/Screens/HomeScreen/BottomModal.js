@@ -83,10 +83,12 @@ const BottomModal = ({
     });
   };
 
-  // ✅ Extracted helper renderer
+  //  Extracted helper renderer
   const renderActionButton = () => {
     const btn = actionButtons.find(b => b.visible);
-    if (!btn) {return null;}
+    if (!btn) {
+      return null;
+    }
 
     return (
       <AppButton
