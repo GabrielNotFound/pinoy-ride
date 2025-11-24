@@ -36,7 +36,7 @@ const AppTransactionComplete = () => {
           featureStyle={{ marginBottom: 10 }}
         />
         <AppButton
-          title="Go to Dashboard"
+          title="Go back to Home screen"
           onPress={handleDone}
           isBold
           noSpacing

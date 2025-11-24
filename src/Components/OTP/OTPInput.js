@@ -2,7 +2,13 @@ import React, { useRef, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 
-const OTPInput = ({ length = 6, onOTPChange }) => {
+/**
+ * OTPInput component
+ * - Calls `onOTPComplete` when the user has entered `length` digits
+ * - Handles pasting multiple digits
+ * - Prevents crashes for all 6-digit inputs including "000000"
+ */
+const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const inputs = useRef([]);
@@ -10,7 +16,17 @@ const OTPInput = ({ length = 6, onOTPChange }) => {
 
   const update = nextDigits => {
     setDigits(nextDigits);
-    onOTPChange?.(nextDigits.join(''));
+    const code = nextDigits.join('');
+    onOTPChange?.(code);
+
+    // If all inputs are filled, call onOTPComplete
+    if (code.length === length && !nextDigits.includes('')) {
+      try {
+        onOTPComplete?.(code);
+      } catch (err) {
+        console.error('Error in onOTPComplete:', err);
+      }
+    }
   };
 
   const handleChange = (text, index) => {
@@ -23,32 +39,29 @@ const OTPInput = ({ length = 6, onOTPChange }) => {
         next[index + i] = clean[i];
       }
       update(next);
+
+      // Focus next valid input safely
       const nextIndex = Math.min(index + clean.length, length - 1);
-      inputs.current[nextIndex]?.focus();
+      if (inputs.current[nextIndex]) {
+        setTimeout(() => inputs.current[nextIndex].focus(), 50);
+      }
       return;
     }
 
     // Single char or empty
-    if (clean === '') {
-      const next = [...digits];
-      next[index] = '';
-      update(next);
-      return;
-    }
-
     const next = [...digits];
-    next[index] = clean[0];
+    next[index] = clean ? clean[0] : '';
     update(next);
 
-    if (index < length - 1) {
-      inputs.current[index + 1]?.focus();
+    if (clean && index < length - 1 && inputs.current[index + 1]) {
+      setTimeout(() => inputs.current[index + 1].focus(), 50);
     }
   };
 
   const handleKeyPress = (e, index) => {
     if (e.nativeEvent.key === 'Backspace') {
-      if (digits[index] === '' && index > 0) {
-        inputs.current[index - 1]?.focus();
+      if (digits[index] === '' && index > 0 && inputs.current[index - 1]) {
+        setTimeout(() => inputs.current[index - 1].focus(), 50);
         const next = [...digits];
         next[index - 1] = '';
         update(next);

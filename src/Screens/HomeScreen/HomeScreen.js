@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import Geolocation from 'react-native-geolocation-service';
 
@@ -31,15 +25,17 @@ const HomeScreen = () => {
   const [showBooking, setShowBooking] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const [userLocation, setUserLocation] = useState({});
-  const [showDropoff, setShowDropoff] = useState(false);
+  // ✅ State for rider's actual location
+  const [riderLocation, setRiderLocation] = useState({
+    latitude: 14.53507, // Manila as fallback
+    longitude: 120.98216,
+  });
 
+  const [showDropoff, setShowDropoff] = useState(false);
   const [bookingStatus, setBookingStatus] = useState('0'); // 0 = Pending
 
-  const dummyLocation = { lat: '14.542896', long: '120.988921' };
+  // ❌ REMOVED: const fallBackLocation = { lat: '14.542896', long: '120.988921' };
 
-  const initialLat = userLocation?.latitude || userInfo?.current_lat;
-  const initialLong = userLocation?.longitude || userInfo?.current_long;
   const showRiderMarker = activeBooking?.status !== 3;
 
   const firstMarkerLat =
@@ -66,33 +62,66 @@ const HomeScreen = () => {
   const updateBookingStatus = usePostRequest();
 
   useEffect(() => {
+    AppUtil.debugDeep(userInfo);
     setShowOffline(true);
+    // ✅ Get rider's actual GPS location on mount
     getUserLocation();
-  }, []);
 
-  const getUserLocation = () => {
-    Geolocation.getCurrentPosition(
+    // ✅ Watch position for real-time updates
+    const watchId = Geolocation.watchPosition(
       pos => {
-        setUserLocation({
+        setRiderLocation({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
         });
+        console.log(
+          'Rider location updated:',
+          pos.coords.latitude,
+          pos.coords.longitude,
+        );
+      },
+      error => console.warn('Location watch error:', error),
+      {
+        enableHighAccuracy: true,
+        distanceFilter: 10, // Update every 10 meters
+        interval: 5000, // Update every 5 seconds
+      },
+    );
+
+    return () => {
+      Geolocation.clearWatch(watchId); // Cleanup on unmount
+    };
+  }, []);
+
+  // ✅ Get the rider's real GPS location
+  const getUserLocation = () => {
+    Geolocation.getCurrentPosition(
+      pos => {
+        setRiderLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+        console.log(
+          'Rider location:',
+          pos.coords.latitude,
+          pos.coords.longitude,
+        );
       },
       error => {
-        console.warn(error);
-        setAlertMessage('Unable to fetch location');
+        console.warn('Location error:', error);
+        // Keep Manila as fallback if GPS fails
+        setAlertMessage('Unable to get your location. Using default location.');
         setShowAlert(true);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
     );
   };
 
-  /** ───── GET PENDING BOOKINGS ───── */
   const triggerGetPendingBooking = () => {
     const postdata = {
       rider_id: userInfo.id,
-      current_lat: dummyLocation.lat, // TODO: replace with actual
-      current_long: dummyLocation.long,
+      current_lat: riderLocation.latitude, // ✅ Use rider's actual location
+      current_long: riderLocation.longitude,
     };
     getPendingBooking.makePostRequest(Constants.ENDPOINT.GET_PENDING, postdata);
   };
@@ -103,7 +132,9 @@ const HomeScreen = () => {
       setShowAlert(true);
       return;
     }
-    if (!getPendingBooking.response) {return;}
+    if (!getPendingBooking.response) {
+      return;
+    }
 
     const results = getPendingBooking.response;
     if (results?.code === 200) {
@@ -127,7 +158,9 @@ const HomeScreen = () => {
       setShowAlert(true);
       return;
     }
-    if (!acceptBooking.response) {return;}
+    if (!acceptBooking.response) {
+      return;
+    }
 
     const results = acceptBooking.response;
     if (results?.code === 200) {
@@ -147,8 +180,8 @@ const HomeScreen = () => {
     const postdata = {
       rider_id: userInfo.id,
       booking_id: bookingId,
-      current_lat: dummyLocation.lat, // TODO: replace with actual
-      current_long: dummyLocation.long,
+      current_lat: riderLocation.latitude, // ✅ Use rider's actual location
+      current_long: riderLocation.longitude,
       status,
     };
     updateBookingStatus.makePostRequest(
@@ -163,7 +196,9 @@ const HomeScreen = () => {
       setShowAlert(true);
       return;
     }
-    if (!updateBookingStatus.response) {return;}
+    if (!updateBookingStatus.response) {
+      return;
+    }
 
     const results = updateBookingStatus.response;
     if (results?.code === 200) {
@@ -209,13 +244,13 @@ const HomeScreen = () => {
 
       <View style={styles.container}>
         <AppMap
-          initialLat={initialLat}
-          initialLong={initialLong}
+          initialLat={riderLocation.latitude}
+          initialLong={riderLocation.longitude}
           riderLat={
-            showRiderMarker ? (activeBooking ? dummyLocation.lat : null) : null
+            showRiderMarker && activeBooking ? riderLocation.latitude : null
           }
           riderLong={
-            showRiderMarker ? (activeBooking ? dummyLocation.long : null) : null
+            showRiderMarker && activeBooking ? riderLocation.longitude : null
           }
           firstMarkerLat={firstMarkerLat}
           firstMarkerLong={firstMarkerLong}

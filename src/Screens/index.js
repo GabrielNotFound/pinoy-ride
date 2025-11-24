@@ -21,3 +21,4 @@ export { default as WalletScreen } from './WalletScreen/WalletScreen';
 export { default as TopUpScreen } from './WalletScreen/TopUpScreen';
 export { default as CashOutScreen } from './WalletScreen/CashOutScreen';
 export { default as SuccessfulBooking } from './SuccessfulBooking/SuccessfulBooking';
+export { default as EKYCScreen } from './Login/EKYCScreen';

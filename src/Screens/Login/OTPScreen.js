@@ -26,6 +26,7 @@ const OTPScreen = () => {
   const dispatch = useDispatch();
   const userInfo = useSelector(selectUserInfo);
 
+  // Fetch OTP on mount
   useEffect(() => {
     fetchOtp(mobileNumber);
   }, [mobileNumber]);
@@ -35,39 +36,31 @@ const OTPScreen = () => {
       mobile_no: mobileNumber,
     });
   };
-  const handleGetOtp = () => {
+
+  // Handle OTP generation response
+  useEffect(() => {
     if (getOtpCode.error) {
       setAlertMessage(getOtpCode.error);
+      setShowAlert(true);
       return;
     }
     const results = getOtpCode.response?.data;
     AppUtil.debugDeep(results?.code);
-  };
-
-  useEffect(() => {
-    handleGetOtp();
   }, [getOtpCode.response, getOtpCode.error]);
 
-  useEffect(() => {
-    if (otpCode.length === 6) {
-      if (otpCode === getOtpCode.response?.data?.code) {
-        verifyOtp();
-      } else {
-        setAlertMessage('Invalid OTP, please try again.');
-      }
-    }
-  }, [otpCode]);
-
-  const verifyOtp = () => {
+  // Verify OTP when 6 digits entered
+  const verifyOtp = code => {
     verifyOtpCode.makePostRequest(Constants.ENDPOINT.VERIFY_OTP, {
       mobile_no: mobileNumber,
-      code: otpCode,
+      code,
     });
   };
 
-  const handleVerifyOtp = () => {
+  // Handle OTP verification response
+  useEffect(() => {
     if (verifyOtpCode.error) {
       setAlertMessage(verifyOtpCode.error);
+      setShowAlert(true);
       return;
     }
     const results = verifyOtpCode.response;
@@ -75,47 +68,40 @@ const OTPScreen = () => {
 
     if (results?.code === 200) {
       login();
+    } else if (otpCode.length === 6) {
+      setAlertMessage('Invalid OTP, please try again.');
+      setShowAlert(true);
     }
-  };
-
-  useEffect(() => {
-    handleVerifyOtp();
   }, [verifyOtpCode.response, verifyOtpCode.error]);
 
   const login = () => {
     loginUser.makePostRequest(Constants.ENDPOINT.LOGIN, {
-      // mobile_no: mobileNumber,
-      mobile_no: '639415232929',
-      otp_code: otpCode,
+      mobile_no: mobileNumber,
     });
   };
 
-  const handleLoginUser = () => {
+  // Handle login response
+  useEffect(() => {
     if (loginUser.error) {
       setAlertMessage(loginUser.error);
+      setShowAlert(true);
       return;
     }
     const results = loginUser.response;
 
     if (results?.code === 200 && results.data) {
       const userData = results.data;
-      // merge customer_address directly
       const flattenedUser = {
         ...userData,
         ...(userData.customer_address?.[0] || {}),
       };
-      // remove original customer_address array
       delete flattenedUser.customer_address;
 
       dispatch(setUserInfo(flattenedUser));
     }
-  };
-
-  useEffect(() => {
-    handleLoginUser();
   }, [loginUser.response, loginUser.error]);
 
-  // Watch for userInfo change
+  // Redirect after login
   useEffect(() => {
     if (userInfo) {
       navigation.reset({
@@ -133,7 +119,7 @@ const OTPScreen = () => {
     }
 
     setResendDisabled(true);
-    setTimeout(() => setResendDisabled(false), 60000); // 30s cooldown
+    setTimeout(() => setResendDisabled(false), 60000); // 60s cooldown
 
     try {
       await getOtpCode.makePostRequest(Constants.ENDPOINT.GENERATE_OTP, {
@@ -175,13 +161,17 @@ const OTPScreen = () => {
         />
       ) : null}
 
-      {/* OTP */}
+      {/* OTP Input */}
       <View style={styles.pageContainer}>
         <Text style={styles.title}>Enter One-Time PIN</Text>
         <Text style={styles.subtitle}>
           A One-Time PIN was sent to +63 ******{mobileNumber.slice(-4)}
         </Text>
-        <OTPInput length={6} onOTPChange={setOtpCode} />
+        <OTPInput
+          length={6}
+          onOTPChange={setOtpCode}
+          onOTPComplete={verifyOtp} // Automatically call verify when complete
+        />
 
         <View style={styles.imageContainer}>
           <Image
@@ -224,10 +214,7 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
       zIndex: 2,
     },
-    backIcon: {
-      width: 23,
-      height: 23,
-    },
+    backIcon: { width: 23, height: 23 },
     headerTitleContainer: {
       position: 'absolute',
       left: 0,

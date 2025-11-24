@@ -7,6 +7,7 @@ import {
   BookingHistoryScreen,
   CashOutScreen,
   DownloadDocumentScreen,
+  EKYCScreen,
   HomeScreen,
   InputLocation,
   LandingScreen,
@@ -79,6 +80,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="OTPScreen"
               component={OTPScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="EKYCScreen"
+              component={EKYCScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

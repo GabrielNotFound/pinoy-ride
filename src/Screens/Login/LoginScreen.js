@@ -15,8 +15,9 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const [showAlert, setShowAlert] = useState(false);
 
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [mobileNumber, setMobileNumber] = useState(''); // Stores as 63XXXXXXXXXX
   const [errorMessage, setErrorMessage] = useState('');
+  const [isPhoneValid, setIsPhoneValid] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -43,8 +44,14 @@ const LoginScreen = () => {
       setErrorMessage('Mobile number is required');
       return;
     }
+
+    if (!isPhoneValid) {
+      setErrorMessage('Please enter a valid mobile number');
+      return;
+    }
+
     setErrorMessage('');
-    // navigate to OTPScreen, pass mobile number
+    // Navigate to OTPScreen, pass mobile number in 63XXXXXXXXXX format
     navigation.navigate('OTPScreen', { mobileNumber });
   };
 
@@ -77,8 +84,9 @@ const LoginScreen = () => {
           label="Mobile"
           value={mobileNumber}
           onChangeText={setMobileNumber}
+          onValidationChange={setIsPhoneValid}
           inputMode="phone"
-          placeholder="9XXX-XXX-XXX"
+          placeholder="09XX-XXX-XXXX"
           error={errorMessage}
         />
       </View>

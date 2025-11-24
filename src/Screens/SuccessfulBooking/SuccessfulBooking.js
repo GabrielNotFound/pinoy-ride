@@ -111,15 +111,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    padding: 20,
   },
   image: {
-    width: '90%',
+    width: '120%',
     height: 220,
     marginBottom: 20,
+    marginTop: '20%',
   },
   successText: {
+    fontFamily: 'Poppins Bold',
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   passengerLabel: {
     fontSize: 12,
-    color: '#999',
+    color: '#c1c1c1ff',
     marginBottom: 4,
   },
   passengerName: {
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   summaryItem: { flex: 1, alignItems: 'center' },
-  summaryLabel: { fontSize: 12, color: '#999', marginBottom: 4 },
+  summaryLabel: { fontSize: 12, color: '#aeaeaeff', marginBottom: 4 },
   summaryValue: { fontSize: 14, fontWeight: '700', color: '#f1c40f' },
   fareBox: {
     width: '100%',
@@ -164,8 +164,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginVertical: 4,
   },
-  fareLabel: { fontSize: 14, color: '#444' },
-  fareValue: { fontSize: 14, color: '#444' },
+  fareLabel: { fontSize: 14, color: '#808080ff' },
+  fareValue: { fontSize: 14, color: '#808080ff' },
   separator: {
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',

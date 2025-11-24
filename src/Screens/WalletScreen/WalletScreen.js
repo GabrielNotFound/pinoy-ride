@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -10,11 +10,49 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
 import { Container } from '@/Components';
+import { selectUserInfo } from '@/Redux/Slices/userSlice';
+import { useSelector } from 'react-redux';
+import { AppUtil, Constants } from '@/Utils';
+import usePostRequest from '@/Services/Api';
 
 const WalletScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+
+  const userInfo = useSelector(selectUserInfo);
+  const [walletDetails, setWalletDetails] = useState([]);
+
+  const getWalletDetails = usePostRequest();
+
+  useEffect(() => {
+    if (userInfo?.id) {
+      getWalletDetails.makePostRequest(Constants.ENDPOINT.GET_RIDER_DETAILS, {
+        rider_id: userInfo.id,
+      });
+    }
+  }, [userInfo?.id]);
+
+  const handleGetWalletDetails = () => {
+    if (getWalletDetails.error) {
+      console.warn('wallet status check error:', getWalletDetails.error);
+      return;
+    }
+
+    if (
+      getWalletDetails.response &&
+      Object.keys(getWalletDetails.response).length > 0
+    ) {
+      const result = getWalletDetails.response?.data.wallet_details;
+      AppUtil.debugDeep(result);
+      setWalletDetails(result);
+    }
+  };
+
+  // Handle eKYC status check response
+  useEffect(() => {
+    handleGetWalletDetails();
+  }, [getWalletDetails.response, getWalletDetails.error]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -47,7 +85,11 @@ const WalletScreen = () => {
       <View style={styles.fixedContent}>
         <View style={styles.cardContainer}>
           <Text style={styles.cardTitle}>Cash Balance</Text>
-          <Text style={styles.cardAmount}>₱250.00</Text>
+          <Text style={styles.cardAmount}>
+            {walletDetails?.avail_balance !== undefined
+              ? `₱${AppUtil.fn(walletDetails.avail_balance)}`
+              : '₱0.00'}
+          </Text>
           <Text style={styles.cardSubtitle}>
             Earnings from cashless, Promo Fare & Incentives
           </Text>

@@ -14,7 +14,9 @@ import { openSettings } from 'react-native-permissions';
 import Container from '@/Components/Container/Container';
 import { AlertBox, AppButton } from '@/Components';
 import {
+  ensureCameraPermission,
   ensureLocationPermission,
+  requestCameraPermission,
   requestLocationPermission,
 } from '@/Utils/Permissions';
 
@@ -24,31 +26,54 @@ const LandingScreen = () => {
   const navigation = useNavigation();
 
   const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState('location');
   const appState = useRef(AppState.currentState);
 
-  // ✅ Check location permission when screen mounts
+  // ✅ Initial permission request (Location + Camera)
   useEffect(() => {
     (async () => {
-      const status = await ensureLocationPermission();
-      console.log('Permission status on mount:', status);
+      const loc = await ensureLocationPermission();
+      const cam = await ensureCameraPermission();
 
-      if (status !== 'granted') {
+      if (!loc) {
+        setAlertType('location');
+        setShowAlert(true);
+      } else if (!cam) {
+        setAlertType('camera');
         setShowAlert(true);
       }
     })();
   }, []);
 
-  // ✅ Retry / request permission when user confirms
+  // ✅ Retry based on alert type
   const handleRetryPermission = async () => {
-    const result = await requestLocationPermission();
-    console.log('Permission retry result:', result);
+    if (alertType === 'location') {
+      const result = await requestLocationPermission();
 
-    if (result === 'granted') {
-      setShowAlert(false);
-    } else if (result === 'blocked') {
-      openSettings();
+      if (result === 'granted') {
+        // Now check camera next
+        const cam = await ensureCameraPermission();
+        if (!cam) {
+          setAlertType('camera');
+          setShowAlert(true);
+        } else {
+          setShowAlert(false);
+        }
+      } else if (result === 'blocked') {
+        openSettings();
+      } else {
+        setShowAlert(true);
+      }
     } else {
-      setShowAlert(true);
+      const result = await requestCameraPermission();
+
+      if (result === 'granted') {
+        setShowAlert(false);
+      } else if (result === 'blocked') {
+        openSettings();
+      } else {
+        setShowAlert(true);
+      }
     }
   };
 
@@ -61,13 +86,17 @@ const LandingScreen = () => {
           appState.current.match(/inactive|background/) &&
           nextAppState === 'active'
         ) {
-          const status = await ensureLocationPermission();
-          console.log('Permission status on resume:', status);
+          const loc = await ensureLocationPermission();
+          const cam = await ensureCameraPermission();
 
-          if (status === 'granted') {
-            setShowAlert(false);
-          } else {
+          if (!loc) {
+            setAlertType('location');
             setShowAlert(true);
+          } else if (!cam) {
+            setAlertType('camera');
+            setShowAlert(true);
+          } else {
+            setShowAlert(false);
           }
         }
         appState.current = nextAppState;
@@ -79,11 +108,17 @@ const LandingScreen = () => {
 
   return (
     <Container>
-      {/* ✅ Alert for location permission */}
+      {/* ✅ Permission Alert for Location + Camera */}
       {showAlert && (
         <AlertBox
-          title="Location Required"
-          message="We need your location to continue. Please enable it."
+          title={
+            alertType === 'location' ? 'Location Required' : 'Camera Required'
+          }
+          message={
+            alertType === 'location'
+              ? 'We need your location to provide rides. Please enable it.'
+              : 'Camera access is required to verify your identity. Please enable it.'
+          }
           visible={showAlert}
           setVisible={setShowAlert}
           onConfirm={handleRetryPermission}
@@ -107,7 +142,7 @@ const LandingScreen = () => {
         />
 
         <TouchableOpacity
-          onPress={() => navigation.navigate('RiderApplicationScreen')}
+          onPress={() => navigation.navigate('RegisterScreen')}
           style={styles.applyButton}>
           <Text style={styles.applyText}>Apply As Rider</Text>
         </TouchableOpacity>

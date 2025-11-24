@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import { Constants } from '@/Utils';
 
 const fetchRoute = async (waypoints, apiKey) => {
@@ -70,8 +70,8 @@ function decodePolyline(encoded) {
 }
 
 const AppMap = ({
-  initialLat,
-  initialLong,
+  initialLat = 14.6042,
+  initialLong = 120.9822,
   riderLat,
   riderLong,
   firstMarkerLat,
@@ -86,12 +86,14 @@ const AppMap = ({
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
+
   const [region, setRegion] = useState({
-    latitude: initialLat,
-    longitude: initialLong,
+    latitude: initialLat || 14.53507,
+    longitude: initialLong || 120.98216,
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
   });
+
   const [routeCoords, setRouteCoords] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
 
@@ -99,22 +101,29 @@ const AppMap = ({
     const apiKey = Constants.GOOGLE_MAP_API_KEY;
 
     const waypoints = [];
-    if (riderLat && riderLong) {
+
+    // Add rider location as starting point
+    if (riderLat != null && riderLong != null) {
       waypoints.push({ lat: parseFloat(riderLat), lng: parseFloat(riderLong) });
     }
-    if (firstMarkerLat && firstMarkerLong) {
+
+    // Add first marker (pickup)
+    if (firstMarkerLat != null && firstMarkerLong != null) {
       waypoints.push({
         lat: parseFloat(firstMarkerLat),
         lng: parseFloat(firstMarkerLong),
       });
     }
-    if (secondMarkerLat && secondMarkerLong) {
+
+    // Add second marker (dropoff)
+    if (secondMarkerLat != null && secondMarkerLong != null) {
       waypoints.push({
         lat: parseFloat(secondMarkerLat),
         lng: parseFloat(secondMarkerLong),
       });
     }
 
+    // Fetch route if we have at least 2 waypoints
     if (waypoints.length >= 2) {
       fetchRoute(waypoints, apiKey).then(setRouteCoords);
 
@@ -133,8 +142,34 @@ const AppMap = ({
         latitudeDelta: Math.max(latDelta, minDelta),
         longitudeDelta: Math.max(lonDelta, minDelta),
       });
+    } else if (firstMarkerLat != null) {
+      // Only first marker, center on it
+      setRegion({
+        latitude: parseFloat(firstMarkerLat),
+        longitude: parseFloat(firstMarkerLong),
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
+    } else if (riderLat != null && riderLong != null) {
+      // ✅ Only rider location, center on rider
+      setRegion({
+        latitude: parseFloat(riderLat),
+        longitude: parseFloat(riderLong),
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
+    } else {
+      // No markers or rider, use initial location
+      setRegion({
+        latitude: initialLat || 14.6042,
+        longitude: initialLong || 120.9822,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
     }
   }, [
+    initialLat,
+    initialLong,
     riderLat,
     riderLong,
     firstMarkerLat,
@@ -147,12 +182,15 @@ const AppMap = ({
     <MapView
       style={[styles.container, style]}
       region={region}
-      provider="google"
+      provider={PROVIDER_GOOGLE}
       scrollEnabled={interactive}
       zoomEnabled={interactive}
       rotateEnabled={interactive}
       pitchEnabled={interactive}
       toolbarEnabled={interactive}
+      loadingEnabled={true}
+      loadingIndicatorColor={colors.primary}
+      loadingBackgroundColor="#ffffff"
       onPress={
         interactive && onMapPress
           ? e => {
@@ -165,9 +203,18 @@ const AppMap = ({
       {selectedMarker && (
         <Marker coordinate={selectedMarker} title="Selected Location" />
       )}
-      {routeCoords.length > 0 && (
+
+      {/* ✅ Rider Marker - shown when route exists OR when rider location is available */}
+      {riderLat != null && riderLong != null && (
         <Marker
-          coordinate={routeCoords[0]}
+          coordinate={
+            routeCoords.length > 0
+              ? routeCoords[0] // Use route start if available
+              : {
+                  latitude: parseFloat(riderLat),
+                  longitude: parseFloat(riderLong),
+                }
+          }
           title="Rider"
           anchor={{ x: 0.5, y: 0.5 }}>
           <Image
@@ -180,7 +227,9 @@ const AppMap = ({
           />
         </Marker>
       )}
-      {firstMarkerLat && firstMarkerLong && (
+
+      {/* First Marker - Pickup */}
+      {firstMarkerLat != null && firstMarkerLong != null && (
         <Marker
           coordinate={{
             latitude: parseFloat(firstMarkerLat),
@@ -191,7 +240,9 @@ const AppMap = ({
           anchor={{ x: 0.5, y: 1 }}
         />
       )}
-      {secondMarkerLat && secondMarkerLong && (
+
+      {/* Second Marker - Dropoff */}
+      {secondMarkerLat != null && secondMarkerLong != null && (
         <Marker
           coordinate={{
             latitude: parseFloat(secondMarkerLat),
@@ -202,6 +253,8 @@ const AppMap = ({
           anchor={{ x: 0.5, y: 1 }}
         />
       )}
+
+      {/* Route Polyline */}
       {routeCoords.length > 0 && (
         <Polyline
           coordinates={routeCoords}

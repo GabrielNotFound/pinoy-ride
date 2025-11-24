@@ -171,6 +171,7 @@ const BottomModal = ({
             onValueChange={toggleSwitch}
             trackColor={{ false: colors.grey3, true: colors.primary }}
             thumbColor={colors.onPrimary}
+            disabled={true}
           />
         </View>
       </TouchableOpacity>
@@ -206,13 +207,13 @@ const getStyles = ({ colors }) =>
     top: { alignItems: 'center' },
     title: {
       fontFamily: 'Poppins SemiBold',
-      fontSize: 8,
+      fontSize: 6,
       color: colors.primary,
     },
     creditsRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 20,
+      marginBottom: 10,
     },
     creditsCard: {
       flex: 1,
@@ -233,7 +234,7 @@ const getStyles = ({ colors }) =>
       paddingHorizontal: 13,
       paddingVertical: 2,
       marginTop: 5,
-      marginBottom: 20,
+      marginBottom: 10,
     },
     creditScore: {
       fontFamily: 'Poppins SemiBold',
@@ -262,7 +263,7 @@ const getStyles = ({ colors }) =>
       backgroundColor: colors.onPrimary,
       paddingHorizontal: 22,
       paddingVertical: 12,
-      marginBottom: 15,
+      marginBottom: 5,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 5 },
       shadowOpacity: 0.15,
