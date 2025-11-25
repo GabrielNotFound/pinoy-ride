@@ -11,10 +11,10 @@ import { useSelector } from 'react-redux';
 import { selectUserInfo } from '@/Redux/Slices/userSlice';
 import PendingBookingModal from './PendingBookingModal';
 
-//TESTING SWITCH
+// Test Switch
 const isTesting = true;
 
-//Testing location
+// Testing location
 const MANILA_LOCATION = {
   latitude: 14.53507,
   longitude: 120.98216,
@@ -40,28 +40,27 @@ const HomeScreen = () => {
   );
 
   const [showDropoff, setShowDropoff] = useState(false);
-  const [bookingStatus, setBookingStatus] = useState('0'); // 0 = Pending
+  const [bookingStatus, setBookingStatus] = useState(1); // Start at 1 when booking accepted
 
-  const showRiderMarker = activeBooking?.status !== 3;
+  // ✅ FIXED MARKER LOGIC - Based on bookingStatus from BottomModal
+  const showRiderMarker = activeBooking !== null; // Always show rider when there's a booking
 
+  // First marker changes based on status
   const firstMarkerLat =
-    activeBooking?.status === 2 || activeBooking?.status === 3
-      ? activeBooking.pickup_lat
-      : activeBooking?.status === 0
-      ? activeBooking.dropoff_lat
+    bookingStatus === 1 || bookingStatus === 2
+      ? activeBooking?.pickup_lat
       : null;
 
   const firstMarkerLong =
-    activeBooking?.status === 2 || activeBooking?.status === 3
-      ? activeBooking.pickup_long
-      : activeBooking?.status === 0
-      ? activeBooking.dropoff_long
+    bookingStatus === 1 || bookingStatus === 2
+      ? activeBooking?.pickup_long
       : null;
 
+  // Second marker only shows when going to dropoff (status 3)
   const secondMarkerLat =
-    activeBooking?.status === 3 ? activeBooking.dropoff_lat : null;
+    bookingStatus === 3 ? activeBooking?.dropoff_lat : null;
   const secondMarkerLong =
-    activeBooking?.status === 3 ? activeBooking.dropoff_long : null;
+    bookingStatus === 3 ? activeBooking?.dropoff_long : null;
 
   const getPendingBooking = usePostRequest();
   const acceptBooking = usePostRequest();
@@ -72,44 +71,32 @@ const HomeScreen = () => {
     setShowOffline(true);
 
     if (isTesting) {
-      console.log('🧪 TESTING MODE ENABLED - Using Manila coordinates');
-      console.log(
-        `📍 Location: ${MANILA_LOCATION.latitude}, ${MANILA_LOCATION.longitude}`,
-      );
-      // In testing mode, location is already set to Manila - no GPS needed
+      console.log('testing is on, turn off when building');
       return;
     }
 
-    // Production mode - get actual GPS location
     getUserLocation();
 
-    // Watch position for real-time updates
     const watchId = Geolocation.watchPosition(
       pos => {
         setRiderLocation({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
         });
-        console.log(
-          '📍 Rider location updated:',
-          pos.coords.latitude,
-          pos.coords.longitude,
-        );
       },
       error => console.warn('⚠️ Location watch error:', error),
       {
         enableHighAccuracy: true,
-        distanceFilter: 10, // Update every 10 meters
-        interval: 5000, // Update every 5 seconds
+        distanceFilter: 10,
+        interval: 5000,
       },
     );
 
     return () => {
-      Geolocation.clearWatch(watchId); // Cleanup on unmount
+      Geolocation.clearWatch(watchId);
     };
   }, []);
 
-  // ✅ Get the rider's real GPS location (production mode only)
   const getUserLocation = () => {
     Geolocation.getCurrentPosition(
       pos => {
@@ -117,15 +104,9 @@ const HomeScreen = () => {
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
         });
-        console.log(
-          '📍 Rider location:',
-          pos.coords.latitude,
-          pos.coords.longitude,
-        );
       },
       error => {
         console.warn('⚠️ Location error:', error);
-        // Keep Manila as fallback if GPS fails
         setAlertMessage('Unable to get your location. Using default location.');
         setShowAlert(true);
       },
@@ -139,8 +120,6 @@ const HomeScreen = () => {
       current_lat: riderLocation.latitude,
       current_long: riderLocation.longitude,
     };
-
-    console.log('📤 Getting pending bookings with location:', postdata);
     getPendingBooking.makePostRequest(Constants.ENDPOINT.GET_PENDING, postdata);
   };
 
@@ -173,8 +152,6 @@ const HomeScreen = () => {
       current_lat: riderLocation.latitude,
       current_long: riderLocation.longitude,
     };
-
-    console.log('📤 Accepting booking with location:', postdata);
     acceptBooking.makePostRequest(Constants.ENDPOINT.ACCEPT_BOOKING, postdata);
   };
 
@@ -193,7 +170,7 @@ const HomeScreen = () => {
       setActiveBooking(results.data);
       setShowBooking(false);
       setShowDropoff(false);
-      setBookingStatus(1);
+      setBookingStatus(1); // Reset to status 1 (Going to pickup)
     }
   };
 
@@ -210,8 +187,6 @@ const HomeScreen = () => {
       current_long: riderLocation.longitude,
       status,
     };
-
-    console.log('📤 Updating booking status with location:', postdata);
     updateBookingStatus.makePostRequest(
       Constants.ENDPOINT.UPDATE_BOOKING_STATUS,
       postdata,
@@ -241,6 +216,7 @@ const HomeScreen = () => {
   /** ───── HANDLERS ───── */
   const handleAccept = booking => {
     setActiveBooking(booking);
+    setBookingStatus(1); // Start at status 1
     triggerAcceptBooking(booking.id);
   };
 
@@ -254,8 +230,7 @@ const HomeScreen = () => {
 
   const handleUpdateBookingStatus = (booking, newStatus) => {
     setActiveBooking(prev => (prev ? { ...prev, status: newStatus } : prev));
-
-    setBookingStatus(newStatus);
+    setBookingStatus(newStatus); // Update local status
     triggerUpdateBookingStatus(booking.id, newStatus);
   };
 
@@ -274,12 +249,8 @@ const HomeScreen = () => {
         <AppMap
           initialLat={riderLocation.latitude}
           initialLong={riderLocation.longitude}
-          riderLat={
-            showRiderMarker && activeBooking ? riderLocation.latitude : null
-          }
-          riderLong={
-            showRiderMarker && activeBooking ? riderLocation.longitude : null
-          }
+          riderLat={showRiderMarker ? riderLocation.latitude : null}
+          riderLong={showRiderMarker ? riderLocation.longitude : null}
           firstMarkerLat={firstMarkerLat}
           firstMarkerLong={firstMarkerLong}
           secondMarkerLat={secondMarkerLat}
@@ -327,20 +298,4 @@ const { width, height } = Dimensions.get('window');
 const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: { flex: 1, position: 'relative' },
-    map: { flex: 1, width, height },
-    toggleButton: {
-      position: 'absolute',
-      bottom: 40,
-      right: 20,
-      backgroundColor: colors.primary,
-      paddingVertical: 10,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      elevation: 4,
-    },
-    toggleButtonText: {
-      color: colors.onPrimary,
-      fontFamily: 'Poppins SemiBold',
-      fontSize: 14,
-    },
   });
