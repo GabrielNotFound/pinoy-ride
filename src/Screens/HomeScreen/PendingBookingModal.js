@@ -23,6 +23,7 @@ const PendingBookingModal = ({
   const styles = getStyles({ colors });
 
   const booking = bookings[currentIndex];
+  const customer = booking?.customer?.ekyc_details;
 
   return (
     <Modal visible={visible} transparent animationType="fade">
@@ -39,15 +40,15 @@ const PendingBookingModal = ({
                     <Image
                       source={{
                         uri:
-                          booking.customer.avatar ||
+                          customer.selfie ||
                           'https://ui-avatars.com/api/?name=' +
-                            booking.customer.fname,
+                            customer.first_name,
                       }}
                       style={styles.avatar}
                     />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.name}>
-                        {booking.customer.fname} {booking.customer.lname}
+                        {customer.first_name} {customer.last_name}
                       </Text>
                     </View>
                     <View style={styles.amountBox}>

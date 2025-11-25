@@ -11,6 +11,15 @@ import { useSelector } from 'react-redux';
 import { selectUserInfo } from '@/Redux/Slices/userSlice';
 import PendingBookingModal from './PendingBookingModal';
 
+//TESTING SWITCH
+const isTesting = true;
+
+//Testing location
+const MANILA_LOCATION = {
+  latitude: 14.53507,
+  longitude: 120.98216,
+};
+
 const HomeScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
@@ -25,16 +34,13 @@ const HomeScreen = () => {
   const [showBooking, setShowBooking] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // ✅ State for rider's actual location
-  const [riderLocation, setRiderLocation] = useState({
-    latitude: 14.53507, // Manila as fallback
-    longitude: 120.98216,
-  });
+  // ✅ State for rider's location - starts with Manila in testing mode
+  const [riderLocation, setRiderLocation] = useState(
+    isTesting ? MANILA_LOCATION : { latitude: 14.53507, longitude: 120.98216 },
+  );
 
   const [showDropoff, setShowDropoff] = useState(false);
   const [bookingStatus, setBookingStatus] = useState('0'); // 0 = Pending
-
-  // ❌ REMOVED: const fallBackLocation = { lat: '14.542896', long: '120.988921' };
 
   const showRiderMarker = activeBooking?.status !== 3;
 
@@ -64,10 +70,20 @@ const HomeScreen = () => {
   useEffect(() => {
     AppUtil.debugDeep(userInfo);
     setShowOffline(true);
-    // ✅ Get rider's actual GPS location on mount
+
+    if (isTesting) {
+      console.log('🧪 TESTING MODE ENABLED - Using Manila coordinates');
+      console.log(
+        `📍 Location: ${MANILA_LOCATION.latitude}, ${MANILA_LOCATION.longitude}`,
+      );
+      // In testing mode, location is already set to Manila - no GPS needed
+      return;
+    }
+
+    // Production mode - get actual GPS location
     getUserLocation();
 
-    // ✅ Watch position for real-time updates
+    // Watch position for real-time updates
     const watchId = Geolocation.watchPosition(
       pos => {
         setRiderLocation({
@@ -75,12 +91,12 @@ const HomeScreen = () => {
           longitude: pos.coords.longitude,
         });
         console.log(
-          'Rider location updated:',
+          '📍 Rider location updated:',
           pos.coords.latitude,
           pos.coords.longitude,
         );
       },
-      error => console.warn('Location watch error:', error),
+      error => console.warn('⚠️ Location watch error:', error),
       {
         enableHighAccuracy: true,
         distanceFilter: 10, // Update every 10 meters
@@ -93,7 +109,7 @@ const HomeScreen = () => {
     };
   }, []);
 
-  // ✅ Get the rider's real GPS location
+  // ✅ Get the rider's real GPS location (production mode only)
   const getUserLocation = () => {
     Geolocation.getCurrentPosition(
       pos => {
@@ -102,13 +118,13 @@ const HomeScreen = () => {
           longitude: pos.coords.longitude,
         });
         console.log(
-          'Rider location:',
+          '📍 Rider location:',
           pos.coords.latitude,
           pos.coords.longitude,
         );
       },
       error => {
-        console.warn('Location error:', error);
+        console.warn('⚠️ Location error:', error);
         // Keep Manila as fallback if GPS fails
         setAlertMessage('Unable to get your location. Using default location.');
         setShowAlert(true);
@@ -119,10 +135,12 @@ const HomeScreen = () => {
 
   const triggerGetPendingBooking = () => {
     const postdata = {
-      rider_id: userInfo.id,
-      current_lat: riderLocation.latitude, // ✅ Use rider's actual location
+      rider_id: userInfo?.id,
+      current_lat: riderLocation.latitude,
       current_long: riderLocation.longitude,
     };
+
+    console.log('📤 Getting pending bookings with location:', postdata);
     getPendingBooking.makePostRequest(Constants.ENDPOINT.GET_PENDING, postdata);
   };
 
@@ -138,6 +156,7 @@ const HomeScreen = () => {
 
     const results = getPendingBooking.response;
     if (results?.code === 200) {
+      AppUtil.debugDeep(results.data);
       setPendingBookings(results.data.bookings);
     }
   };
@@ -148,7 +167,14 @@ const HomeScreen = () => {
 
   /** ───── ACCEPT BOOKING ───── */
   const triggerAcceptBooking = bookingId => {
-    const postdata = { rider_id: userInfo.id, booking_id: bookingId };
+    const postdata = {
+      rider_id: userInfo?.id,
+      booking_id: bookingId,
+      current_lat: riderLocation.latitude,
+      current_long: riderLocation.longitude,
+    };
+
+    console.log('📤 Accepting booking with location:', postdata);
     acceptBooking.makePostRequest(Constants.ENDPOINT.ACCEPT_BOOKING, postdata);
   };
 
@@ -178,12 +204,14 @@ const HomeScreen = () => {
   /** ───── UPDATE BOOKING STATUS ───── */
   const triggerUpdateBookingStatus = (bookingId, status) => {
     const postdata = {
-      rider_id: userInfo.id,
+      rider_id: userInfo?.id,
       booking_id: bookingId,
-      current_lat: riderLocation.latitude, // ✅ Use rider's actual location
+      current_lat: riderLocation.latitude,
       current_long: riderLocation.longitude,
       status,
     };
+
+    console.log('📤 Updating booking status with location:', postdata);
     updateBookingStatus.makePostRequest(
       Constants.ENDPOINT.UPDATE_BOOKING_STATUS,
       postdata,

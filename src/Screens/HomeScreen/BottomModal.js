@@ -74,15 +74,15 @@ const BottomModal = ({
             <Image
               source={{
                 uri:
-                  activeBooking?.customer?.avatar ||
+                  activeBooking?.customer?.ekyc_details?.selfie ||
                   'https://ui-avatars.com/api/?name=' +
-                    activeBooking.customer.fname,
+                    activeBooking.customer?.ekyc_details?.first_name,
               }}
               style={styles.avatar}
             />
             <Text style={styles.name}>
-              {`${activeBooking?.customer?.fname || ''} ${
-                activeBooking?.customer?.lname || ''
+              {`${activeBooking?.customer?.ekyc_details?.first_name || ''} ${
+                activeBooking?.customer?.ekyc_details?.last_name || ''
               }`}
             </Text>
           </View>
