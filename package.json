@@ -9,7 +9,9 @@
     "web": "expo start --web",
     "lint": "eslint .",
     "prepare": "husky install",
-    "commit": "cz"
+    "commit": "cz",
+    "dev:android": "cd android && ./gradlew clean && npm run android",
+    "build:android:apk": "cd android && ./gradlew clean && ./gradlew assembleRelease && cd .."
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -41,6 +41,7 @@ const BottomModal = ({
   onViewBooking,
   activeBooking,
   onUpdateStatus,
+  bookingStatus: externalStatus, // Status from parent
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
@@ -49,8 +50,15 @@ const BottomModal = ({
   const [isEnabled, setIsEnabled] = useState(false);
   const toggleSwitch = () => setIsEnabled(prev => !prev);
 
-  // New local state to manage button text and status
-  const [buttonStatus, setButtonStatus] = useState(1);
+  // Sync with external status
+  const [buttonStatus, setButtonStatus] = useState(externalStatus || 1);
+
+  // Update local state when external status changes
+  useEffect(() => {
+    if (externalStatus) {
+      setButtonStatus(externalStatus);
+    }
+  }, [externalStatus]);
 
   const getButtonTitle = status => {
     switch (status) {
@@ -61,7 +69,23 @@ const BottomModal = ({
       case 3:
         return 'Drop Off';
       default:
-        return 'Button';
+        return 'Continue';
+    }
+  };
+
+  const handleButtonPress = () => {
+    if (buttonStatus === 1) {
+      // Going to pickup → Arrived at pickup
+      setButtonStatus(2);
+      onUpdateStatus(activeBooking, 2);
+    } else if (buttonStatus === 2) {
+      // Arrived at pickup → Going to dropoff
+      setButtonStatus(3);
+      onUpdateStatus(activeBooking, 3);
+    } else if (buttonStatus === 3) {
+      // Drop off → Complete
+      onUpdateStatus(activeBooking, 4);
+      navigation.navigate('SuccessfulBooking', activeBooking);
     }
   };
 
@@ -114,22 +138,7 @@ const BottomModal = ({
 
         <AppButton
           title={getButtonTitle(buttonStatus)}
-          onPress={() => {
-            if (buttonStatus === 0 || buttonStatus === 1) {
-              // Advance locally, don't call API yet
-              const nextStatus = buttonStatus + 1;
-              setButtonStatus(nextStatus);
-              onUpdateStatus(activeBooking, nextStatus);
-            } else if (buttonStatus === 2) {
-              // Pressing "Let's go to your location"
-              onUpdateStatus(activeBooking, 2); // no 'true' flag
-              setButtonStatus(3); // button text now shows "Drop Off"
-            } else if (buttonStatus === 3) {
-              // Drop Off → final API call
-              onUpdateStatus(activeBooking, 3);
-              navigation.navigate('SuccessfulBooking', activeBooking);
-            }
-          }}
+          onPress={handleButtonPress}
           buttonColor={colors.primary}
           textColor={colors.onPrimary}
           isBold
@@ -197,7 +206,6 @@ export default BottomModal;
 
 const getStyles = ({ colors }) =>
   StyleSheet.create({
-    // === Default layout ===
     container: {
       paddingHorizontal: 24,
       paddingBottom: 20,
@@ -286,8 +294,6 @@ const getStyles = ({ colors }) =>
       fontSize: 16,
       color: colors.shadow,
     },
-
-    // === Booking layout ===
     containerBooking: {
       paddingHorizontal: 30,
       paddingVertical: 45,
@@ -338,36 +344,5 @@ const getStyles = ({ colors }) =>
       color: colors.shadow,
       flexShrink: 1,
       letterSpacing: -0.45,
-    },
-    actionsRow: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
-      marginVertical: 12,
-      gap: 12,
-    },
-    circleBtn: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    circleIcon: {
-      width: 20,
-      height: 20,
-      tintColor: colors.onPrimary,
-      resizeMode: 'contain',
-    },
-    mainButton: {
-      backgroundColor: colors.primary,
-      paddingVertical: 14,
-      borderRadius: 10,
-      alignItems: 'center',
-    },
-    mainButtonText: {
-      fontFamily: 'Poppins SemiBold',
-      fontSize: 16,
-      color: colors.onPrimary,
     },
   });

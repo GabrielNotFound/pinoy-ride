@@ -10,11 +10,12 @@ import { AppUtil, Constants } from '@/Utils';
 import { useSelector } from 'react-redux';
 import { selectUserInfo } from '@/Redux/Slices/userSlice';
 import PendingBookingModal from './PendingBookingModal';
+import VehicleSelectionModal from './VehicleSelectionModal';
 
-// Test Switch
-const isTesting = true;
+// Testing Switch
+const isTesting = false;
 
-// Testing location
+// Testing Loc
 const MANILA_LOCATION = {
   latitude: 14.53507,
   longitude: 120.98216,
@@ -33,6 +34,10 @@ const HomeScreen = () => {
   const [pendingBookings, setPendingBookings] = useState([]);
   const [showBooking, setShowBooking] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Vehicle selection state
+  const [showVehicleSelection, setShowVehicleSelection] = useState(false);
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
   // ✅ State for rider's location - starts with Manila in testing mode
   const [riderLocation, setRiderLocation] = useState(
@@ -71,7 +76,7 @@ const HomeScreen = () => {
     setShowOffline(true);
 
     if (isTesting) {
-      console.log('testing is on, turn off when building');
+      AppUtil.debugDeep('Testing Mode On - turn off if Building');
       return;
     }
 
@@ -84,7 +89,7 @@ const HomeScreen = () => {
           longitude: pos.coords.longitude,
         });
       },
-      error => console.warn('⚠️ Location watch error:', error),
+      error => console.warn('Location watch error:', error),
       {
         enableHighAccuracy: true,
         distanceFilter: 10,
@@ -119,6 +124,7 @@ const HomeScreen = () => {
       rider_id: userInfo?.id,
       current_lat: riderLocation.latitude,
       current_long: riderLocation.longitude,
+      booking_type: selectedVehicleId,
     };
     getPendingBooking.makePostRequest(Constants.ENDPOINT.GET_PENDING, postdata);
   };
@@ -234,6 +240,14 @@ const HomeScreen = () => {
     triggerUpdateBookingStatus(booking.id, newStatus);
   };
 
+  const handleVehicleSelect = vehicle => {
+    console.log('Vehicle selected:', vehicle);
+    setSelectedVehicleId(vehicle.id);
+    setShowVehicleSelection(false);
+    triggerGetPendingBooking();
+    setShowBooking(true);
+  };
+
   return (
     <>
       {alertMessage ? (
@@ -269,12 +283,18 @@ const HomeScreen = () => {
           loading={getPendingBooking.loading}
           onAcceptBooking={setActiveBooking}
           onViewBooking={() => {
-            triggerGetPendingBooking();
-            setShowBooking(true);
+            // Show vehicle selection first instead of booking list
+            setShowVehicleSelection(true);
           }}
           activeBooking={activeBooking}
           onUpdateStatus={handleUpdateBookingStatus}
           bookingStatus={bookingStatus}
+        />
+
+        <VehicleSelectionModal
+          visible={showVehicleSelection}
+          onClose={() => setShowVehicleSelection(false)}
+          onProceed={handleVehicleSelect}
         />
 
         <PendingBookingModal

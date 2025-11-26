@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import { Constants } from '@/Utils';
@@ -79,13 +79,14 @@ const AppMap = ({
   secondMarkerLat,
   secondMarkerLong,
   minDelta = 0.02,
-  latOffset = -0.01,
+  latOffset = 0,
   onMapPress,
   interactive = true,
   style,
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
+  const mapRef = useRef(null);
 
   const [region, setRegion] = useState({
     latitude: initialLat || 14.53507,
@@ -96,10 +97,13 @@ const AppMap = ({
 
   const [routeCoords, setRouteCoords] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
+  const [isRouteView, setIsRouteView] = useState(true); // Toggle between route view and free view
+
+  // Store the route coordinates for re-fitting
+  const savedRouteCoords = useRef([]);
 
   useEffect(() => {
     const apiKey = Constants.GOOGLE_MAP_API_KEY;
-
     const waypoints = [];
 
     // Add rider location as starting point
@@ -125,25 +129,29 @@ const AppMap = ({
 
     // Fetch route if we have at least 2 waypoints
     if (waypoints.length >= 2) {
-      fetchRoute(waypoints, apiKey).then(setRouteCoords);
+      fetchRoute(waypoints, apiKey).then(coords => {
+        setRouteCoords(coords);
+        savedRouteCoords.current = coords;
 
-      const lats = waypoints.map(p => p.lat);
-      const lngs = waypoints.map(p => p.lng);
-
-      const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
-      const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
-
-      const latDelta = (Math.max(...lats) - Math.min(...lats)) * 1.5;
-      const lonDelta = (Math.max(...lngs) - Math.min(...lngs)) * 1.5;
-
-      setRegion({
-        latitude: centerLat + latOffset,
-        longitude: centerLng,
-        latitudeDelta: Math.max(latDelta, minDelta),
-        longitudeDelta: Math.max(lonDelta, minDelta),
+        // Fit map to show entire route with padding (only if in route view mode)
+        if (coords.length > 0 && mapRef.current && isRouteView) {
+          setTimeout(() => {
+            mapRef.current.fitToCoordinates(coords, {
+              edgePadding: {
+                top: 100,
+                right: 50,
+                bottom: 300, // More padding at bottom for UI
+                left: 50,
+              },
+              animated: true,
+            });
+          }, 300);
+        }
       });
     } else if (firstMarkerLat != null) {
       // Only first marker, center on it
+      setRouteCoords([]);
+      savedRouteCoords.current = [];
       setRegion({
         latitude: parseFloat(firstMarkerLat),
         longitude: parseFloat(firstMarkerLong),
@@ -151,7 +159,9 @@ const AppMap = ({
         longitudeDelta: 0.05,
       });
     } else if (riderLat != null && riderLong != null) {
-      // ✅ Only rider location, center on rider
+      // Only rider location, center on rider
+      setRouteCoords([]);
+      savedRouteCoords.current = [];
       setRegion({
         latitude: parseFloat(riderLat),
         longitude: parseFloat(riderLong),
@@ -160,6 +170,8 @@ const AppMap = ({
       });
     } else {
       // No markers or rider, use initial location
+      setRouteCoords([]);
+      savedRouteCoords.current = [];
       setRegion({
         latitude: initialLat || 14.6042,
         longitude: initialLong || 120.9822,
@@ -176,96 +188,260 @@ const AppMap = ({
     firstMarkerLong,
     secondMarkerLat,
     secondMarkerLong,
+    isRouteView, // Re-fit when toggling back to route view
   ]);
 
+  // Function to toggle between route view and free view
+  const handleToggleView = () => {
+    if (!isRouteView && savedRouteCoords.current.length > 0) {
+      // Switching back to route view - re-fit to route
+      mapRef.current?.fitToCoordinates(savedRouteCoords.current, {
+        edgePadding: {
+          top: 100,
+          right: 50,
+          bottom: 300,
+          left: 50,
+        },
+        animated: true,
+      });
+    }
+    setIsRouteView(!isRouteView);
+  };
+
+  // Center on rider location
+  const handleCenterOnRider = () => {
+    if (riderLat != null && riderLong != null && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: parseFloat(riderLat),
+          longitude: parseFloat(riderLong),
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        },
+        500,
+      );
+    }
+  };
+
   return (
-    <MapView
-      style={[styles.container, style]}
-      region={region}
-      provider={PROVIDER_GOOGLE}
-      scrollEnabled={interactive}
-      zoomEnabled={interactive}
-      rotateEnabled={interactive}
-      pitchEnabled={interactive}
-      toolbarEnabled={interactive}
-      loadingEnabled={true}
-      loadingIndicatorColor={colors.primary}
-      loadingBackgroundColor="#ffffff"
-      onPress={
-        interactive && onMapPress
-          ? e => {
-              const { latitude, longitude } = e.nativeEvent.coordinate;
-              setSelectedMarker({ latitude, longitude });
-              onMapPress({ latitude, longitude });
-            }
-          : null
-      }>
-      {selectedMarker && (
-        <Marker coordinate={selectedMarker} title="Selected Location" />
-      )}
-
-      {/* ✅ Rider Marker - shown when route exists OR when rider location is available */}
-      {riderLat != null && riderLong != null && (
-        <Marker
-          coordinate={
-            routeCoords.length > 0
-              ? routeCoords[0] // Use route start if available
-              : {
-                  latitude: parseFloat(riderLat),
-                  longitude: parseFloat(riderLong),
-                }
+    <View style={styles.wrapper}>
+      <MapView
+        ref={mapRef}
+        style={[styles.container, style]}
+        region={region}
+        provider={PROVIDER_GOOGLE}
+        scrollEnabled={interactive}
+        zoomEnabled={interactive}
+        rotateEnabled={interactive}
+        pitchEnabled={interactive}
+        toolbarEnabled={interactive}
+        loadingEnabled={true}
+        loadingIndicatorColor={colors.primary}
+        loadingBackgroundColor="#ffffff"
+        onPress={
+          interactive && onMapPress
+            ? e => {
+                const { latitude, longitude } = e.nativeEvent.coordinate;
+                setSelectedMarker({ latitude, longitude });
+                onMapPress({ latitude, longitude });
+              }
+            : null
+        }
+        onRegionChangeComplete={() => {
+          // When user manually moves map, switch to free view
+          if (isRouteView) {
+            setIsRouteView(false);
           }
-          title="Rider"
-          anchor={{ x: 0.5, y: 0.5 }}>
-          <Image
-            source={require('@/Assets/Common/Rider_Pin.png')}
-            style={{
-              width: 75,
-              height: 75,
-              resizeMode: 'contain',
-            }}
+        }}>
+        {selectedMarker && (
+          <Marker coordinate={selectedMarker} title="Selected Location" />
+        )}
+
+        {/* Route Polyline - Draw FIRST so markers appear on top */}
+        {routeCoords.length > 0 && (
+          <Polyline
+            coordinates={routeCoords}
+            strokeColor={colors.primary}
+            strokeWidth={5}
+            lineCap="round"
+            lineJoin="round"
           />
-        </Marker>
-      )}
+        )}
 
-      {/* First Marker - Pickup */}
-      {firstMarkerLat != null && firstMarkerLong != null && (
-        <Marker
-          coordinate={{
-            latitude: parseFloat(firstMarkerLat),
-            longitude: parseFloat(firstMarkerLong),
-          }}
-          title="Pickup"
-          pinColor="blue"
-          anchor={{ x: 0.5, y: 1 }}
-        />
-      )}
+        {/* ✅ Rider Marker - Uses first point of route when route exists */}
+        {riderLat != null && riderLong != null && (
+          <Marker
+            coordinate={
+              routeCoords.length > 0
+                ? routeCoords[0] // Use first point of route if route exists
+                : {
+                    latitude: parseFloat(riderLat),
+                    longitude: parseFloat(riderLong),
+                  }
+            }
+            title="You"
+            anchor={{ x: 0.5, y: 0.5 }}
+            zIndex={1000}>
+            <Image
+              source={require('@/Assets/Common/Rider_Pin.png')}
+              style={{
+                width: 70,
+                height: 70,
+                resizeMode: 'contain',
+              }}
+            />
+          </Marker>
+        )}
 
-      {/* Second Marker - Dropoff */}
-      {secondMarkerLat != null && secondMarkerLong != null && (
-        <Marker
-          coordinate={{
-            latitude: parseFloat(secondMarkerLat),
-            longitude: parseFloat(secondMarkerLong),
-          }}
-          title="Dropoff"
-          pinColor="red"
-          anchor={{ x: 0.5, y: 1 }}
-        />
-      )}
+        {/* First Marker - Pickup */}
+        {firstMarkerLat != null && firstMarkerLong != null && (
+          <Marker
+            coordinate={{
+              latitude: parseFloat(firstMarkerLat),
+              longitude: parseFloat(firstMarkerLong),
+            }}
+            title="Pickup Location"
+            pinColor="blue"
+            anchor={{ x: 0.5, y: 1 }}
+            zIndex={999}
+          />
+        )}
 
-      {/* Route Polyline */}
+        {/* Second Marker - Dropoff */}
+        {secondMarkerLat != null && secondMarkerLong != null && (
+          <Marker
+            coordinate={{
+              latitude: parseFloat(secondMarkerLat),
+              longitude: parseFloat(secondMarkerLong),
+            }}
+            title="Drop-off Location"
+            pinColor="red"
+            anchor={{ x: 0.5, y: 1 }}
+            zIndex={998}
+          />
+        )}
+      </MapView>
+
+      {/* View Toggle Button - Only show when there's a route */}
       {routeCoords.length > 0 && (
-        <Polyline
-          coordinates={routeCoords}
-          strokeColor={colors.primary}
-          strokeWidth={6}
-        />
+        <TouchableOpacity
+          style={styles.viewToggleButton}
+          onPress={handleToggleView}>
+          <Text style={styles.viewToggleText}>
+            {isRouteView ? '🗺️ Free View' : '🧭 Route View'}
+          </Text>
+        </TouchableOpacity>
       )}
-    </MapView>
+
+      {/* Center on Rider Button */}
+      {riderLat != null && riderLong != null && (
+        <TouchableOpacity
+          style={styles.centerButton}
+          onPress={handleCenterOnRider}>
+          <Text style={styles.centerButtonText}>📍</Text>
+        </TouchableOpacity>
+      )}
+    </View>
   );
 };
 
 export default AppMap;
 
-const getStyles = ({ colors }) => StyleSheet.create({ container: { flex: 1 } });
+const getStyles = ({ colors }) =>
+  StyleSheet.create({
+    wrapper: {
+      flex: 1,
+    },
+    container: {
+      flex: 1,
+    },
+    viewToggleButton: {
+      position: 'absolute',
+      top: 60,
+      right: 16,
+      backgroundColor: colors.background,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 25,
+      elevation: 6,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    viewToggleText: {
+      color: colors.shadow,
+      fontFamily: 'Poppins SemiBold',
+      fontSize: 14,
+    },
+    centerButton: {
+      position: 'absolute',
+      top: 110,
+      right: 16,
+      backgroundColor: colors.background,
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 6,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    centerButtonText: {
+      fontSize: 24,
+    },
+    riderMarker: {
+      width: 50,
+      height: 50,
+      backgroundColor: '#FFD700',
+      borderRadius: 25,
+      borderWidth: 3,
+      borderColor: '#FFF',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+      elevation: 5,
+    },
+    riderEmoji: {
+      fontSize: 28,
+    },
+    pickupMarker: {
+      width: 45,
+      height: 45,
+      backgroundColor: '#2196F3',
+      borderRadius: 23,
+      borderWidth: 3,
+      borderColor: '#FFF',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+      elevation: 5,
+    },
+    dropoffMarker: {
+      width: 45,
+      height: 45,
+      backgroundColor: '#F44336',
+      borderRadius: 23,
+      borderWidth: 3,
+      borderColor: '#FFF',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+      elevation: 5,
+    },
+    markerEmoji: {
+      fontSize: 24,
+    },
+  });

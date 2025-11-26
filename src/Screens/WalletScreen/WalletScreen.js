@@ -28,7 +28,7 @@ const WalletScreen = () => {
   useEffect(() => {
     if (userInfo?.id) {
       getWalletDetails.makePostRequest(Constants.ENDPOINT.GET_RIDER_DETAILS, {
-        rider_id: userInfo.id,
+        rider_id: userInfo?.id,
       });
     }
   }, [userInfo?.id]);

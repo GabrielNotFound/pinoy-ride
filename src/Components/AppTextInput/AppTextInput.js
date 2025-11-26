@@ -142,7 +142,7 @@ const AppTextInput = ({
       return;
     }
 
-    // Update display value
+    // Update display value (this will be auto-formatted)
     setDisplayPhone(cleaned);
 
     // Convert to storage format: 0XXXXXXXXXX -> 63XXXXXXXXXX
@@ -167,6 +167,7 @@ const AppTextInput = ({
       onValidationChange(isValid);
     }
 
+    // Pass storage format to parent (639XXXXXXXXX)
     if (onChangeText) {
       onChangeText(storageValue);
     }
@@ -213,16 +214,29 @@ const AppTextInput = ({
       )}
 
       {isPhone ? (
-        <TextInput
-          value={displayPhone}
-          onChangeText={handlePhoneChange}
-          onBlur={handlePhoneBlur}
-          onFocus={handlePhoneFocus}
-          placeholder={placeholder || '09XX-XXX-XXXX'}
-          placeholderTextColor={colors.darkGrey}
-          style={[styles.input, (error || phoneError) && styles.inputError]}
-          keyboardType="phone-pad"
-        />
+        <View
+          style={[
+            styles.phoneContainer,
+            (error || phoneError) && styles.inputError,
+          ]}>
+          {/* PH Flag Emoji */}
+          <Text style={styles.flagEmoji}>🇵🇭</Text>
+
+          {/* Country Code */}
+          <Text style={styles.countryCode}>+63</Text>
+
+          {/* Phone Input - Auto-formatted display */}
+          <TextInput
+            value={formatPhoneDisplay(displayPhone)}
+            onChangeText={handlePhoneChange}
+            onBlur={handlePhoneBlur}
+            onFocus={handlePhoneFocus}
+            placeholder={placeholder || '09XX-XXX-XXXX'}
+            placeholderTextColor={colors.darkGrey}
+            style={styles.phoneInput}
+            keyboardType="phone-pad"
+          />
+        </View>
       ) : (
         <TextInput
           value={displayValue}
@@ -273,15 +287,29 @@ const getStyles = ({ colors }) =>
       borderColor: 'red',
     },
     phoneContainer: {
-      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
       borderBottomWidth: 1,
       borderColor: colors.surfaceVariant,
-      backgroundColor: 'transparent',
+      backgroundColor: 'white',
+      paddingVertical: 8,
     },
-    phoneTextInput: {
+    flagEmoji: {
+      fontSize: 24,
+      marginRight: 8,
+    },
+    countryCode: {
       fontSize: 16,
       color: 'black',
-      paddingVertical: 4,
+      fontFamily: 'Poppins Regular',
+      marginRight: 8,
+    },
+    phoneInput: {
+      flex: 1,
+      fontSize: 16,
+      color: 'black',
+      padding: 0,
+      fontFamily: 'Poppins Regular',
     },
     commentBox: {
       backgroundColor: '#F9F9F9',
