@@ -59,7 +59,7 @@ const AppTextInput = ({
   onChangeText,
   onBlur,
   placeholder,
-  inputMode = 'text',
+  inputMode = 'text', // 'text' | 'phone' | 'amount' | 'comment'
   error,
   labelColor,
   onValidationChange,
@@ -76,9 +76,13 @@ const AppTextInput = ({
 
   // Format amount with 2 decimals and commas
   const formatAmount = val => {
-    if (!val || val === '') {return '';}
+    if (!val || val === '') {
+      return '';
+    }
     const number = parseFloat(val.replace(/,/g, ''));
-    if (isNaN(number)) {return '';}
+    if (isNaN(number)) {
+      return '';
+    }
 
     const formatted = number.toFixed(2);
     const parts = formatted.split('.');
@@ -89,9 +93,9 @@ const AppTextInput = ({
   // Clean input - only allow numbers and one decimal point
   const cleanAmount = val => {
     return val
-      .replace(/[^0-9.]/g, '')
-      .replace(/(\..*?)\.+/g, '$1')
-      .replace(/^0+(?=\d)/, '');
+      .replace(/[^0-9.]/g, '') // Only numbers and decimal
+      .replace(/(\..*?)\.+/g, '$1') // Only one decimal point
+      .replace(/^0+(?=\d)/, ''); // Remove leading zeros (except "0.")
   };
 
   const handleAmountChange = val => {
@@ -104,6 +108,7 @@ const AppTextInput = ({
   const handleAmountBlur = e => {
     setIsFocused(false);
 
+    // Format the value when user leaves the field
     if (value) {
       const formatted = formatAmount(value);
       if (onChangeText) {
@@ -119,6 +124,7 @@ const AppTextInput = ({
   const handleAmountFocus = () => {
     setIsFocused(true);
 
+    // Remove formatting when user focuses (remove commas)
     if (value) {
       const unformatted = value.replace(/,/g, '');
       if (onChangeText) {
@@ -136,7 +142,7 @@ const AppTextInput = ({
       return;
     }
 
-    // Update display value
+    // Update display value (this will be auto-formatted)
     setDisplayPhone(cleaned);
 
     // Convert to storage format: 0XXXXXXXXXX -> 63XXXXXXXXXX
@@ -161,6 +167,7 @@ const AppTextInput = ({
       onValidationChange(isValid);
     }
 
+    // Pass storage format to parent (639XXXXXXXXX)
     if (onChangeText) {
       onChangeText(storageValue);
     }
@@ -189,6 +196,7 @@ const AppTextInput = ({
     setPhoneError(null);
   };
 
+  // Display value: show raw while typing, formatted when not focused
   const displayValue = isAmount
     ? isFocused
       ? value
@@ -206,16 +214,29 @@ const AppTextInput = ({
       )}
 
       {isPhone ? (
-        <TextInput
-          value={displayPhone}
-          onChangeText={handlePhoneChange}
-          onBlur={handlePhoneBlur}
-          onFocus={handlePhoneFocus}
-          placeholder={placeholder || '09XX-XXX-XXXX'}
-          placeholderTextColor={colors.darkGrey}
-          style={[styles.input, (error || phoneError) && styles.inputError]}
-          keyboardType="phone-pad"
-        />
+        <View
+          style={[
+            styles.phoneContainer,
+            (error || phoneError) && styles.inputError,
+          ]}>
+          {/* PH Flag Emoji */}
+          <Text style={styles.flagEmoji}>🇵🇭</Text>
+
+          {/* Country Code */}
+          <Text style={styles.countryCode}>+63</Text>
+
+          {/* Phone Input - Auto-formatted display */}
+          <TextInput
+            value={formatPhoneDisplay(displayPhone)}
+            onChangeText={handlePhoneChange}
+            onBlur={handlePhoneBlur}
+            onFocus={handlePhoneFocus}
+            placeholder={placeholder || '09XX-XXX-XXXX'}
+            placeholderTextColor={colors.darkGrey}
+            style={styles.phoneInput}
+            keyboardType="phone-pad"
+          />
+        </View>
       ) : (
         <TextInput
           value={displayValue}
@@ -265,6 +286,31 @@ const getStyles = ({ colors }) =>
     inputError: {
       borderColor: 'red',
     },
+    phoneContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderColor: colors.surfaceVariant,
+      backgroundColor: 'white',
+      paddingVertical: 8,
+    },
+    flagEmoji: {
+      fontSize: 24,
+      marginRight: 8,
+    },
+    countryCode: {
+      fontSize: 16,
+      color: 'black',
+      fontFamily: 'Poppins Regular',
+      marginRight: 8,
+    },
+    phoneInput: {
+      flex: 1,
+      fontSize: 16,
+      color: 'black',
+      padding: 0,
+      fontFamily: 'Poppins Regular',
+    },
     commentBox: {
       backgroundColor: '#F9F9F9',
       borderRadius: 15,
@@ -277,6 +323,6 @@ const getStyles = ({ colors }) =>
       shadowOpacity: 0.1,
       shadowRadius: 5,
       elevation: 3,
-      minHeight: 50,
+      minHeight: 100,
     },
   });
