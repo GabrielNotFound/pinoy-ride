@@ -36,7 +36,7 @@ const BookingHistoryScreen = () => {
 
   const triggerGetBookingHistory = () => {
     getBookingHistory.makePostRequest(Constants.ENDPOINT.GET_BOOKING_HISTORY, {
-      customer_id: userInfo.customer_id,
+      customer_id: userInfo.id,
     });
   };
 
@@ -116,7 +116,9 @@ const BookingHistoryScreen = () => {
   };
 
   const capitalizeFirst = str => {
-    if (!str) {return '';}
+    if (!str) {
+      return '';
+    }
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 

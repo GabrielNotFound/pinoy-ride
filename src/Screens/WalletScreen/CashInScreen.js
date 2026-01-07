@@ -61,7 +61,7 @@ const CashInScreen = () => {
     requestToPay.makePostRequest(
       Constants.ENDPOINT.QRPH_REQUEST_TO_PAY,
       {
-        user_id: userInfo.customer_id,
+        user_id: userInfo.id,
         amount: numAmount,
         order_details: [],
         total_amount: numAmount,

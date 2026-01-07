@@ -25,15 +25,15 @@ const WalletScreen = () => {
   const getWalletDetails = usePostRequest();
 
   useEffect(() => {
-    if (userInfo?.customer_id) {
+    if (userInfo?.id) {
       getWalletDetails.makePostRequest(
         Constants.ENDPOINT.GET_CUSTOMER_DETAILS,
         {
-          customer_id: userInfo.customer_id,
+          customer_id: userInfo.id,
         },
       );
     }
-  }, [userInfo?.customer_id]);
+  }, [userInfo?.id]);
 
   const handleGetWalletDetails = () => {
     if (getWalletDetails.error) {
