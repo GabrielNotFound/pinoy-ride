@@ -19,14 +19,14 @@ const services = [
   },
   {
     id: 2,
-    icon: require('@/Assets/Common/HomeScreen/Padala.png'),
-    title: 'Padala',
+    icon: require('@/Assets/Common/HomeScreen/Car.png'),
+    title: 'Car (4 Seaters)',
     subtitle: 'Lorem ipsum dolor sit amet consectetur.',
   },
   {
     id: 3,
     icon: require('@/Assets/Common/HomeScreen/Car.png'),
-    title: 'Ride a Car',
+    title: 'Car (6 Seaters)',
     subtitle: 'Lorem ipsum dolor sit amet consectetur.',
   },
 ];

@@ -86,7 +86,8 @@ const HomeScreen = () => {
   };
 
   useEffect(() => {
-    AppUtil.debugDeep(userInfo);
+    AppUtil.debugDeep(userInfo.ekyc_details);
+    AppUtil.debugDeep(selectedService);
     // Get user's GPS location on mount
     getUserLocation();
 
@@ -459,6 +460,8 @@ const HomeScreen = () => {
             bookingStatus={bookingStatus}
             pickup={pickupLocation}
             dropoff={dropoffLocation}
+            selectedService={selectedService}
+            onChangeService={() => setShowServiceModal(true)}
           />
         )}
 

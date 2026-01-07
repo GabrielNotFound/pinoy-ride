@@ -53,6 +53,7 @@ const RatingScreen = () => {
   };
 
   useEffect(() => {
+    AppUtil.debugDeep(route?.params?.bookingDetails);
     handleRateBooking();
   }, [rateBooking.response, rateBooking.error]);
 
@@ -120,7 +121,7 @@ const RatingScreen = () => {
               Final Fare
             </Text>
             <Text style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
-              ₱120.00
+              {paymentDetails.total_amount}
             </Text>
           </View>
 
@@ -133,16 +134,16 @@ const RatingScreen = () => {
           </View>
 
           {/* View Booking Details */}
+        </View>
+
+        {/* Submit Button fixed at bottom */}
+        <View style={styles.bottomButtonWrapper}>
           <AppButton
             title="View Booking Details"
             onPress={() => console.log('View Booking Pressed')}
             isBold
             mode="outlined"
           />
-        </View>
-
-        {/* Submit Button fixed at bottom */}
-        <View style={styles.bottomButtonWrapper}>
           <AppButton
             title="Submit"
             onPress={handleSubmit}

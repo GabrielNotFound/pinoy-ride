@@ -64,7 +64,7 @@ const QRPHScreen = () => {
             'json',
           );
         }
-      }, 20000);
+      }, 5000);
     }
 
     return () => {
@@ -86,33 +86,35 @@ const QRPHScreen = () => {
       checkPaymentStatus.response &&
       Object.keys(checkPaymentStatus.response).length > 0
     ) {
-      const result = checkPaymentStatus.response?.data?.results;
+      const result = checkPaymentStatus.response?.data;
 
-      setIsCheckStatusActive(false);
-      setIsPaymentComplete(true);
+      if (result?.status === 'success') {
+        setIsCheckStatusActive(false);
+        setIsPaymentComplete(true);
 
-      if (checkStatusIntervalRef.current) {
-        clearInterval(checkStatusIntervalRef.current);
-        checkStatusIntervalRef.current = null;
-      }
+        if (checkStatusIntervalRef.current) {
+          clearInterval(checkStatusIntervalRef.current);
+          checkStatusIntervalRef.current = null;
+        }
 
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'AppTransactionComplete',
-            params: {
-              referenceData: {
-                amount: paymentData?.amount || result?.amount || '0.00',
-                referenceId: reference_id,
-                status: result?.status,
-                timestamp: result?.timestamp || new Date().toISOString(),
-                paymentMethod: 'QRPH',
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'AppTransactionComplete',
+              params: {
+                referenceData: {
+                  amount: paymentData?.amount || '0.00',
+                  referenceId: result?.referenceId || reference_id,
+                  status: result?.status,
+                  timestamp: result?.ts || new Date().toISOString(),
+                  paymentMethod: 'QRPH',
+                },
               },
             },
-          },
-        ],
-      });
+          ],
+        });
+      }
     }
   }, [checkPaymentStatus.response, checkPaymentStatus.error]);
 

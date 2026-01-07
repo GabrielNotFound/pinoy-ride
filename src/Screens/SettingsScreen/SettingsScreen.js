@@ -3,11 +3,32 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { selectUserInfo } from '@/Redux/Slices/userSlice';
+import { useSelector } from 'react-redux';
 
 const SettingsScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const userInfo = useSelector(selectUserInfo);
+
+  const getDisplayName = () => {
+    if (userInfo?.ekyc_details) {
+      const { first_name, last_name } = userInfo.ekyc_details;
+
+      // convert the title case into good formatting
+      const toTitleCase = str => {
+        return str
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      };
+
+      return `${toTitleCase(first_name)} ${toTitleCase(last_name)}`;
+    }
+    return 'User';
+  };
 
   const buttonList = [
     {
@@ -56,7 +77,7 @@ const SettingsScreen = () => {
             resizeMode="contain"
           />
           <View style={styles.profileTextContainer}>
-            <Text style={styles.name}>Juan Dela Cruz</Text>
+            <Text style={styles.name}>{getDisplayName()}</Text>
           </View>
           <Text style={styles.profileLabel}>Profile</Text>
         </TouchableOpacity>

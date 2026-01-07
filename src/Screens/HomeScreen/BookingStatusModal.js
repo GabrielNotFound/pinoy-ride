@@ -11,6 +11,8 @@ const BookingStatusModal = ({
   bookingStatus,
   pickup,
   dropoff,
+  selectedService,
+  onChangeService,
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
@@ -22,11 +24,23 @@ const BookingStatusModal = ({
   return (
     <View style={styles.overlay} onLayout={onLayout}>
       <View style={styles.container}>
-        {/* Fare + Vehicle */}
-        <View style={styles.rowBetween}>
-          <Text style={styles.label}>Motorcycle</Text>
+        {/* Fare + Vehicle - Now tappable to change service */}
+        <TouchableOpacity
+          style={styles.rowBetween}
+          onPress={onChangeService}
+          disabled={!(bookingStatus === 0 || bookingStatus === 4)}>
+          <View>
+            <Text style={styles.label}>
+              {selectedService?.title || 'Vehicle'}
+            </Text>
+
+            {(bookingStatus === 0 || bookingStatus === 4) && (
+              <Text style={styles.changeText}>Tap to change</Text>
+            )}
+          </View>
+
           <Text style={styles.price}>₱{bookingDetails?.total_amount || 0}</Text>
-        </View>
+        </TouchableOpacity>
 
         {(bookingStatus === 2 || bookingStatus === 3) && (
           <>
@@ -121,7 +135,7 @@ const BookingStatusModal = ({
               {riderDetails.vehicle_details?.[0]?.plate_number}
             </Text>
             <Text style={styles.vehicle}>
-              {riderDetails.vehicle_details?.[0]?.brand}
+              {riderDetails.vehicle_details?.[0]?.brand}{' '}
               {riderDetails.vehicle_details?.[0]?.model}
             </Text>
           </View>
@@ -172,8 +186,25 @@ const getStyles = ({ colors }) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    label: { fontSize: 16, fontWeight: '600' },
-    price: { fontSize: 16, fontWeight: '600' },
+    vehicleInfo: {
+      flexDirection: 'column',
+    },
+    label: {
+      fontSize: 16,
+      fontWeight: '600',
+      fontFamily: 'Poppins SemiBold',
+    },
+    changeText: {
+      fontSize: 12,
+      color: colors.primary,
+      fontFamily: 'Poppins Regular',
+      marginTop: 2,
+    },
+    price: {
+      fontSize: 16,
+      fontWeight: '600',
+      fontFamily: 'Poppins SemiBold',
+    },
     separator: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.backdrop,
@@ -185,9 +216,20 @@ const getStyles = ({ colors }) =>
       marginBottom: 20,
     },
     avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 10 },
-    riderName: { fontWeight: 'bold', fontSize: 16 },
-    plate: { color: colors.shadow },
-    vehicle: { color: colors.shadow, fontSize: 12 },
+    riderName: {
+      fontWeight: 'bold',
+      fontSize: 16,
+      fontFamily: 'Poppins SemiBold',
+    },
+    plate: {
+      color: colors.shadow,
+      fontFamily: 'Poppins Regular',
+    },
+    vehicle: {
+      color: colors.shadow,
+      fontSize: 12,
+      fontFamily: 'Poppins Regular',
+    },
     actions: { flexDirection: 'row' },
     circleBtn: {
       backgroundColor: colors.primary,
