@@ -24,7 +24,6 @@ const EKYCScreen = () => {
   const { request_user_id, zkyc_url } = ekycData || {};
 
   const webViewRef = useRef(null);
-  const [loading, setLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
 
@@ -37,7 +36,6 @@ const EKYCScreen = () => {
 
   // Update requestUserIdRef when request_user_id changes
   useEffect(() => {
-    console.log(route?.params?.mobile_number);
     requestUserIdRef.current = request_user_id;
   }, [request_user_id]);
 
@@ -56,7 +54,7 @@ const EKYCScreen = () => {
           checkEKYCstatus.makePostRequest(
             Constants.ENDPOINT.EKYC_CHECK_STATUS,
             {
-              request_user_id: '639273313232-C1762937816',
+              request_user_id: requestUserIdRef.current,
             },
             {},
             'json',
@@ -84,6 +82,7 @@ const EKYCScreen = () => {
       Object.keys(checkEKYCstatus.response).length > 0
     ) {
       const result = checkEKYCstatus.response?.data;
+      AppUtil.debugDeep(result);
       if (result?.status === 'success') {
         setIsCheckStatusActive(false);
         setIsVerificationComplete(true);
@@ -93,13 +92,13 @@ const EKYCScreen = () => {
           checkStatusIntervalRef.current = null;
         }
 
-        setTimeout(() => {
-          navigation.navigate('HomeScreen', {
-            mobileNumber: route?.params?.mobile_number,
-            ekycCompleted: true,
-            verificationData: result,
-          });
-        }, 2000);
+        console.log('eKYC verification completed successfully!', result);
+
+        navigation.navigate('HomeScreen', {
+          mobileNumber: route?.params?.mobile_number,
+          ekycCompleted: true,
+          verificationData: result,
+        });
       }
     }
   };
@@ -186,18 +185,10 @@ const EKYCScreen = () => {
       {/* WebView Container */}
       <View style={styles.pageContainer}>
         <View style={styles.webViewContainer}>
-          {loading && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.loadingText}>Loading verification...</Text>
-            </View>
-          )}
           <WebView
             ref={webViewRef}
             source={{ uri: zkyc_url }}
             style={styles.webView}
-            onLoadStart={() => setLoading(true)}
-            onLoadEnd={() => setLoading(false)}
             onError={handleError}
             javaScriptEnabled={true}
             domStorageEnabled={true}
@@ -257,17 +248,6 @@ const getStyles = ({ colors }) =>
     },
     webView: {
       flex: 1,
-    },
-    loadingContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.background,
-      zIndex: 10,
     },
     loadingText: {
       marginTop: 10,

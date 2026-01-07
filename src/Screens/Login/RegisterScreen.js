@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -21,6 +28,7 @@ const RegisterScreen = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [isPhoneValid, setIsPhoneValid] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const getEKYCUrl = usePostRequest();
 
@@ -34,6 +42,7 @@ const RegisterScreen = () => {
   }, []);
 
   const fetchEKYCUrl = user_id => {
+    setIsLoading(true);
     getEKYCUrl.makePostRequest(Constants.ENDPOINT.GET_EKYC_URL, {
       user_id,
     });
@@ -41,6 +50,7 @@ const RegisterScreen = () => {
 
   const handleGetEKYCUrl = () => {
     if (getEKYCUrl.error) {
+      setIsLoading(false);
       setAlertMessage(getEKYCUrl.error);
       setShowAlert(true);
       return;
@@ -50,12 +60,14 @@ const RegisterScreen = () => {
 
     if (results?.zkyc_url) {
       console.log('eKYC URL received:', results.zkyc_url);
+      setIsLoading(false);
       navigation.navigate('EKYCScreen', {
         ekycData: results,
         mobile_number: mobileNumber, // Passes as 63XXXXXXXXXX
       });
     } else if (getEKYCUrl.response) {
       console.log('API response but no URL');
+      setIsLoading(false);
       setAlertMessage('Failed to get eKYC URL. Please try again.');
       setShowAlert(true);
     }
@@ -92,56 +104,66 @@ const RegisterScreen = () => {
   };
 
   return (
-    <Container style={styles.container}>
-      {showAlert && (
-        <AlertBox
-          title={alertMessage ? 'Error' : 'Location Required'}
-          message={
-            alertMessage || 'This app cannot continue without location access.'
-          }
-          visible={showAlert}
-          setVisible={setShowAlert}
-          onConfirm={alertMessage ? undefined : handleRetryPermission}
-        />
-      )}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Image
-            source={require('@/Assets/Common/Back.png')}
-            style={styles.backIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Get Started</Text>
+    <>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      </View>
+      )}
+      <Container style={styles.container}>
+        {showAlert && (
+          <AlertBox
+            title={alertMessage ? 'Error' : 'Location Required'}
+            message={
+              alertMessage ||
+              'This app cannot continue without location access.'
+            }
+            visible={showAlert}
+            setVisible={setShowAlert}
+            onConfirm={alertMessage ? undefined : handleRetryPermission}
+          />
+        )}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <Image
+              source={require('@/Assets/Common/Back.png')}
+              style={styles.backIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>Get Started</Text>
+          </View>
+        </View>
 
-      <View style={styles.pageContainer}>
-        <AppTextInput
-          label="Mobile"
-          value={mobileNumber}
-          onChangeText={setMobileNumber}
-          onValidationChange={setIsPhoneValid}
-          inputMode="phone"
-          placeholder="09XX-XXX-XXXX"
-          error={errorMessage}
-        />
-      </View>
+        <View style={styles.pageContainer}>
+          <AppTextInput
+            label="Mobile"
+            value={mobileNumber}
+            onChangeText={setMobileNumber}
+            onValidationChange={setIsPhoneValid}
+            inputMode="phone"
+            placeholder="09XX-XXX-XXXX"
+            error={errorMessage}
+            editable={!isLoading}
+          />
+        </View>
 
-      <View>
-        <Text style={styles.footerText}>
-          Enter your active number to receive a verification code. This helps us
-          keep your account secure.
-        </Text>
-        <AppButton
-          title="Next"
-          onPress={handleNext}
-          isBold
-          loading={getEKYCUrl.loading}
-        />
-      </View>
-    </Container>
+        <View>
+          <Text style={styles.footerText}>
+            Enter your active number to receive a verification code. This helps
+            us keep your account secure.
+          </Text>
+          <AppButton
+            title="Next"
+            onPress={handleNext}
+            isBold
+            loading={isLoading}
+            disabled={isLoading}
+          />
+        </View>
+      </Container>
+    </>
   );
 };
 
@@ -188,5 +210,16 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Regular',
       fontSize: 12,
       color: colors.darkGrey,
+    },
+    loadingOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 999,
     },
   });
