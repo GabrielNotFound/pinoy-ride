@@ -19,7 +19,11 @@ const BottomModal = ({
   isBooked,
   isConfirmed,
   setShowPaymentModal,
+  setShowPromoModal,
+  setShowNoteModal,
   selectedPayment,
+  selectedPromo,
+  noteToRider,
   inquireBookingResponse,
   isLoading,
 }) => {
@@ -37,14 +41,14 @@ const BottomModal = ({
     {
       id: 'promo',
       image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-      text: 'Promo',
-      onPress: () => console.log('Promo'),
+      text: selectedPromo ? selectedPromo.code : 'Promo',
+      onPress: () => setShowPromoModal(true),
     },
     {
       id: 'note',
       image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-      text: 'Note to Rider',
-      onPress: () => console.log('Note to Rider'),
+      text: noteToRider ? 'Note Added' : 'Note to Rider',
+      onPress: () => setShowNoteModal(true),
     },
   ];
 
@@ -83,7 +87,6 @@ const BottomModal = ({
     });
   };
 
-  //  Extracted helper renderer
   const renderActionButton = () => {
     const btn = actionButtons.find(b => b.visible);
     if (!btn) {
@@ -173,13 +176,7 @@ const BottomModal = ({
                   <View style={styles.optionWrapper}>
                     <TouchableOpacity
                       style={styles.optionButton}
-                      onPress={() => {
-                        if (index === 0) {
-                          setShowPaymentModal(true);
-                        } else {
-                          console.log(btn.text, 'pressed');
-                        }
-                      }}>
+                      onPress={btn.onPress}>
                       <Image source={btn.image} style={styles.optionIcon} />
                       <Text style={styles.optionText}>{btn.text}</Text>
                     </TouchableOpacity>
@@ -212,6 +209,22 @@ const BottomModal = ({
                 <Text style={styles.feeText}>Payment Method</Text>
                 <Text>{selectedPayment}</Text>
               </View>
+              {selectedPromo && (
+                <View style={styles.fareRow}>
+                  <Text style={styles.feeText}>Promo Applied</Text>
+                  <Text style={styles.promoAppliedText}>
+                    {selectedPromo.code}
+                  </Text>
+                </View>
+              )}
+              {noteToRider && (
+                <View style={styles.fareRow}>
+                  <Text style={styles.feeText}>Note to Rider</Text>
+                  <Text style={styles.noteText} numberOfLines={1}>
+                    {noteToRider}
+                  </Text>
+                </View>
+              )}
             </View>
           )}
           {renderActionButton()}
@@ -341,5 +354,16 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Regular',
       fontSize: 16,
       color: colors.shadow,
+    },
+    promoAppliedText: {
+      fontFamily: 'Poppins Medium',
+      fontSize: 16,
+      color: colors.primary,
+    },
+    noteText: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 14,
+      color: colors.text,
+      maxWidth: '50%',
     },
   });

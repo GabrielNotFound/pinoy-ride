@@ -214,7 +214,7 @@ const getStyles = ({ colors }) =>
       fontWeight: '500',
       fontSize: 16,
       marginVertical: 16,
-      color: colors.shadow,
+      color: colors.text,
     },
     subtitle: {
       fontFamily: 'Poppins Regular',

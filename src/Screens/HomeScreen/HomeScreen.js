@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import Geolocation from 'react-native-geolocation-service';
-import ServiceModal from './ServiceModal';
 import BottomModal from './BottomModal';
 import {
   AlertBox,
@@ -21,9 +20,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectUserInfo } from '@/Redux/Slices/userSlice';
 import { AppUtil, Constants } from '@/Utils';
-import PaymentMethodModal from './PaymentMethodModal';
 import usePostRequest from '@/Services/Api';
-import BookingStatusModal from './BookingStatusModal';
+import ServiceModal from './Components/ServiceModal';
+import PaymentMethodModal from './Components/PaymentMethodModal';
+import BookingStatusModal from './Components/BookingStatusModal';
+import NoteToRiderModal from './Components/NoteToRiderModal';
+import PromoModal from './Components/PromoModal';
 
 const HomeScreen = () => {
   const { colors } = useTheme();
@@ -45,13 +47,24 @@ const HomeScreen = () => {
   const riderAlertShownRef = useRef(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+
+  // Modal states
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showPromoModal, setShowPromoModal] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+
+  // Selection states
   const [selectedPayment, setSelectedPayment] = useState('Wallet');
+  const [selectedPromo, setSelectedPromo] = useState(null);
+  const [noteToRider, setNoteToRider] = useState('');
+
+  // Promo state
+  const [availablePromos, setAvailablePromos] = useState([]);
 
   const statusMessages = {
     0: 'Waiting for the Rider to accept your Booking',
     1: 'Your Rider will arrive soon',
-    2: 'In transit, Don’t Use your Phone',
+    2: "In transit, Don't Use your Phone",
   };
 
   const riderFoundTimeout = useRef(null);
@@ -69,6 +82,7 @@ const HomeScreen = () => {
   const [bookingDetails, setBookingDetails] = useState([]);
   const updateBookingStatus = usePostRequest();
   const getBookingDetails = usePostRequest();
+  const getPromoList = usePostRequest();
   const [bookingStatus, setBookingStatus] = useState(0);
   const [riderDetails, setRiderDetails] = useState(null);
   const isLoading = inquireBooking.loading || createBooking.loading;
@@ -91,7 +105,9 @@ const HomeScreen = () => {
     // Get user's GPS location on mount
     getUserLocation();
 
-    // ✅ OPTIONAL: Add real-time location tracking
+    triggerGetPromoList();
+
+    // OPTIONAL: Add real-time location tracking
     const watchId = Geolocation.watchPosition(
       pos => {
         setUserLocation({
@@ -148,6 +164,36 @@ const HomeScreen = () => {
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
     );
   };
+
+  // GET PROMO LIST
+  const triggerGetPromoList = () => {
+    const postdata = {};
+    getPromoList.makePostRequest(Constants.ENDPOINT.GET_PROMO_LIST, postdata);
+  };
+
+  const handleGetPromoList = () => {
+    if (getPromoList.error) {
+      console.warn('Error fetching promo list:', getPromoList.error);
+      // Don't show alert here, just log it
+      // setAlertMessage(getPromoList.error);
+      // setShowAlert(true);
+      return;
+    }
+
+    if (!getPromoList.response) {
+      return;
+    }
+
+    const results = getPromoList.response;
+
+    if (results?.code === 200 && results?.data?.promos) {
+      setAvailablePromos(results.data.promos);
+    }
+  };
+
+  useEffect(() => {
+    handleGetPromoList();
+  }, [getPromoList.response, getPromoList.error]);
 
   //INQUIRE BOOKING
   const triggerInquireBooking = () => {
@@ -213,8 +259,9 @@ const HomeScreen = () => {
       dropoff_lat: dropoffLocation?.lat,
       dropoff_long: dropoffLocation?.long,
       payment_type: selectedPayment.toLowerCase(),
-      note_to_rider: 'test',
+      note_to_rider: noteToRider || '',
       payment_details: JSON.stringify(payment_details),
+      promo_code: selectedPromo?.code || '',
     };
     createBooking.makePostRequest(Constants.ENDPOINT.CREATE_BOOKING, postdata);
   };
@@ -349,12 +396,25 @@ const HomeScreen = () => {
       setIsBooked(false);
       riderAlertShownRef.current = false;
       setBookingStatus(0);
+      // Reset selections
+      setSelectedPromo(null);
+      setNoteToRider('');
     }
   };
 
   useEffect(() => {
     handleUpdateBookingStatus();
   }, [updateBookingStatus.response, updateBookingStatus.error]);
+
+  const handlePromoSelect = promo => {
+    setSelectedPromo(promo);
+    console.log('Selected promo:', promo);
+  };
+
+  const handleNoteSave = note => {
+    setNoteToRider(note);
+    console.log('Note to rider:', note);
+  };
 
   return (
     <>
@@ -445,7 +505,11 @@ const HomeScreen = () => {
             isConfirmed={isConfirmed}
             showPaymentModal={showPaymentModal}
             setShowPaymentModal={setShowPaymentModal}
+            setShowPromoModal={setShowPromoModal}
+            setShowNoteModal={setShowNoteModal}
             selectedPayment={selectedPayment}
+            selectedPromo={selectedPromo}
+            noteToRider={noteToRider}
             inquireBookingResponse={inquireBookingResponse}
             isLoading={isLoading}
           />
@@ -465,16 +529,30 @@ const HomeScreen = () => {
           />
         )}
 
-        {showPaymentModal && (
-          <PaymentMethodModal
-            onClose={() => setShowPaymentModal(false)}
-            selectedPayment={selectedPayment}
-            onSelect={method => {
-              setSelectedPayment(method);
-              setShowPaymentModal(false);
-            }}
-          />
-        )}
+        <PaymentMethodModal
+          visible={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          selectedPayment={selectedPayment}
+          onSelect={method => {
+            setSelectedPayment(method);
+          }}
+        />
+
+        <PromoModal
+          visible={showPromoModal}
+          onClose={() => setShowPromoModal(false)}
+          onSelect={handlePromoSelect}
+          selectedPromo={selectedPromo}
+          availablePromos={availablePromos}
+          isLoading={getPromoList.loading}
+        />
+
+        <NoteToRiderModal
+          visible={showNoteModal}
+          onClose={() => setShowNoteModal(false)}
+          onSave={handleNoteSave}
+          initialNote={noteToRider}
+        />
 
         <ServiceModal
           visible={showServiceModal}

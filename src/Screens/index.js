@@ -6,8 +6,8 @@ export { default as LoginScreen } from './Login/LoginScreen';
 export { default as GeneralTermsScreen } from './TermsScreen/GeneralTermsScreen';
 export { default as HomeScreen } from './HomeScreen/HomeScreen';
 export { default as BottomModal } from './HomeScreen/BottomModal';
-export { default as PaymentMethodModal } from './HomeScreen/PaymentMethodModal';
-export { default as ServiceModal } from './HomeScreen/ServiceModal';
+export { default as PaymentMethodModal } from './HomeScreen/Components/PaymentMethodModal';
+export { default as ServiceModal } from './HomeScreen/Components/ServiceModal';
 export { default as InputLocation } from './Location/InputLocation';
 export { default as MapSelectionModal } from './Location/MapSelectionModal';
 export { default as RatingScreen } from './RatingScreen/RatingScreen';
@@ -20,6 +20,6 @@ export { default as PaymentOptionScreen } from './PaymentOptionScreen/PaymentOpt
 export { default as WalletScreen } from './WalletScreen/WalletScreen';
 export { default as OTPScreen } from './Login/OTPScreen';
 export { default as EKYCScreen } from './Login/EKYCScreen';
-export { default as BookingStatusModal } from './HomeScreen/BookingStatusModal';
+export { default as BookingStatusModal } from './HomeScreen/Components/BookingStatusModal';
 export { default as CashInScreen } from './WalletScreen/CashInScreen';
 export { default as QRPHScreen } from './QRPH/QRPHScreen';

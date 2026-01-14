@@ -30,6 +30,8 @@ const BASE_DEV = {
     GET_BOOKING_HISTORY: 'booking/get_history/',
     GET_BOOKING_DETAILS: 'booking/get_details/',
     RATE_BOOKING: 'booking/rate/',
+    GET_PROMO_LIST: 'booking/get_promo_list/',
+    CHECK_PROMO_CODE: 'booking/check_promo_code/',
 
     ADD_TIP: 'booking/add_tip/',
     //EKYC
