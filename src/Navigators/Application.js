@@ -22,6 +22,7 @@ import {
   RegisterScreen,
   SettingsScreen,
   SplashScreen,
+  TAC,
   WalletScreen,
 } from '@/Screens';
 import { Text } from 'react-native';
@@ -84,6 +85,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="GeneralTermsScreen"
               component={GeneralTermsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="TAC"
+              component={TAC}
               options={{ headerShown: false }}
             />
             <Stack.Screen

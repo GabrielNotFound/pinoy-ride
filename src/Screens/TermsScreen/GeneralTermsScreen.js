@@ -65,7 +65,7 @@ const GeneralTermsScreen = () => {
 
           <TouchableOpacity
             onPress={() => {
-              /* later open modal */
+              navigation.navigate('TAC');
             }}>
             <Text style={styles.label}>
               I Accept the{' '}

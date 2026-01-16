@@ -4,6 +4,7 @@ export { default as RegisterScreen } from './Login/RegisterScreen';
 export { default as OnboardingScreen } from './OnboardingScreen/OnboardingScreen';
 export { default as LoginScreen } from './Login/LoginScreen';
 export { default as GeneralTermsScreen } from './TermsScreen/GeneralTermsScreen';
+export { default as TAC } from './TermsScreen/TAC';
 export { default as HomeScreen } from './HomeScreen/HomeScreen';
 export { default as BottomModal } from './HomeScreen/BottomModal';
 export { default as PaymentMethodModal } from './HomeScreen/Components/PaymentMethodModal';
