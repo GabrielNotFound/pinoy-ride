@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { AlertBox, AppButton, AppTextInput } from '@/Components';
 import {
   ensureLocationPermission,
@@ -13,7 +13,10 @@ const LoginScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const route = useRoute();
+
   const [showAlert, setShowAlert] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [mobileNumber, setMobileNumber] = useState(''); // Stores as 63XXXXXXXXXX
   const [errorMessage, setErrorMessage] = useState('');
@@ -27,6 +30,12 @@ const LoginScreen = () => {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (route.params?.registrationComplete) {
+      setShowSuccessModal(true);
+    }
+  }, [route.params?.registrationComplete]);
 
   const handleRetryPermission = async () => {
     const result = await requestLocationPermission();
@@ -64,6 +73,17 @@ const LoginScreen = () => {
           onConfirm={handleRetryPermission}
         />
       )}
+
+      {showSuccessModal && (
+        <AlertBox
+          title="Registration Successful!"
+          message="Your account has been successfully created. Please log in to continue."
+          visible={showSuccessModal}
+          setVisible={setShowSuccessModal}
+          onConfirm={() => setShowSuccessModal(false)}
+        />
+      )}
+
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Image
