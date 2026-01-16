@@ -9,7 +9,7 @@ export { default as BottomModal } from './HomeScreen/BottomModal';
 export { default as PaymentMethodModal } from './HomeScreen/Components/PaymentMethodModal';
 export { default as ServiceModal } from './HomeScreen/Components/ServiceModal';
 export { default as InputLocation } from './Location/InputLocation';
-export { default as MapSelectionModal } from './Location/MapSelectionModal';
+export { default as MapSelectionScreen } from './Location/MapSelectionScreen';
 export { default as RatingScreen } from './RatingScreen/RatingScreen';
 export { default as SettingsScreen } from './SettingsScreen/SettingsScreen';
 export { default as BookingHistoryScreen } from './BookingHistoryScreen/BookingHistoryScreen';

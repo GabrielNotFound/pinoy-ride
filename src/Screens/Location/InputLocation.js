@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -49,8 +52,10 @@ const InputLocation = () => {
 
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const [dropoffLocation, setDropoffLocation] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
-  const [focusedField, setFocusedField] = useState(null); // 'pickup' | 'dropoff'
+  const [focusedField, setFocusedField] = useState(null);
   const [dropdownTop, setDropdownTop] = useState(0);
 
   const searchLocationRequest = usePostRequest();
@@ -60,16 +65,16 @@ const InputLocation = () => {
 
   useEffect(() => {
     if (route.params?.pickup) {
-      setPickup(
-        route.params.pickup.description || route.params.pickup.address || '',
-      );
+      const pickupData = route.params.pickup;
+      setPickup(pickupData.description || pickupData.address || '');
+      setPickupLocation(pickupData);
     }
     if (route.params?.dropoff) {
-      setDropoff(
-        route.params.dropoff.description || route.params.dropoff.address || '',
-      );
+      const dropoffData = route.params.dropoff;
+      setDropoff(dropoffData.description || dropoffData.address || '');
+      setDropoffLocation(dropoffData);
     }
-  }, [route.params]);
+  }, [route.params?.pickup, route.params?.dropoff]);
 
   const searchLocation = query => {
     if (!query) {
@@ -102,37 +107,54 @@ const InputLocation = () => {
       setDropdownTop(pageY + height);
     });
 
-    if (debounceRef.current) {clearTimeout(debounceRef.current);}
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
     debounceRef.current = setTimeout(() => {
-      if (text) {searchLocation(text);}
+      if (text) {
+        searchLocation(text);
+      }
     }, 300);
   };
 
   const handleBack = () => navigation.goBack();
   const handleProfilePress = () => navigation.navigate('SettingsScreen');
+
   const handleOpenMap = () => {
-    navigation.navigate('MapSelectionModal', {
-      onLocationSelect: value => setPickup(value),
+    navigation.navigate('MapSelectionScreen', {
+      // Pass through the original callbacks from route.params
+      onPickupSelect: route.params?.onPickupSelect,
+      onDropoffSelect: route.params?.onDropoffSelect,
     });
   };
 
   const handleSelectItem = item => {
+    let shouldNavigate = false;
+
     if (focusedField === 'pickup') {
       setPickup(item.address);
+      setPickupLocation(item);
       route.params?.onPickupSelect?.(item);
+
+      // Check if dropoff is already filled
+      if (dropoffLocation) {
+        shouldNavigate = true;
+      }
     } else if (focusedField === 'dropoff') {
       setDropoff(item.address);
+      setDropoffLocation(item);
       route.params?.onDropoffSelect?.(item);
+
+      // Check if pickup is already filled
+      if (pickupLocation) {
+        shouldNavigate = true;
+      }
     }
 
     setSearchResults([]);
     setFocusedField(null);
 
-    // Navigate back only if both pickup and dropoff have values
-    if (
-      (focusedField === 'pickup' && dropoff) ||
-      (focusedField === 'dropoff' && pickup)
-    ) {
+    if (shouldNavigate) {
       navigation.goBack();
     }
   };
@@ -150,15 +172,42 @@ const InputLocation = () => {
 
           const currentAddress =
             data.results[0]?.formatted_address || 'Current Location';
-          setPickup(currentAddress);
-          route.params?.onPickupSelect?.({
+
+          const locationData = {
             address: currentAddress,
             lat: latitude,
             long: longitude,
-          });
+          };
+
+          let shouldNavigate = false;
+
+          // Set to focused field or pickup by default
+          if (focusedField === 'dropoff') {
+            setDropoff(currentAddress);
+            setDropoffLocation(locationData);
+            route.params?.onDropoffSelect?.(locationData);
+
+            // Navigate back if pickup is already filled
+            if (pickupLocation) {
+              shouldNavigate = true;
+            }
+          } else {
+            setPickup(currentAddress);
+            setPickupLocation(locationData);
+            route.params?.onPickupSelect?.(locationData);
+
+            // Navigate back if dropoff is already filled
+            if (dropoffLocation) {
+              shouldNavigate = true;
+            }
+          }
 
           setFocusedField(null);
           setSearchResults([]);
+
+          if (shouldNavigate) {
+            navigation.goBack();
+          }
         } catch (error) {
           console.error('Reverse geocode error:', error);
           alert('Unable to get address from location.');
@@ -193,7 +242,10 @@ const InputLocation = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
       <View style={styles.headerContainer}>
         <View style={styles.buttonGroupContainer}>
           <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
@@ -238,7 +290,11 @@ const InputLocation = () => {
                 spellCheck={false}
               />
               {pickup.length > 0 && (
-                <TouchableOpacity onPress={() => setPickup('')}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setPickup('');
+                    setPickupLocation(null);
+                  }}>
                   <Image
                     source={require('@/Assets/Common/Close.png')}
                     style={styles.clearIcon}
@@ -247,7 +303,7 @@ const InputLocation = () => {
                 </TouchableOpacity>
               )}
             </View>
-            {focusedField === 'pickup' && renderDropdown(setPickup)}
+            {focusedField === 'pickup' && renderDropdown()}
           </View>
 
           {/* Dropoff */}
@@ -273,7 +329,11 @@ const InputLocation = () => {
                 spellCheck={false}
               />
               {dropoff.length > 0 && (
-                <TouchableOpacity onPress={() => setDropoff('')}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setDropoff('');
+                    setDropoffLocation(null);
+                  }}>
                   <Image
                     source={require('@/Assets/Common/Close.png')}
                     style={styles.clearIcon}
@@ -282,12 +342,12 @@ const InputLocation = () => {
                 </TouchableOpacity>
               )}
             </View>
-            {focusedField === 'dropoff' && renderDropdown(setDropoff)}
+            {focusedField === 'dropoff' && renderDropdown()}
           </View>
         </View>
       </View>
 
-      <View style={styles.body}>
+      <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
         <TouchableOpacity
           style={styles.currentLocationButton}
           onPress={handleUseCurrentLocation}>
@@ -317,7 +377,7 @@ const InputLocation = () => {
             <Text style={styles.iconText}>{button.label}</Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
       <TouchableOpacity onPress={handleOpenMap} style={styles.bottomButton}>
         <Image
@@ -327,7 +387,7 @@ const InputLocation = () => {
         />
         <Text style={styles.bottomButtonText}>Choose from Map</Text>
       </TouchableOpacity>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -417,7 +477,7 @@ const getStyles = ({ colors }) =>
       marginVertical: 5,
     },
     bottomButton: {
-      marginVertical: 40,
+      marginBottom: 40,
       height: 47,
       backgroundColor: 'white',
       flexDirection: 'row',

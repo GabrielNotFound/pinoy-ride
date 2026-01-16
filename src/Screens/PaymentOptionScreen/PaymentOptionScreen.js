@@ -17,14 +17,6 @@ const PaymentOptionScreen = () => {
       label: 'Pinoy Ride Wallet',
       icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
     },
-    {
-      label: 'Cards',
-      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-    },
-    {
-      label: 'Gcash',
-      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-    },
   ];
 
   return (

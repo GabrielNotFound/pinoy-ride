@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 const BottomModal = ({
   onLayout,
   selectedService,
+  onBackToEdit,
   onBookPressed,
   onInquireBooking,
   onCreateBooking,
@@ -87,6 +88,14 @@ const BottomModal = ({
     });
   };
 
+  // Helper function to get display text for location
+  const getLocationText = (location, placeholder) => {
+    if (!location) {return placeholder;}
+    // Try multiple possible property names
+    return location.description || location.address || placeholder;
+  };
+
+  //  Extracted helper renderer
   const renderActionButton = () => {
     const btn = actionButtons.find(b => b.visible);
     if (!btn) {
@@ -113,7 +122,7 @@ const BottomModal = ({
           {/* Service Header */}
           <View style={styles.serviceHeader}>
             {isBooked && !isConfirmed ? (
-              <TouchableOpacity onPress={onCancelBooking} disabled={isLoading}>
+              <TouchableOpacity onPress={onBackToEdit} disabled={isLoading}>
                 <Text style={styles.arrow}>
                   {'< '}
                   <Text style={styles.modalTitle}>Back</Text>
@@ -143,7 +152,7 @@ const BottomModal = ({
                   style={styles.locationIcon}
                 />
                 <Text style={styles.locationText} numberOfLines={1}>
-                  {pickup?.description || 'Pick up From?'}
+                  {getLocationText(pickup, 'Pick up From?')}
                 </Text>
               </TouchableOpacity>
 
@@ -162,7 +171,7 @@ const BottomModal = ({
                   style={styles.locationIcon}
                 />
                 <Text style={styles.locationText} numberOfLines={1}>
-                  {dropoff?.description || 'Drop off To?'}
+                  {getLocationText(dropoff, 'Drop off To?')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -196,7 +205,7 @@ const BottomModal = ({
                 </Text>
                 <Text
                   style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
-                  {inquireBookingResponse?.total_amount}
+                  {inquireBookingResponse?.total_amount_wo_promo}
                 </Text>
               </View>
               <View style={styles.fareRow}>

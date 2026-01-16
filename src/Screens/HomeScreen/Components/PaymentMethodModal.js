@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
   Image,
@@ -18,6 +19,8 @@ const PaymentMethodModal = ({
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
+
+  const navigation = useNavigation();
 
   return (
     <Modal
@@ -76,29 +79,11 @@ const PaymentMethodModal = ({
           )}
         </TouchableOpacity>
 
-        {/* GCash option */}
         <TouchableOpacity
-          style={[
-            styles.option,
-            selectedPayment === 'GCash' && styles.optionSelected,
-          ]}
           onPress={() => {
-            onSelect?.('GCash');
             onClose();
+            navigation.navigate('PaymentOptionScreen');
           }}>
-          <Image
-            source={require('@/Assets/Common/HomeScreen/BottomModal/gcash.png')}
-            style={styles.icon}
-          />
-          <Text style={styles.optionText}>Link your GCash now!</Text>
-          {selectedPayment === 'GCash' && (
-            <View style={styles.radioCircle}>
-              <View style={styles.radioInner} />
-            </View>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => {}}>
           <Text style={styles.manageText}>Manage Payment Methods</Text>
         </TouchableOpacity>
       </View>

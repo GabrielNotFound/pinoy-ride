@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
@@ -21,6 +22,9 @@ const WalletScreen = () => {
   const navigation = useNavigation();
   const userInfo = useSelector(selectUserInfo);
   const [walletDetails, setWalletDetails] = useState([]);
+
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width <= 400;
 
   const getWalletDetails = usePostRequest();
 
@@ -151,14 +155,27 @@ const WalletScreen = () => {
           {actionButtons.map((btn, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.actionButton}
+              style={[
+                styles.actionButton,
+                isSmallScreen && styles.actionButtonSmall,
+              ]}
               onPress={btn.onPress}>
-              <Image
-                source={btn.icon}
-                style={styles.actionIcon}
-                resizeMode="contain"
-              />
-              <Text style={styles.actionLabel}>{btn.label}</Text>
+              {!isSmallScreen && (
+                <Image
+                  source={btn.icon}
+                  style={styles.actionIcon}
+                  resizeMode="contain"
+                />
+              )}
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={[
+                  styles.actionLabel,
+                  isSmallScreen && styles.actionLabelSmall,
+                ]}>
+                {btn.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -289,21 +306,30 @@ const getStyles = ({ colors }) =>
       paddingHorizontal: 10,
       borderRadius: 10,
       alignItems: 'center',
-      marginHorizontal: 5,
+      marginHorizontal: 4,
+      minWidth: 0,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3,
     },
+    actionLabel: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 14,
+      color: colors.shadow,
+      flexShrink: 1,
+    },
+    actionButtonSmall: {
+      justifyContent: 'center',
+    },
     actionIcon: {
       width: 24,
       height: 24,
       marginRight: 5,
     },
-    actionLabel: {
-      fontFamily: 'Poppins Regular',
-      fontSize: 14,
-      color: colors.shadow,
+    actionLabelSmall: {
+      fontSize: 12,
+      textAlign: 'center',
     },
   });

@@ -15,7 +15,8 @@ const NoteToRiderModal = ({ visible, onClose, onSave, initialNote = '' }) => {
   const [note, setNote] = useState(initialNote);
 
   const handleSave = () => {
-    onSave?.(note);
+    const cleanedNote = note.trimStart();
+    onSave?.(cleanedNote);
     onClose();
   };
 

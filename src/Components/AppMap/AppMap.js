@@ -81,7 +81,6 @@ const AppMap = ({
     longitudeDelta: 0.05,
   });
   const [routeCoords, setRouteCoords] = useState([]);
-  const [selectedMarker, setSelectedMarker] = useState(null);
 
   useEffect(() => {
     const apiKey = Constants.GOOGLE_MAP_API_KEY;
@@ -129,8 +128,8 @@ const AppMap = ({
       });
     }
   }, [
-    initialLat, // Added to dependencies
-    initialLong, // Added to dependencies
+    initialLat,
+    initialLong,
     firstMarkerLat,
     firstMarkerLong,
     secondMarkerLat,
@@ -151,14 +150,11 @@ const AppMap = ({
         interactive && onMapPress
           ? e => {
               const { latitude, longitude } = e.nativeEvent.coordinate;
-              setSelectedMarker({ latitude, longitude });
               onMapPress({ latitude, longitude });
             }
           : null
       }>
-      {selectedMarker && (
-        <Marker coordinate={selectedMarker} title="Selected Location" />
-      )}
+      {/* Pickup marker - Blue */}
       {firstMarkerLat != null && firstMarkerLong != null && (
         <Marker
           coordinate={{
@@ -170,6 +166,7 @@ const AppMap = ({
           anchor={{ x: 0.5, y: 1 }}
         />
       )}
+      {/* Dropoff marker - Red */}
       {secondMarkerLat != null && secondMarkerLong != null && (
         <Marker
           coordinate={{
@@ -181,6 +178,7 @@ const AppMap = ({
           anchor={{ x: 0.5, y: 1 }}
         />
       )}
+      {/* Route polyline */}
       {routeCoords.length > 0 && (
         <Polyline
           coordinates={routeCoords}

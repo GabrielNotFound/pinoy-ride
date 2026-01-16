@@ -12,7 +12,7 @@ import {
   InputLocation,
   LandingScreen,
   LoginScreen,
-  MapSelectionModal,
+  MapSelectionScreen,
   OTPScreen,
   OnboardingScreen,
   PaymentOptionScreen,
@@ -97,6 +97,11 @@ const ApplicationNavigator = () => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
+              name="MapSelectionScreen"
+              component={MapSelectionScreen}
+              options={{ headerShown: false, animation: 'slide_from_bottom' }}
+            />
+            <Stack.Screen
               name="RatingScreen"
               component={RatingScreen}
               options={{ headerShown: false }}
@@ -148,14 +153,6 @@ const ApplicationNavigator = () => {
               component={AppTransactionComplete}
               options={{ headerShown: false }}
             />
-
-            <Stack.Group
-              screenOptions={{ presentation: 'modal', headerShown: false }}>
-              <Stack.Screen
-                name="MapSelectionModal"
-                component={MapSelectionModal}
-              />
-            </Stack.Group>
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>

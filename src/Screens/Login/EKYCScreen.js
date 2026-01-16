@@ -94,9 +94,9 @@ const EKYCScreen = () => {
 
         console.log('eKYC verification completed successfully!', result);
 
-        navigation.navigate('HomeScreen', {
-          mobileNumber: route?.params?.mobile_number,
-          ekycCompleted: true,
+        // Navigate to LoginScreen with registration success flag
+        navigation.navigate('LoginScreen', {
+          registrationComplete: true,
           verificationData: result,
         });
       }

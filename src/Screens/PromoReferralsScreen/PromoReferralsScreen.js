@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FlatList,
   Image,
@@ -9,14 +9,24 @@ import {
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 const PromoReferralsScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
+  // This will later come from API
+  const [referralCode] = useState('4F45HFA9AS');
+
   const handleBack = () => {
     navigation.goBack();
+  };
+
+  const handleCopy = () => {
+    Clipboard.setString(referralCode);
+    // Optional: show a toast/snackbar later
+    // AppUtil.showToast('Referral code copied!');
   };
 
   const renderPromoItem = ({ item }) => {
@@ -69,10 +79,10 @@ const PromoReferralsScreen = () => {
           when they sign up using your code.
         </Text>
 
-        <TouchableOpacity style={styles.referralCard}>
+        <TouchableOpacity style={styles.referralCard} onPress={handleCopy}>
           <View style={styles.row}>
             <Text style={styles.label}>Referral Code:</Text>
-            <Text style={styles.code}>4F45HFA9AS</Text>
+            <Text style={styles.code}>{referralCode}</Text>
             <Text style={styles.copy}>Copy</Text>
           </View>
         </TouchableOpacity>

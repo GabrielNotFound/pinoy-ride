@@ -1889,6 +1889,8 @@ PODS:
     - React-utils (= 0.76.6)
   - RNCAsyncStorage (2.2.0):
     - React-Core
+  - RNCClipboard (1.16.3):
+    - React-Core
   - RNDeviceInfo (14.0.4):
     - React-Core
   - RNGoogleSignin (15.0.0):
@@ -2124,6 +2126,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
@@ -2333,6 +2336,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  RNCClipboard:
+    :path: "../node_modules/@react-native-clipboard/clipboard"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNGoogleSignin:
@@ -2454,6 +2459,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 484b223748d7489d7036db1cbf79896d297e33a7
   ReactCommon: 832cdd669aeecd430d9ca1975d15676b38d0b263
   RNCAsyncStorage: 23e56519cc41d3bade3c8d4479f7760cb1c11996
+  RNCClipboard: dfeb43751adff21e588657b5b6c888c72f3aa68e
   RNDeviceInfo: feea80a690d2bde1fe51461cf548039258bd03f2
   RNGoogleSignin: f57de86a017d67e98fa9c5c0c1c62f0387433cbd
   RNPermissions: 622915f45921c279d3295701925438b59418331a

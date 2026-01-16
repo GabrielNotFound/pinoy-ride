@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   userInfo: null,
+  hasShownLoginSuccess: false,
 };
 
 const userSlice = createSlice({
@@ -14,9 +15,15 @@ const userSlice = createSlice({
     clearUserInfo: state => {
       state.userInfo = null;
     },
+    setHasShownLoginSuccess: (state, action) => {
+      state.hasShownLoginSuccess = action.payload;
+    },
   },
 });
 
-export const { setUserInfo, clearUserInfo } = userSlice.actions;
+export const { setUserInfo, clearUserInfo, setHasShownLoginSuccess } =
+  userSlice.actions;
 export const selectUserInfo = state => state.user.userInfo;
+export const selectHasShownLoginSuccess = state =>
+  state.user.hasShownLoginSuccess;
 export default userSlice.reducer;

@@ -17,8 +17,12 @@ import {
   SuccessAlertBox,
 } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
-import { selectUserInfo } from '@/Redux/Slices/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectHasShownLoginSuccess,
+  selectUserInfo,
+  setHasShownLoginSuccess,
+} from '@/Redux/Slices/userSlice';
 import { AppUtil, Constants } from '@/Utils';
 import usePostRequest from '@/Services/Api';
 import ServiceModal from './Components/ServiceModal';
@@ -31,7 +35,9 @@ const HomeScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const userInfo = useSelector(selectUserInfo);
+  const hasShownLoginSuccess = useSelector(selectHasShownLoginSuccess);
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [modalHeight, setModalHeight] = useState(0);
@@ -68,7 +74,6 @@ const HomeScreen = () => {
   };
 
   const riderFoundTimeout = useRef(null);
-  const successShownRef = useRef(false);
 
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropoffLocation, setDropoffLocation] = useState(null);
@@ -99,6 +104,14 @@ const HomeScreen = () => {
     navigation.navigate('SettingsScreen');
   };
 
+  // Separate useEffect for login success modal - only runs once
+  useEffect(() => {
+    if (!hasShownLoginSuccess) {
+      setShowSuccess(true);
+      dispatch(setHasShownLoginSuccess(true));
+    }
+  }, [hasShownLoginSuccess, dispatch]);
+
   useEffect(() => {
     AppUtil.debugDeep(userInfo.ekyc_details);
     AppUtil.debugDeep(selectedService);
@@ -128,16 +141,11 @@ const HomeScreen = () => {
       },
     );
 
-    if (!successShownRef.current) {
-      setShowSuccess(true);
-      successShownRef.current = true;
-    }
-
     return () => {
       if (riderFoundTimeout.current) {
         clearTimeout(riderFoundTimeout.current);
       }
-      Geolocation.clearWatch(watchId); // ✅ Cleanup location watcher
+      Geolocation.clearWatch(watchId);
     };
   }, []);
 
@@ -205,6 +213,7 @@ const HomeScreen = () => {
       dropoff_location: dropoffLocation?.address,
       dropoff_lat: dropoffLocation?.lat,
       dropoff_long: dropoffLocation?.long,
+      promo_code: selectedPromo?.code || '',
     };
     inquireBooking.makePostRequest(
       Constants.ENDPOINT.INQUIRE_BOOKING,
@@ -500,6 +509,10 @@ const HomeScreen = () => {
             onCreateBooking={triggerCreateBooking}
             onCancelBooking={() => {
               triggerUpdateBookingStatus();
+            }}
+            onBackToEdit={() => {
+              setIsBooked(false);
+              setInquireBookingResponse([]);
             }}
             isBooked={isBooked}
             isConfirmed={isConfirmed}
