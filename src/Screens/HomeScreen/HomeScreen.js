@@ -256,7 +256,9 @@ const HomeScreen = () => {
       base_amount: inquireBookingResponse.base_amount,
       commission: inquireBookingResponse.commission,
       rider_net_amount: inquireBookingResponse.rider_net_amount,
+      promo_discount: inquireBookingResponse.payment_discount,
       tip: 0, // until tip is added make sure this is 0, also add thsi to total_amount
+      total_amount_wo_promo: inquireBookingResponse.total_amount_wo_promo,
       total_amount: inquireBookingResponse.total_amount,
     };
     const postdata = {
