@@ -85,7 +85,14 @@ const TopUpScreen = () => {
           <Text style={styles.fee}>No Transaction fee</Text>
         </View>
       </View>
-      <AppButton title="Confirm" onPress={() => {}} isBold />
+      <AppButton
+        title="Confirm"
+        onPress={() => {
+          navigation.navigate('HomeScreen');
+        }}
+        isBold
+        isOutlined
+      />
     </Container>
   );
 };
@@ -138,10 +145,10 @@ const getStyles = ({ colors }) =>
       marginBottom: 30,
     },
     card: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.onQuaternary,
       borderRadius: 12,
       padding: 12,
-      width: 110,
+      width: 120,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
@@ -149,7 +156,7 @@ const getStyles = ({ colors }) =>
       elevation: 4,
     },
     cardYellow: {
-      backgroundColor: colors.primary,
+      backgroundColor: colors.topUpCard,
     },
     cardRow: {
       flexDirection: 'row',
@@ -163,7 +170,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       fontSize: 10,
       fontWeight: '600',
-      color: colors.shadow,
+      color: colors.text,
     },
     arrowIcon: {
       width: 27,
@@ -193,13 +200,13 @@ const getStyles = ({ colors }) =>
     balance: {
       fontFamily: 'Poppins SemiBold',
       fontSize: 18,
-      color: colors.shadow,
+      color: colors.text,
       marginBottom: 12,
     },
     amountTitle: {
       fontFamily: 'Poppins Medium',
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
       marginBottom: 12,
     },
     minimum: {

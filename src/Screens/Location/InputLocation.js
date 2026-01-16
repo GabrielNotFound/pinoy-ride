@@ -40,6 +40,7 @@ const InputLocation = () => {
   const handleBack = () => {
     navigation.goBack();
   };
+
   const handleProfilePress = () => {
     navigation.navigate('SettingsScreen');
   };
@@ -145,7 +146,10 @@ export default InputLocation;
 
 const getStyles = ({ colors }) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: 'white' },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
     headerContainer: {
       backgroundColor: colors.primary,
       paddingTop: 60,
@@ -164,9 +168,17 @@ const getStyles = ({ colors }) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    backIcon: { width: 23, height: 23 },
-    iconImage: { width: 51, height: 51 },
-    locationButtonsContainer: { paddingHorizontal: 30 },
+    backIcon: {
+      width: 23,
+      height: 23,
+    },
+    iconImage: {
+      width: 51,
+      height: 51,
+    },
+    locationButtonsContainer: {
+      paddingHorizontal: 30,
+    },
     iconWithTextButton: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -206,11 +218,13 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       fontSize: 14,
       fontWeight: '500',
+      color: colors.onSurface,
     },
     savedPlacesSubtitleText: {
       fontFamily: 'Poppins Regular',
       fontSize: 8,
       fontWeight: '400',
+      color: colors.onSurfaceVariant,
     },
     buttons: {
       backgroundColor: colors.grey2,
@@ -223,7 +237,7 @@ const getStyles = ({ colors }) =>
     bottomButton: {
       marginVertical: 40,
       height: 47,
-      backgroundColor: 'white',
+      backgroundColor: colors.surface,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -233,7 +247,11 @@ const getStyles = ({ colors }) =>
       shadowRadius: 3,
       elevation: 3,
     },
-    bottomButtonIcon: { width: 20, height: 20, marginRight: 10 },
+    bottomButtonIcon: {
+      width: 20,
+      height: 20,
+      marginRight: 10,
+    },
     bottomButtonText: {
       fontSize: 14,
       fontWeight: '500',

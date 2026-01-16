@@ -9,3 +9,4 @@ export { default as AccessLocationAlertBox } from './AlertBox/AccessLocationAler
 export { default as AppTransactionComplete } from './AppTransactionComplete/AppTransactionComplete';
 export { default as AppMap } from './AppMap/AppMap';
 export { default as AlertBox } from './AlertBox/AlertBox';
+export { default as ThemeSwitch } from './ThemeSwitch/ThemeSwitch';

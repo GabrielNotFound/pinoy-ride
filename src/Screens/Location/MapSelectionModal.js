@@ -48,10 +48,11 @@ const MapSelectionModal = () => {
           underlineColor="transparent"
           activeUnderlineColor="transparent"
           placeholder="Cabuyao City, Laguna, Philippines"
-          placeholderTextColor={colors.darkGrey}
+          placeholderTextColor={colors.onSurfaceVariant}
           value={pickupLocation}
           onChangeText={setPickupLocation}
           style={styles.textInput}
+          textColor={colors.onSurface}
         />
 
         <AppButton
@@ -95,17 +96,17 @@ const getStyles = ({ colors }) =>
       bottom: 0,
       left: 0,
       right: 0,
-      backgroundColor: '#fff',
+      backgroundColor: colors.surface,
       paddingHorizontal: 30,
       paddingTop: 40,
       paddingBottom: 30,
-      shadowColor: '#000',
+      shadowColor: colors.shadow,
       shadowOpacity: 0.1,
       shadowRadius: 10,
       elevation: 10,
     },
     textInput: {
-      backgroundColor: colors.blueGrey,
+      backgroundColor: colors.surfaceVariant,
       height: 40,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,

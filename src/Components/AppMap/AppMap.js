@@ -370,7 +370,7 @@ const getStyles = ({ colors }) =>
       shadowRadius: 3.84,
     },
     viewToggleText: {
-      color: colors.shadow,
+      color: colors.text,
       fontFamily: 'Poppins SemiBold',
       fontSize: 14,
     },

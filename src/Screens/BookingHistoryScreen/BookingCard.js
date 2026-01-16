@@ -68,7 +68,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Regular',
       fontWeight: 400,
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
     },
     subtitle: {
       fontFamily: 'Poppins Regular',
@@ -99,7 +99,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Regular',
       fontWeight: 400,
       fontSize: 12,
-      color: colors.shadow,
+      color: colors.text,
     },
     rebookBtn: {
       alignSelf: 'flex-start',

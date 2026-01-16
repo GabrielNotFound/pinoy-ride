@@ -172,6 +172,7 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
     },
     applyText: {
+      color: colors.secondaryDark,
       fontFamily: 'Poppins SemiBold',
       fontWeight: '600',
       fontSize: 16,

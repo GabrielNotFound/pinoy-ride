@@ -29,9 +29,12 @@ const LightTheme = {
     primaryDark: '#3E114C',
     primaryLight2: '#F8F4FF', // very light purple
     onPrimary: 'rgb(255, 255, 255)',
+    onQuaternary: 'rgb(255, 255, 255)',
+
     primaryContainer: 'rgb(233, 221, 255)',
     onPrimaryContainer: 'rgb(34, 0, 92)',
     secondary: '#FBD46D',
+    secondaryDark: 'rgb(30, 25, 43)',
     onSecondary: 'rgb(255, 255, 255)',
     secondaryContainer: 'rgb(232, 222, 248)',
     onSecondaryContainer: 'rgb(30, 25, 43)',
@@ -44,6 +47,7 @@ const LightTheme = {
     errorContainer: 'rgb(255, 218, 214)',
     onErrorContainer: 'rgb(65, 0, 2)',
     background: '#FFFFFF',
+    background2: '#FFFFFF',
     onBackground: '#323232',
 
     surface: 'rgb(255, 251, 255)',
@@ -69,6 +73,8 @@ const LightTheme = {
     onSurfaceDisabled: 'rgba(28, 27, 30, 0.38)',
     backdrop: 'rgba(50, 47, 55, 0.4)',
 
+    topUpCard: '#FEC107',
+
     brand: '#FEC107',
     brandLight: '#FFDF80',
     onBrand: 'rgb(255, 255, 255)',
@@ -91,6 +97,7 @@ const LightTheme = {
     blue: '#084CF7',
     completed: '#4FA650',
     cancelled: '#E4423F',
+    text: 'rgb(0, 0, 0)',
   },
   roundness: 2,
   ...custom,

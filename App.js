@@ -3,9 +3,28 @@ import { StyleSheet, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
+import { PaperProvider } from 'react-native-paper';
 
 import ApplicationNavigator from '@/Navigators/Application';
 import { persistor, store } from '@/Redux/store';
+import { ThemeProvider, useAppTheme } from '@/Contexts/ThemeContext';
+
+// Inner component that uses the theme
+const ThemedApp = () => {
+  const { theme } = useAppTheme();
+
+  return (
+    <PaperProvider theme={theme}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: theme.colors.background },
+        ]}>
+        <ApplicationNavigator />
+      </View>
+    </PaperProvider>
+  );
+};
 
 const App = () => {
   const [fontsLoaded] = useFonts({
@@ -25,9 +44,9 @@ const App = () => {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <View style={styles.container}>
-          <ApplicationNavigator />
-        </View>
+        <ThemeProvider>
+          <ThemedApp />
+        </ThemeProvider>
       </PersistGate>
     </Provider>
   );

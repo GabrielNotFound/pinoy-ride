@@ -14,30 +14,27 @@ import { Container } from '@/Components';
 
 const SuccessfulBooking = () => {
   const { colors } = useTheme();
+  const styles = getStyles({ colors });
   const navigation = useNavigation();
   const route = useRoute();
 
   useEffect(() => {
-    AppUtil.debugDeep(route?.params); // debug output
+    AppUtil.debugDeep(route?.params);
   }, [route]);
 
   const booking = route?.params;
 
-  // Extract passenger name
   const passengerName = booking?.customer
     ? `${booking.customer.fname} ${booking.customer.mname} ${booking.customer.lname}`
     : '';
 
-  // Estimated time: you may want to calculate it or keep a placeholder
-  const estTime = '10 mins'; // Placeholder, replace with your calculation if available
+  const estTime = '10 mins';
 
-  // Fare and breakdown
   const fare = booking?.payment_details?.total_amount || 0;
   const minimumFare = booking?.payment_details?.minimum_fare || 0;
   const perKm = booking?.payment_details?.pesos_per_km || 0;
   const bookingFee = booking?.payment_details?.booking_fee || 0;
 
-  // Distance
   const distance = booking?.distance_km ? `${booking.distance_km} km` : '0 km';
 
   return (
@@ -56,7 +53,6 @@ const SuccessfulBooking = () => {
         <Text style={styles.passengerLabel}>Passenger Name</Text>
         <Text style={styles.passengerName}>{passengerName}</Text>
 
-        {/* Ride summary */}
         <View style={styles.summaryBox}>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Est. Time</Text>
@@ -72,7 +68,6 @@ const SuccessfulBooking = () => {
           </View>
         </View>
 
-        {/* Fare Breakdown */}
         <View style={styles.fareBox}>
           <Text style={styles.fareTitle}>Fare Breakdown</Text>
           <View style={styles.fareRow}>
@@ -95,7 +90,7 @@ const SuccessfulBooking = () => {
         </View>
 
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary }]}
+          style={styles.button}
           onPress={() => navigation.navigate('HomeScreen')}>
           <Text style={styles.buttonText}>End Ride</Text>
         </TouchableOpacity>
@@ -106,77 +101,107 @@ const SuccessfulBooking = () => {
 
 export default SuccessfulBooking;
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  image: {
-    width: '120%',
-    height: 220,
-    marginBottom: 20,
-    marginTop: '20%',
-  },
-  successText: {
-    fontFamily: 'Poppins Bold',
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  passengerLabel: {
-    fontSize: 12,
-    color: '#c1c1c1ff',
-    marginBottom: 4,
-  },
-  passengerName: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 20,
-  },
-  summaryBox: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    marginBottom: 20,
-  },
-  summaryItem: { flex: 1, alignItems: 'center' },
-  summaryLabel: { fontSize: 12, color: '#aeaeaeff', marginBottom: 4 },
-  summaryValue: { fontSize: 14, fontWeight: '700', color: '#f1c40f' },
-  fareBox: {
-    width: '100%',
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 20,
-    elevation: 2,
-  },
-  fareTitle: { fontSize: 16, fontWeight: '700', marginBottom: 10 },
-  fareRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 4,
-  },
-  fareLabel: { fontSize: 14, color: '#808080ff' },
-  fareValue: { fontSize: 14, color: '#808080ff' },
-  separator: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    marginVertical: 10,
-  },
-  fareTotal: { fontSize: 16, fontWeight: '700' },
-  button: {
-    width: '100%',
-    paddingVertical: 14,
-    borderRadius: 30,
-    alignItems: 'center',
-  },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-});
+const getStyles = ({ colors }) =>
+  StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      backgroundColor: colors.background,
+      alignItems: 'center',
+    },
+    image: {
+      width: '120%',
+      height: 220,
+      marginBottom: 20,
+      marginTop: '20%',
+    },
+    successText: {
+      fontFamily: 'Poppins Bold',
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.onSurface,
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    passengerLabel: {
+      fontSize: 12,
+      color: colors.onSurfaceVariant,
+      marginBottom: 4,
+    },
+    passengerName: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.onSurface,
+      marginBottom: 20,
+    },
+    summaryBox: {
+      flexDirection: 'row',
+      backgroundColor: colors.surface,
+      padding: 15,
+      borderRadius: 12,
+      elevation: 3,
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.05,
+      shadowOffset: { width: 0, height: 2 },
+      marginBottom: 20,
+    },
+    summaryItem: { flex: 1, alignItems: 'center' },
+    summaryLabel: {
+      fontSize: 12,
+      color: colors.onSurfaceVariant,
+      marginBottom: 4,
+    },
+    summaryValue: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    fareBox: {
+      width: '100%',
+      backgroundColor: colors.surface,
+      padding: 15,
+      borderRadius: 12,
+      marginBottom: 20,
+      elevation: 2,
+    },
+    fareTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.onSurface,
+      marginBottom: 10,
+    },
+    fareRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginVertical: 4,
+    },
+    fareLabel: {
+      fontSize: 14,
+      color: colors.onSurfaceVariant,
+    },
+    fareValue: {
+      fontSize: 14,
+      color: colors.onSurfaceVariant,
+    },
+    separator: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.outline,
+      marginVertical: 10,
+    },
+    fareTotal: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.onSurface,
+    },
+    button: {
+      width: '100%',
+      paddingVertical: 14,
+      borderRadius: 30,
+      alignItems: 'center',
+      backgroundColor: colors.primary,
+    },
+    buttonText: {
+      color: colors.onPrimary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  });

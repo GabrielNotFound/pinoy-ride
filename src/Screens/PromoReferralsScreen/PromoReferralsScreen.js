@@ -126,7 +126,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       fontWeight: '500',
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
     },
     subtitle: {
       fontFamily: 'Poppins Regular',
@@ -160,12 +160,12 @@ const getStyles = ({ colors }) =>
       fontSize: 14,
       fontWeight: '400',
       marginRight: 8,
-      color: colors.shadow,
+      color: colors.text,
     },
     code: {
       fontFamily: 'Poppins SemiBold',
       fontSize: 14,
-      color: colors.shadow,
+      color: colors.text,
     },
     copy: {
       fontFamily: 'Poppins Regular',

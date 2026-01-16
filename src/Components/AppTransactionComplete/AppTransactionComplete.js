@@ -10,7 +10,7 @@ const AppTransactionComplete = () => {
   const navigation = useNavigation();
 
   const handleDone = () => {
-    navigation.navigate('LandingScreen');
+    navigation.navigate('HomeScreen');
   };
 
   return (
@@ -41,7 +41,6 @@ const AppTransactionComplete = () => {
           isBold
           noSpacing
           mode="outlined"
-          featureStyle={{ backgroundColor: colors.onPrimary }}
         />
       </View>
     </Container>

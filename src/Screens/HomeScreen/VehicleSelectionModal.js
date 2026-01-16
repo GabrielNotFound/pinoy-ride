@@ -70,7 +70,15 @@ const VehicleSelectionModal = ({ visible, onClose, onProceed }) => {
                   onPress={() => setSelectedVehicle(vehicle)}
                   activeOpacity={0.7}>
                   <View style={styles.iconWrapper}>
-                    <Image source={vehicle.icon} style={styles.icon} />
+                    <Image
+                      source={vehicle.icon}
+                      style={[
+                        styles.icon,
+                        selectedVehicle?.id === vehicle.id && {
+                          tintColor: colors.primary,
+                        },
+                      ]}
+                    />
                   </View>
 
                   <View style={{ flex: 1 }}>
@@ -100,7 +108,7 @@ const VehicleSelectionModal = ({ visible, onClose, onProceed }) => {
 
 export default VehicleSelectionModal;
 
-const getStyles = () =>
+const getStyles = ({ colors }) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -112,7 +120,7 @@ const getStyles = () =>
     modalContainer: {
       width: '100%',
       maxWidth: 500,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.surface,
       borderRadius: 5,
       paddingVertical: 20,
       paddingHorizontal: 20,
@@ -120,13 +128,13 @@ const getStyles = () =>
     title: {
       fontSize: 24,
       textAlign: 'center',
-      color: '#E4B400',
+      color: colors.primary,
       fontFamily: 'Poppins SemiBold',
     },
     subtitle: {
       fontSize: 12,
       textAlign: 'center',
-      color: '#777',
+      color: colors.onSurfaceVariant,
       marginBottom: 20,
       fontFamily: 'Poppins Regular',
     },
@@ -137,14 +145,14 @@ const getStyles = () =>
       flexDirection: 'row',
       alignItems: 'center',
       padding: 5,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.surface,
       borderRadius: 5,
       borderWidth: 1.5,
-      borderColor: '#EEE',
+      borderColor: colors.outline,
     },
     cardSelected: {
-      borderColor: '#F9C933',
-      backgroundColor: '#FFF7D9',
+      borderColor: colors.primary,
+      backgroundColor: colors.surfaceVariant,
     },
     iconWrapper: {
       width: 50,
@@ -157,16 +165,16 @@ const getStyles = () =>
       width: 40,
       height: 40,
       resizeMode: 'contain',
-      tintColor: '#F9C933',
+      tintColor: colors.secondaryDark,
     },
     name: {
       fontSize: 14,
       fontFamily: 'Poppins SemiBold',
-      color: '#000',
+      color: colors.onSurface,
     },
     desc: {
       fontSize: 10,
-      color: '#777',
+      color: colors.onSurfaceVariant,
       fontFamily: 'Poppins Regular',
     },
     goBack: {
@@ -175,7 +183,7 @@ const getStyles = () =>
     },
     goBackText: {
       fontSize: 16,
-      color: '#E4B400',
+      color: colors.primary,
       fontFamily: 'Poppins SemiBold',
     },
   });

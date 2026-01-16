@@ -1,17 +1,27 @@
 import { AppButton, AppTextInput, Container } from '@/Components';
+import { AppUtil } from '@/Utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 
-const CashOutScreen = () => {
+const CashOutScreen = ({ route }) => {
   const { colors } = useTheme();
+  const walletDetails = route?.params?.walletDetails;
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
   const [amount, setAmount] = useState('');
+  const [amountError, setAmountError] = useState('');
   const [isFirstSlide, setIsFirstSlide] = useState(true);
   const isSecondSlide = !isFirstSlide;
+
+  const availableBalance = walletDetails.avail_balance || 0.0;
+  const minimumAmount = 10.0;
+
+  useEffect(() => {
+    AppUtil.debugDeep(walletDetails.avail_balance);
+  });
 
   const handleBack = () => {
     if (isSecondSlide) {
@@ -21,12 +31,75 @@ const CashOutScreen = () => {
     }
   };
 
+  const formatAmount = val => {
+    if (!val || val === '') {
+      return '';
+    }
+    const number = parseFloat(val.replace(/,/g, ''));
+    if (isNaN(number)) {
+      return '';
+    }
+
+    const formatted = number.toFixed(2);
+    const parts = formatted.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  };
+
+  const validateAmount = () => {
+    // Remove commas and convert to number
+    const numericAmount = parseFloat(amount.replace(/,/g, ''));
+
+    if (!amount || amount === '') {
+      setAmountError('Please enter an amount');
+      return false;
+    }
+
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      setAmountError('Please enter a valid amount');
+      return false;
+    }
+
+    if (numericAmount < minimumAmount) {
+      setAmountError(`Minimum amount is ₱${minimumAmount.toFixed(2)}`);
+      return false;
+    }
+
+    if (numericAmount > availableBalance) {
+      setAmountError(
+        `Amount exceeds available balance of ₱${availableBalance.toFixed(2)}`,
+      );
+      return false;
+    }
+
+    setAmountError('');
+    return true;
+  };
+
   const handleNext = () => {
-    setIsFirstSlide(false);
+    if (validateAmount()) {
+      // Format the amount before moving to next slide
+      const formattedAmount = formatAmount(amount);
+      setAmount(formattedAmount);
+      setIsFirstSlide(false);
+    }
   };
 
   const handleSubmit = () => {
-    navigation.navigate('AppTransactionComplete');
+    // Pass the amount to the next screen
+    navigation.navigate('AppTransactionComplete', {
+      amount: parseFloat(amount.replace(/,/g, '')),
+      formattedAmount: amount,
+      transactionType: 'cashout',
+    });
+  };
+
+  const handleAmountChange = value => {
+    setAmount(value);
+    // Clear error when user starts typing
+    if (amountError) {
+      setAmountError('');
+    }
   };
 
   return (
@@ -64,7 +137,7 @@ const CashOutScreen = () => {
                 isSecondSlide && styles.confirmationSubtitle,
               ]}>
               {isFirstSlide
-                ? '₱250.00'
+                ? `₱${availableBalance.toFixed(2)}`
                 : 'Check if your transaction is correct before clicking Cash-out.'}
             </Text>
           </View>
@@ -75,13 +148,15 @@ const CashOutScreen = () => {
                 <Text style={styles.amountTitle}>Enter Amount</Text>
                 <AppTextInput
                   value={amount}
-                  onChangeText={setAmount}
+                  onChangeText={handleAmountChange}
                   placeholder="Amount"
                   inputMode="amount"
+                  error={amountError}
                 />
               </View>
               <Text style={styles.minimum}>
-                ₱10.00 is the minimum amount you can Cash out
+                ₱{minimumAmount.toFixed(2)} is the minimum amount you can Cash
+                out
               </Text>
               <Text style={styles.fee}>No Transaction fee</Text>
             </>
@@ -103,7 +178,9 @@ const CashOutScreen = () => {
               <View style={styles.divider} />
               <View style={styles.rowBetween}>
                 <Text style={styles.label}>Amount</Text>
-                <Text style={styles.value}>₱200.00</Text>
+                <Text style={[styles.icon, { color: colors.primary }]}>
+                  ₱{amount}
+                </Text>
               </View>
             </>
           )}
@@ -172,13 +249,13 @@ const getStyles = ({ colors }) =>
     availableText: {
       fontFamily: 'Poppins Medium',
       fontSize: 10,
-      color: colors.shadow,
+      color: colors.text,
       marginBottom: 3,
     },
     balance: {
       fontFamily: 'Poppins SemiBold',
       fontSize: 18,
-      color: colors.shadow,
+      color: colors.text,
       marginBottom: 12,
     },
     confirmationTitle: {
@@ -197,7 +274,7 @@ const getStyles = ({ colors }) =>
     amountTitle: {
       fontFamily: 'Poppins Medium',
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
       marginBottom: 12,
     },
     minimum: {
@@ -215,7 +292,7 @@ const getStyles = ({ colors }) =>
     cashOutLabel: {
       fontFamily: 'Poppins Medium',
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
       marginBottom: 16,
       marginTop: 8,
     },
@@ -239,6 +316,6 @@ const getStyles = ({ colors }) =>
     value: {
       fontFamily: 'Poppins Medium',
       fontSize: 14,
-      color: colors.shadow,
+      color: colors.text,
     },
   });

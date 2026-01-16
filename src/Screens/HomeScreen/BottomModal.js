@@ -1,14 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Image,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import { AppButton } from '@/Components';
+import { AppButton, ThemeSwitch } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 
 const credits = [
@@ -41,19 +34,14 @@ const BottomModal = ({
   onViewBooking,
   activeBooking,
   onUpdateStatus,
-  bookingStatus: externalStatus, // Status from parent
+  bookingStatus: externalStatus,
 }) => {
-  const { colors } = useTheme();
+  const { colors, dark } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
-  const [isEnabled, setIsEnabled] = useState(false);
-  const toggleSwitch = () => setIsEnabled(prev => !prev);
-
-  // Sync with external status
   const [buttonStatus, setButtonStatus] = useState(externalStatus || 1);
 
-  // Update local state when external status changes
   useEffect(() => {
     if (externalStatus) {
       setButtonStatus(externalStatus);
@@ -75,21 +63,17 @@ const BottomModal = ({
 
   const handleButtonPress = () => {
     if (buttonStatus === 1) {
-      // Going to pickup → Arrived at pickup
       setButtonStatus(2);
       onUpdateStatus(activeBooking, 2);
     } else if (buttonStatus === 2) {
-      // Arrived at pickup → Going to dropoff
       setButtonStatus(3);
       onUpdateStatus(activeBooking, 3);
     } else if (buttonStatus === 3) {
-      // Drop off → Complete
       onUpdateStatus(activeBooking, 4);
       navigation.navigate('SuccessfulBooking', activeBooking);
     }
   };
 
-  // If booking is active → show passenger info modal
   if (activeBooking) {
     return (
       <View style={styles.containerBooking}>
@@ -123,7 +107,7 @@ const BottomModal = ({
         <View style={styles.rowAddress}>
           <Image
             source={require('@/Assets/Common/Location.png')}
-            style={styles.icon}
+            style={[styles.icon, dark && { tintColor: 'white' }]}
           />
           <Text style={styles.address}>{activeBooking?.pickup_location}</Text>
         </View>
@@ -147,7 +131,6 @@ const BottomModal = ({
     );
   }
 
-  // Default modal (credits, wallet, theme toggle, view booking button)
   return (
     <View style={styles.container}>
       <View style={styles.top}>
@@ -161,37 +144,23 @@ const BottomModal = ({
       <View style={styles.creditsRow}>
         {credits.map((item, index) => (
           <View key={index} style={styles.creditsCard}>
-            <Image source={item.icon} style={styles.creditsIcon} />
+            <Image
+              source={item.icon}
+              style={[styles.creditsIcon, dark && { tintColor: 'white' }]}
+            />
             <Text style={styles.creditsValue}>{item.value}</Text>
             <Text style={styles.creditsLabel}>{item.label}</Text>
           </View>
         ))}
       </View>
-
-      <TouchableOpacity style={styles.card} onPress={toggleSwitch}>
-        <View style={styles.cardContent}>
-          <Image
-            source={require('@/Assets/Common/HomeScreen/BottomModal/App_Theme.png')}
-            style={styles.leftIcon}
-          />
-          <Text style={styles.titleText}>Light Mode</Text>
-          <Switch
-            value={isEnabled}
-            onValueChange={toggleSwitch}
-            trackColor={{ false: colors.grey3, true: colors.primary }}
-            thumbColor={colors.onPrimary}
-            disabled={true}
-          />
-        </View>
-      </TouchableOpacity>
-
+      <ThemeSwitch />
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('WalletScreen')}>
         <View style={styles.cardContent}>
           <Image
             source={require('@/Assets/Common/HomeScreen/BottomModal/Wallet.png')}
-            style={styles.leftIcon}
+            style={[styles.leftIcon, dark && { tintColor: 'white' }]}
           />
           <Text style={styles.titleText}>View Wallet</Text>
         </View>
@@ -210,7 +179,7 @@ const getStyles = ({ colors }) =>
       paddingHorizontal: 24,
       paddingBottom: 20,
       paddingTop: 12,
-      backgroundColor: colors.background,
+      backgroundColor: colors.background2,
     },
     top: { alignItems: 'center' },
     title: {
@@ -226,7 +195,7 @@ const getStyles = ({ colors }) =>
     creditsCard: {
       flex: 1,
       alignItems: 'center',
-      backgroundColor: colors.onPrimary,
+      backgroundColor: colors.onQuaternary,
       padding: 10,
       marginHorizontal: 4,
       borderRadius: 12,
@@ -258,17 +227,17 @@ const getStyles = ({ colors }) =>
     creditsValue: {
       fontFamily: 'Poppins SemiBold',
       fontSize: 20,
-      color: colors.shadow,
+      color: colors.text,
     },
     creditsLabel: {
       fontFamily: 'Poppins Medium',
       fontSize: 10,
-      color: colors.shadow,
+      color: colors.text,
     },
     card: {
       height: 56,
       borderRadius: 10,
-      backgroundColor: colors.onPrimary,
+      backgroundColor: colors.onQuaternary,
       paddingHorizontal: 22,
       paddingVertical: 12,
       marginBottom: 5,
@@ -292,7 +261,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       flex: 1,
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
     },
     containerBooking: {
       paddingHorizontal: 30,
@@ -320,7 +289,7 @@ const getStyles = ({ colors }) =>
     name: {
       fontFamily: 'Poppins Medium',
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
     },
     amount: {
       fontFamily: 'Poppins SemiBold',
@@ -341,7 +310,7 @@ const getStyles = ({ colors }) =>
     address: {
       fontFamily: 'Poppins Regular',
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
       flexShrink: 1,
       letterSpacing: -0.45,
     },

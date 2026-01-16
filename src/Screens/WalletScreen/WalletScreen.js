@@ -97,7 +97,9 @@ const WalletScreen = () => {
             <TouchableOpacity
               style={styles.cardButton}
               onPress={() => {
-                navigation.navigate('CashOutScreen');
+                navigation.navigate('CashOutScreen', {
+                  walletDetails: walletDetails,
+                });
               }}>
               <Image
                 source={require('@/Assets/Common/WalletScreen/Cash_Out.png')}
@@ -199,7 +201,7 @@ const getStyles = ({ colors }) =>
       paddingTop: 10,
     },
     cardContainer: {
-      backgroundColor: colors.onPrimary,
+      backgroundColor: colors.onQuaternary,
       width: '100%',
       borderRadius: 10,
       padding: 15,
@@ -213,13 +215,13 @@ const getStyles = ({ colors }) =>
     cardTitle: {
       fontFamily: 'Poppins Medium',
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
       marginBottom: 5,
     },
     cardAmount: {
       fontFamily: 'Poppins SemiBold',
       fontSize: 25,
-      color: colors.shadow,
+      color: colors.text,
       marginBottom: 5,
     },
     cardSubtitle: {
@@ -255,7 +257,7 @@ const getStyles = ({ colors }) =>
       gap: 8, // or remove if marginRight used
     },
     cashlessPaymentItem: {
-      backgroundColor: colors.onPrimary,
+      backgroundColor: colors.onQuaternary,
       borderRadius: 10,
       padding: 15,
       marginHorizontal: 5,
@@ -272,7 +274,7 @@ const getStyles = ({ colors }) =>
     cashlessPaymentTitle: {
       fontFamily: 'Poppins Medium',
       fontSize: 12,
-      color: colors.shadow,
+      color: colors.text,
     },
     cashlessPaymentDate: {
       fontFamily: 'Poppins Medium',

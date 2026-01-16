@@ -90,12 +90,36 @@ const AppTextInput = ({
     return parts.join('.');
   };
 
-  // Clean input - only allow numbers and one decimal point
+  // Clean input - only allow numbers and one decimal point, round to 2 decimal places
   const cleanAmount = val => {
-    return val
-      .replace(/[^0-9.]/g, '') // Only numbers and decimal
-      .replace(/(\..*?)\.+/g, '$1') // Only one decimal point
-      .replace(/^0+(?=\d)/, ''); // Remove leading zeros (except "0.")
+    // Remove everything except numbers and decimal point
+    let cleaned = val.replace(/[^0-9.]/g, '');
+
+    // Only allow one decimal point
+    cleaned = cleaned.replace(/(\..*?)\.+/g, '$1');
+
+    // Remove leading zeros (except "0." or just "0")
+    cleaned = cleaned.replace(/^0+(?=\d)/, '');
+
+    // Handle decimal places with rounding
+    const parts = cleaned.split('.');
+    if (parts.length > 1) {
+      // If user tries to type more than 2 decimal places, round it
+      if (parts[1].length > 2) {
+        const fullNumber = parseFloat(cleaned);
+        if (!isNaN(fullNumber)) {
+          // Round to 2 decimal places
+          const rounded = Math.round(fullNumber * 100) / 100;
+          cleaned = rounded.toString();
+        } else {
+          // Fallback: just truncate
+          parts[1] = parts[1].slice(0, 2);
+          cleaned = parts.join('.');
+        }
+      }
+    }
+
+    return cleaned;
   };
 
   const handleAmountChange = val => {
@@ -232,7 +256,7 @@ const AppTextInput = ({
             onBlur={handlePhoneBlur}
             onFocus={handlePhoneFocus}
             placeholder={placeholder || '09XX-XXX-XXXX'}
-            placeholderTextColor={colors.darkGrey}
+            placeholderTextColor={colors.onSurfaceVariant}
             style={styles.phoneInput}
             keyboardType="phone-pad"
           />
@@ -244,7 +268,7 @@ const AppTextInput = ({
           onBlur={isAmount ? handleAmountBlur : onBlur}
           onFocus={isAmount ? handleAmountFocus : undefined}
           placeholder={placeholder}
-          placeholderTextColor={colors.darkGrey}
+          placeholderTextColor={colors.onSurfaceVariant}
           style={[
             isComment ? styles.commentBox : styles.input,
             error && styles.inputError,
@@ -273,25 +297,26 @@ const getStyles = ({ colors }) =>
     label: {
       fontFamily: 'Poppins Regular',
       fontSize: 14,
-      color: 'black',
+      color: colors.onSurface,
       marginBottom: 5,
     },
     input: {
       borderBottomWidth: 1,
       borderColor: colors.surfaceVariant,
       fontSize: 16,
-      backgroundColor: 'white',
+      backgroundColor: colors.surface,
+      color: colors.onSurface,
       paddingVertical: 8,
     },
     inputError: {
-      borderColor: 'red',
+      borderColor: colors.error,
     },
     phoneContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       borderBottomWidth: 1,
       borderColor: colors.surfaceVariant,
-      backgroundColor: 'white',
+      backgroundColor: colors.surface,
       paddingVertical: 8,
     },
     flagEmoji: {
@@ -300,25 +325,25 @@ const getStyles = ({ colors }) =>
     },
     countryCode: {
       fontSize: 16,
-      color: 'black',
+      color: colors.onSurface,
       fontFamily: 'Poppins Regular',
       marginRight: 8,
     },
     phoneInput: {
       flex: 1,
       fontSize: 16,
-      color: 'black',
+      color: colors.onSurface,
       padding: 0,
       fontFamily: 'Poppins Regular',
     },
     commentBox: {
-      backgroundColor: '#F9F9F9',
+      backgroundColor: colors.elevation.level2,
       borderRadius: 15,
       padding: 15,
       fontSize: 16,
-      color: '#333',
+      color: colors.onSurface,
       borderColor: 'transparent',
-      shadowColor: '#000',
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 5,

@@ -282,7 +282,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       fontWeight: 500,
       fontSize: 12,
-      color: colors.shadow,
+      color: colors.text,
       marginBottom: 15,
     },
     locationRow: {
@@ -299,7 +299,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Regular',
       fontWeight: 400,
       fontSize: 12,
-      color: colors.shadow,
+      color: colors.text,
     },
     rebookBtn: {
       alignSelf: 'flex-start',
@@ -370,7 +370,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Regular',
       fontWeight: 'bold',
       fontSize: 12,
-      color: colors.shadow,
+      color: colors.text,
     },
     finalFareValue: {
       fontFamily: 'Poppins Regular',
@@ -389,7 +389,7 @@ const getStyles = ({ colors }) =>
     paymentLabel: {
       fontFamily: 'Poppins Light',
       fontSize: 12,
-      color: colors.shadow,
+      color: colors.text,
     },
     paymentMethodContainer: {
       flexDirection: 'row',
@@ -401,7 +401,7 @@ const getStyles = ({ colors }) =>
     paymentMethodText: {
       fontFamily: 'Poppins Light',
       fontSize: 12,
-      color: colors.shadow,
+      color: colors.text,
     },
 
     // rider Details Section
@@ -421,7 +421,7 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Light',
       fontWeight: 400,
       fontSize: 12,
-      color: colors.shadow,
+      color: colors.text,
       flex: 1, // Take available space
     },
     riderRatingContainer: {
@@ -442,7 +442,7 @@ const getStyles = ({ colors }) =>
     reportIssueText: {
       fontFamily: 'Poppins Regular',
       fontSize: 10,
-      color: colors.shadow,
+      color: colors.text,
       marginTop: 5,
     },
     reportIssueTextButton: {

@@ -87,8 +87,8 @@ const EKYCScreen = () => {
 
         console.log('eKYC verification completed successfully!', result);
 
-        navigation.navigate('HomeScreen', {
-          ekycCompleted: true,
+        navigation.navigate('LoginScreen', {
+          registrationComplete: true,
           verificationData: result,
         });
       }

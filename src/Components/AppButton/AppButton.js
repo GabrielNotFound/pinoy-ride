@@ -16,7 +16,7 @@ const AppButton = ({
   labelStyle,
   featureStyle,
 }) => {
-  const { colors } = useTheme();
+  const { colors, dark } = useTheme();
   const styles = getStyles({ colors });
 
   const hasIcon = !!leftIcon || !!rightIcon;
@@ -34,7 +34,9 @@ const AppButton = ({
           backgroundColor: isLight
             ? '#fff'
             : isOutlined
-            ? 'white'
+            ? dark
+              ? 'rgb(42, 40, 48)'
+              : 'white'
             : buttonColor || colors.primary,
           borderColor: isOutlined
             ? buttonColor || colors.primary
@@ -59,6 +61,8 @@ const AppButton = ({
         <View style={styles.textWrapper}>
           <Text
             numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
             style={[
               {
                 fontSize: hasIcon ? 16 : 18,
@@ -67,7 +71,7 @@ const AppButton = ({
                 color:
                   textColor ??
                   (isLight
-                    ? colors.shadow
+                    ? colors.text
                     : isOutlined
                     ? buttonColor || colors.primary
                     : colors.onPrimary),

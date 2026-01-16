@@ -107,7 +107,7 @@ const getStyles = ({ colors }) =>
     },
     profileLabel: {
       backgroundColor: colors.lightBlue,
-      color: colors.shadow,
+      color: colors.text,
       paddingHorizontal: 10,
       paddingVertical: 2,
       borderRadius: 10,

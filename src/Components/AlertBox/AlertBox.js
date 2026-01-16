@@ -40,17 +40,17 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)', // semi-transparent background
+      backgroundColor: 'rgba(0,0,0,0.5)',
       justifyContent: 'center',
       alignItems: 'center',
     },
     container: {
       width: '80%',
-      backgroundColor: '#fff',
+      backgroundColor: colors.surface,
       borderRadius: 12,
       padding: 20,
-      elevation: 5, // Android shadow
-      shadowColor: '#000', // iOS shadow
+      elevation: 5,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 4,
@@ -66,7 +66,7 @@ const getStyles = ({ colors }) =>
     message: {
       fontSize: 14,
       fontFamily: 'Poppins Regular',
-      color: '#333',
+      color: colors.onSurface,
       textAlign: 'center',
       marginBottom: 16,
     },
@@ -80,6 +80,6 @@ const getStyles = ({ colors }) =>
     confirmText: {
       fontSize: 14,
       fontFamily: 'Poppins Medium',
-      color: '#fff',
+      color: colors.onPrimary,
     },
   });

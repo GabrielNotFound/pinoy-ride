@@ -152,14 +152,14 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Light',
       fontWeight: 500,
       fontSize: 16,
-      color: colors.shadow,
+      color: colors.text,
     },
     title: {
       fontFamily: 'Poppins Medium',
       fontWeight: 500,
       fontSize: 16,
       marginVertical: 15,
-      color: colors.shadow,
+      color: colors.text,
     },
     warning: {
       fontFamily: 'Poppins Regular',

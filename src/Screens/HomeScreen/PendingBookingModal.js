@@ -118,7 +118,7 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
     },
     card: {
-      backgroundColor: '#fff',
+      backgroundColor: colors.surface,
       padding: 16,
       borderRadius: 16,
       width: '90%',
@@ -138,7 +138,7 @@ const getStyles = ({ colors }) =>
     name: {
       fontFamily: 'Poppins-SemiBold',
       fontSize: 16,
-      color: '#222',
+      color: colors.onSurface,
     },
     amountBox: {
       alignItems: 'flex-end',
@@ -150,7 +150,7 @@ const getStyles = ({ colors }) =>
     },
     paymentType: {
       fontSize: 12,
-      color: '#888',
+      color: colors.onSurfaceVariant,
     },
     locationIcon: {
       width: 18,
@@ -165,7 +165,7 @@ const getStyles = ({ colors }) =>
     locationText: {
       marginLeft: 6,
       fontSize: 14,
-      color: '#333',
+      color: colors.onSurface,
       flexShrink: 1,
     },
     footer: {
@@ -173,7 +173,7 @@ const getStyles = ({ colors }) =>
       justifyContent: 'flex-end',
     },
     ignoreBtn: {
-      backgroundColor: colors.onPrimary,
+      backgroundColor: colors.surface,
       paddingHorizontal: 20,
       paddingVertical: 8,
       borderRadius: 8,
@@ -190,13 +190,13 @@ const getStyles = ({ colors }) =>
       borderRadius: 8,
     },
     acceptText: {
-      color: '#fff',
+      color: colors.onPrimary,
       fontFamily: 'Poppins-SemiBold',
       fontSize: 16,
     },
     divider: {
       height: 1,
-      backgroundColor: colors.grey,
+      backgroundColor: colors.outline,
       marginVertical: 12,
     },
   });

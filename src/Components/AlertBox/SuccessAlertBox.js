@@ -6,7 +6,9 @@ const SuccessAlertBox = ({ imageSource, title, message, visible, onClose }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
 
-  if (!visible) {return null;}
+  if (!visible) {
+    return null;
+  }
 
   return (
     <Pressable style={styles.backdrop} onPress={onClose}>
@@ -39,9 +41,9 @@ const getStyles = ({ colors }) =>
       height: 215,
       padding: 24,
       alignItems: 'center',
-      backgroundColor: '#fff',
+      backgroundColor: colors.surface,
       borderRadius: 16,
-      shadowColor: '#000',
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.1,
       shadowRadius: 10,
@@ -57,13 +59,13 @@ const getStyles = ({ colors }) =>
       fontSize: 25,
       fontFamily: 'Poppins Semibold',
       fontWeight: '600',
-      color: colors.darkGrey,
+      color: colors.onSurface,
       marginBottom: 8,
     },
     message: {
       fontFamily: 'Poppins Regular',
       fontSize: 16,
-      color: colors.darkGrey,
+      color: colors.onSurface,
       textAlign: 'center',
     },
   });
