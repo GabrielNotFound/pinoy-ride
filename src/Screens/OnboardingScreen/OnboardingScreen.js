@@ -25,39 +25,43 @@ import {
 } from '@/Utils/Permissions';
 import { openSettings } from 'react-native-permissions';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
+// Calculate responsive dimensions
+const isSmallScreen = width < 375;
+const imageScale = Math.min(width / 400, 1); // Scale images proportionally
 
 const slides = [
   {
     key: '1',
     title: 'Book Your Rides in Seconds',
     subtitle:
-      'Just a few taps and you’re set. Choose your pickup, track your rider, and get to your destination—fast and safe.',
+      "Just a few taps and you're set. Choose your pickup, track your rider, and get to your destination—fast and safe.",
     image: require('@/Assets/Common/OnboardingScreen/First_Page.png'),
     imagePosition: 'bottom',
-    imageWidth: 408,
-    imageHeight: 272,
+    imageWidth: 408 * imageScale,
+    imageHeight: 272 * imageScale,
   },
   {
     key: '2',
     title: 'Real-Time Tracking',
     subtitle:
-      'Stay updated with live GPS tracking. Know your rider’s exact location and estimated time of arrival.',
+      "Stay updated with live GPS tracking. Know your rider's exact location and estimated time of arrival.",
     image: require('@/Assets/Common/OnboardingScreen/Second_Page.png'),
     imagePosition: 'top',
-    imageWidth: 401,
-    imageHeight: 351,
+    imageWidth: 401 * imageScale,
+    imageHeight: 351 * imageScale,
   },
   {
     key: '3',
     title: 'Safe & Trusted Rides',
     subtitle:
-      'All our riders are trained and verified. Ride with confidence wherever you’re going.',
+      "All our riders are trained and verified. Ride with confidence wherever you're going.",
     image: require('@/Assets/Common/OnboardingScreen/Third_Page.png'),
     imagePosition: 'top',
-    imageWidth: 540,
-    imageHeight: 490,
-    top: 60,
+    imageWidth: Math.min(540 * imageScale, width * 0.9),
+    imageHeight: Math.min(490 * imageScale, height * 0.45),
+    top: isSmallScreen ? 20 : 60,
   },
 ];
 
@@ -223,7 +227,7 @@ const OnboardingScreen = () => {
                     style={{
                       width: item.imageWidth,
                       height: item.imageHeight,
-                      marginBottom: 20,
+                      marginBottom: isSmallScreen ? 10 : 20,
                       top: item.top || 0,
                     }}
                     resizeMode="contain"
@@ -241,7 +245,7 @@ const OnboardingScreen = () => {
                     style={{
                       width: item.imageWidth,
                       height: item.imageHeight,
-                      marginTop: 20,
+                      marginTop: isSmallScreen ? 10 : 20,
                       top: item.top || 0,
                     }}
                     resizeMode="contain"
@@ -308,25 +312,26 @@ const getStyles = ({ colors }) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: 20,
+      paddingHorizontal: isSmallScreen ? 15 : 20,
     },
     textContainer: {
       alignItems: 'center',
-      marginVertical: 10,
+      marginVertical: isSmallScreen ? 5 : 10,
+      paddingHorizontal: 10,
     },
     subtitleWrapper: {
-      maxWidth: 300,
+      maxWidth: width * 0.85, // Responsive width instead of fixed 300
     },
     title: {
       fontFamily: 'Poppins SemiBold',
-      fontSize: 25,
+      fontSize: isSmallScreen ? 20 : 25,
       textAlign: 'center',
       letterSpacing: -0.45,
     },
     subtitle: {
       fontFamily: 'Poppins Regular',
       fontWeight: '400',
-      fontSize: 16,
+      fontSize: isSmallScreen ? 14 : 16,
       textAlign: 'center',
       letterSpacing: -0.5,
     },
@@ -348,30 +353,30 @@ const getStyles = ({ colors }) =>
     buttonContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 61,
-      marginTop: 30,
-      marginBottom: 40,
+      paddingHorizontal: isSmallScreen ? 30 : 61,
+      marginTop: isSmallScreen ? 20 : 30,
+      marginBottom: isSmallScreen ? 30 : 40,
     },
     continueButtonContainer: {
       paddingHorizontal: 30,
-      marginBottom: 40,
+      marginBottom: isSmallScreen ? 30 : 40,
     },
     skip: {
-      paddingHorizontal: 20,
+      paddingHorizontal: isSmallScreen ? 15 : 20,
       color: colors.primary,
       fontFamily: 'Poppins Medium',
-      fontSize: 16,
+      fontSize: isSmallScreen ? 14 : 16,
     },
     nextButton: {
       backgroundColor: colors.primary,
-      paddingHorizontal: 20,
+      paddingHorizontal: isSmallScreen ? 15 : 20,
       paddingVertical: 10,
       borderRadius: 30,
     },
     next: {
       color: 'white',
       fontFamily: 'Poppins Medium',
-      fontSize: 16,
+      fontSize: isSmallScreen ? 14 : 16,
       lineHeight: 22,
     },
     nextContent: {
