@@ -8,6 +8,7 @@ import {
   CashOutScreen,
   DownloadDocumentScreen,
   EKYCScreen,
+  GeneralTermsScreen,
   HomeScreen,
   InputLocation,
   LandingScreen,
@@ -22,6 +23,7 @@ import {
   SettingsScreen,
   SplashScreen,
   SuccessfulBooking,
+  TAC,
   TopUpScreen,
   WalletScreen,
 } from '@/Screens';
@@ -85,6 +87,16 @@ const ApplicationNavigator = () => {
           <Stack.Screen
             name="EKYCScreen"
             component={EKYCScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="GeneralTermsScreen"
+            component={GeneralTermsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="TAC"
+            component={TAC}
             options={{ headerShown: false }}
           />
           <Stack.Screen

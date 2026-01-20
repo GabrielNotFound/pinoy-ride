@@ -106,7 +106,7 @@ const OTPScreen = () => {
     if (userInfo) {
       navigation.reset({
         index: 0,
-        routes: [{ name: 'HomeScreen' }],
+        routes: [{ name: 'GeneralTermsScreen' }],
       });
     }
   }, [userInfo]);
