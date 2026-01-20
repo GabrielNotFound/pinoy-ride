@@ -1,4 +1,3 @@
-import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
   Image,
@@ -10,6 +9,8 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
+import { AlertBox, AppButton } from '@/Components';
+import TopUpAmountModal from './TopUpAmountModal';
 
 const PaymentMethodModal = ({
   visible,
@@ -20,74 +21,81 @@ const PaymentMethodModal = ({
   const { colors } = useTheme();
   const styles = getStyles({ colors });
 
-  const navigation = useNavigation();
+  const [showTopUpModal, setShowTopUpModal] = React.useState(false);
+  const [alertMessage, setAlertMessage] = React.useState('');
+  const [showAlert, setShowAlert] = React.useState(false);
+
+  const handleNext = () => {
+    setShowTopUpModal(true);
+  };
+
+  const handleTopUpError = errorMessage => {
+    setAlertMessage(errorMessage);
+    setShowAlert(true);
+  };
+
+  const handleTopUpSuccess = () => {
+    // Close the PaymentMethodModal when top-up is successful
+    onClose();
+  };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}>
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.backdrop} />
-      </TouchableWithoutFeedback>
+    <>
+      {/* Alert for API errors */}
+      {alertMessage ? (
+        <AlertBox
+          title="Error"
+          message={alertMessage}
+          visible={showAlert}
+          setVisible={setShowAlert}
+        />
+      ) : null}
 
-      <View style={styles.modalContainer}>
-        <Text style={styles.title}>Select Payment</Text>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={onClose}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
 
-        {/* Wallet option */}
-        <TouchableOpacity
-          style={[
-            styles.option,
-            selectedPayment === 'Wallet' && styles.optionSelected,
-          ]}
-          onPress={() => {
-            onSelect?.('Wallet');
-            onClose();
-          }}>
-          <Image
-            source={require('@/Assets/Common/HomeScreen/BottomModal/cash.png')}
-            style={styles.icon}
-          />
-          <Text style={styles.optionText}>Wallet</Text>
-          {selectedPayment === 'Wallet' && (
-            <View style={styles.radioCircle}>
-              <View style={styles.radioInner} />
-            </View>
-          )}
-        </TouchableOpacity>
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>Select Payment</Text>
 
-        {/* Cash option */}
-        <TouchableOpacity
-          style={[
-            styles.option,
-            selectedPayment === 'Cash' && styles.optionSelected,
-          ]}
-          onPress={() => {
-            onSelect?.('Cash');
-            onClose();
-          }}>
-          <Image
-            source={require('@/Assets/Common/HomeScreen/BottomModal/cash.png')}
-            style={styles.icon}
-          />
-          <Text style={styles.optionText}>Cash</Text>
-          {selectedPayment === 'Cash' && (
-            <View style={styles.radioCircle}>
-              <View style={styles.radioInner} />
-            </View>
-          )}
-        </TouchableOpacity>
+          {/* Wallet option */}
+          <TouchableOpacity
+            style={[
+              styles.option,
+              selectedPayment === 'Wallet' && styles.optionSelected,
+            ]}
+            onPress={() => {
+              onSelect?.('Wallet');
+              onClose();
+            }}>
+            <Image
+              source={require('@/Assets/Common/HomeScreen/BottomModal/cash.png')}
+              style={styles.icon}
+            />
+            <Text style={styles.optionText}>Wallet</Text>
+            {selectedPayment === 'Wallet' && (
+              <View style={styles.radioCircle}>
+                <View style={styles.radioInner} />
+              </View>
+            )}
+          </TouchableOpacity>
+          <AppButton title="Top Up" onPress={handleNext} isBold />
+        </View>
+      </Modal>
 
-        <TouchableOpacity
-          onPress={() => {
-            onClose();
-            navigation.navigate('PaymentOptionScreen');
-          }}>
-          <Text style={styles.manageText}>Manage Payment Methods</Text>
-        </TouchableOpacity>
-      </View>
-    </Modal>
+      {/* Top Up Amount Modal */}
+      <TopUpAmountModal
+        visible={showTopUpModal}
+        onClose={() => setShowTopUpModal(false)}
+        onError={handleTopUpError}
+        onSuccess={handleTopUpSuccess}
+      />
+    </>
   );
 };
 

@@ -195,10 +195,6 @@ const CashInScreen = () => {
                 {touched.amount && errors.amount ? (
                   <AppTextError>{errors.amount}</AppTextError>
                 ) : null}
-                {/* DEBUG: Show current value */}
-                <Text style={{ fontSize: 10, color: 'gray' }}>
-                  Debug - Current value: "{values.amount}"
-                </Text>
               </View>
 
               {/* Quick Amount Buttons */}

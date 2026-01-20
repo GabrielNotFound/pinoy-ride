@@ -121,5 +121,16 @@
     <key>GMSPlacesApiKey</key>
     <string>AIzaSyCy-3C367WAU4SJZuLQxXb8z8p4rNI94Qo</string>
 
+    <!-- Deep Linking Web View-->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>gcash</string>
+        <string>paymaya</string>
+        <string>maya</string>
+        <string>topphapp</string>
+        <string>topphapp-pre</string>
+        <string>toppay</string>
+    </array>
+
   </dict>
 </plist>

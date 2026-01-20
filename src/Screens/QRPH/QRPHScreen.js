@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -127,6 +129,60 @@ const QRPHScreen = () => {
     };
   }, []);
 
+  // NEW: Handle deep links and custom schemes
+  const handleShouldStartLoadWithRequest = request => {
+    const { url } = request;
+
+    console.log('=== Navigation Request ===');
+    console.log('URL:', url);
+    console.log('========================');
+
+    // Allow HTTP and HTTPS URLs to load normally in the WebView
+    if (url.startsWith('https://') || url.startsWith('http://')) {
+      return true; // Let the WebView load it
+    }
+
+    // Handle custom schemes (deep links) - open in external app
+    if (
+      url.startsWith('gcash://') ||
+      url.startsWith('maya://') ||
+      url.startsWith('paymaya://') ||
+      url.startsWith('toppay://') ||
+      url.startsWith('topphapp://') ||
+      url.startsWith('topphapp-pre://') || // Pre-production TÓP.ph
+      url.startsWith('intent://') // Android intent URLs
+    ) {
+      console.log('Detected deep link:', url);
+
+      // Try to open the URL in the native app
+      Linking.openURL(url).catch(err => {
+        console.warn("Can't open url:", url);
+        console.error('Error details:', err);
+
+        // Show user-friendly error message
+        setAlertMessage(
+          'The required payment app is not installed on your device. Please install it to continue with this payment method.',
+        );
+        setShowAlert(true);
+      });
+
+      return false; // Prevent WebView from loading it
+    }
+
+    // For any other schemes, block by default for security
+    console.warn('Blocked unknown URL scheme:', url);
+    return false;
+  };
+
+  // Handle navigation state changes (especially for iOS)
+  const handleNavigationStateChange = navState => {
+    console.log('=== Navigation State Change ===');
+    console.log('URL:', navState.url);
+    console.log('Can Go Back:', navState.canGoBack);
+    console.log('Loading:', navState.loading);
+    console.log('==============================');
+  };
+
   const handleError = syntheticEvent => {
     const { nativeEvent } = syntheticEvent;
     console.warn('WebView error: ', nativeEvent);
@@ -187,7 +243,14 @@ const QRPHScreen = () => {
       {/* Alert */}
       {alertMessage ? (
         <AlertBox
-          title={alertMessage.includes('success') ? 'Success' : 'Error'}
+          title={
+            alertMessage.includes('Unable') ||
+            alertMessage.includes('not installed')
+              ? 'Error'
+              : alertMessage.includes('success')
+              ? 'Success'
+              : 'Error'
+          }
           message={alertMessage}
           visible={showAlert}
           setVisible={setShowAlert}
@@ -206,14 +269,33 @@ const QRPHScreen = () => {
           ref={webViewRef}
           source={{ uri: payment_url }}
           style={styles.webView}
-          onLoadStart={() => setLoading(true)}
-          onLoadEnd={() => setLoading(false)}
+          onLoadStart={() => {
+            console.log('WebView load started');
+            setLoading(true);
+          }}
+          onLoadEnd={() => {
+            console.log('WebView load ended');
+            setLoading(false);
+          }}
           onError={handleError}
+          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+          onNavigationStateChange={handleNavigationStateChange}
           javaScriptEnabled={true}
           domStorageEnabled={true}
           thirdPartyCookiesEnabled={true}
           mixedContentMode="compatibility"
           startInLoadingState={true}
+          allowsLinkPreview={false}
+          // Important: Allow inline media playback and user interaction
+          allowsInlineMediaPlayback={true}
+          mediaPlaybackRequiresUserAction={false}
+          // Ensure touch events work
+          scrollEnabled={true}
+          bounces={false}
+          // Additional iOS specific settings
+          {...(Platform.OS === 'ios' && {
+            decelerationRate: 'normal',
+          })}
         />
       </View>
     </View>
