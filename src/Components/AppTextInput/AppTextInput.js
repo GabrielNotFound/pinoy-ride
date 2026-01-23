@@ -3,7 +3,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import AppTextError from '../AppTextError/AppTextError';
 
-// Format phone number with dashes: 0927-339-4743
+// Format phone number with dashes: 927-339-4743
 const formatPhoneDisplay = number => {
   const cleaned = number.replace(/\D/g, '');
 
@@ -11,19 +11,19 @@ const formatPhoneDisplay = number => {
     return '';
   }
 
-  if (cleaned.length <= 4) {
+  if (cleaned.length <= 3) {
     return cleaned;
-  } else if (cleaned.length <= 7) {
-    return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
+  } else if (cleaned.length <= 6) {
+    return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
   } else {
-    return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 7)}-${cleaned.slice(
-      7,
-      11,
+    return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(
+      6,
+      10,
     )}`;
   }
 };
 
-// Philippine mobile number validation - must start with 09
+// Philippine mobile number validation - must start with 9
 const validatePhilippineNumber = number => {
   const cleaned = number.replace(/\D/g, '');
 
@@ -32,21 +32,18 @@ const validatePhilippineNumber = number => {
     return null;
   }
 
-  // Must start with 09
-  if (!cleaned.startsWith('09')) {
-    if (cleaned.length === 1 && cleaned === '0') {
-      return null; // Allow typing "0" first
-    }
-    return 'Invalid phone number. Input should start with 09.';
+  // Must start with 9
+  if (!cleaned.startsWith('9')) {
+    return 'Invalid phone number. Input should start with 9.';
   }
 
-  // Show error for incomplete numbers (less than 11 digits)
-  if (cleaned.length < 11) {
-    return `${formatPhoneDisplay(cleaned)} is incomplete.`;
+  // Show error for incomplete numbers (less than 10 digits)
+  if (cleaned.length < 10) {
+    return `+63 ${formatPhoneDisplay(cleaned)} is incomplete.`;
   }
 
-  // Valid when exactly 11 digits starting with 09
-  if (cleaned.length === 11) {
+  // Valid when exactly 10 digits starting with 9
+  if (cleaned.length === 10) {
     return null;
   }
 
@@ -137,23 +134,19 @@ const AppTextInput = ({
     // Clean input - only allow digits
     const cleaned = text.replace(/\D/g, '');
 
-    // Prevent typing beyond 11 digits
-    if (cleaned.length > 11) {
+    // Prevent typing beyond 10 digits
+    if (cleaned.length > 10) {
       return;
     }
 
     // Update display value (this will be auto-formatted)
     setDisplayPhone(cleaned);
 
-    // Convert to storage format: 0XXXXXXXXXX -> 63XXXXXXXXXX
+    // Convert to storage format: 9XXXXXXXXX -> 639XXXXXXXXX
     let storageValue = '';
     if (cleaned.length > 0) {
-      if (cleaned.startsWith('0')) {
-        // Replace leading 0 with 63
-        storageValue = '63' + cleaned.slice(1);
-      } else {
-        storageValue = cleaned;
-      }
+      // Add 63 prefix
+      storageValue = '63' + cleaned;
     }
 
     // Real-time validation
@@ -162,7 +155,7 @@ const AppTextInput = ({
 
     // Notify parent of validation state
     const isValid =
-      !validationError && cleaned.length === 11 && cleaned.startsWith('09');
+      !validationError && cleaned.length === 10 && cleaned.startsWith('9');
     if (onValidationChange) {
       onValidationChange(isValid);
     }
@@ -180,8 +173,8 @@ const AppTextInput = ({
 
       const isValid =
         !validationError &&
-        displayPhone.length === 11 &&
-        displayPhone.startsWith('09');
+        displayPhone.length === 10 &&
+        displayPhone.startsWith('9');
       if (onValidationChange) {
         onValidationChange(isValid);
       }
@@ -231,7 +224,7 @@ const AppTextInput = ({
             onChangeText={handlePhoneChange}
             onBlur={handlePhoneBlur}
             onFocus={handlePhoneFocus}
-            placeholder={placeholder || '09XX-XXX-XXXX'}
+            placeholder={placeholder || '9XX-XXX-XXXX'}
             placeholderTextColor={colors.darkGrey}
             style={styles.phoneInput}
             keyboardType="phone-pad"

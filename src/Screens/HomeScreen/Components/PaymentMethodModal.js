@@ -77,7 +77,7 @@ const PaymentMethodModal = ({
               source={require('@/Assets/Common/HomeScreen/BottomModal/cash.png')}
               style={styles.icon}
             />
-            <Text style={styles.optionText}>Wallet</Text>
+            <Text style={styles.optionText}>Pinoy Ride Wallet</Text>
             {selectedPayment === 'Wallet' && (
               <View style={styles.radioCircle}>
                 <View style={styles.radioInner} />

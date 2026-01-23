@@ -41,6 +41,7 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force 'com.google.android.gms:play-services-location:21.0.1'
+            force 'androidx.browser:browser:1.8.0' // Fix for expo-web-browser & Chrome Custom Tabs
         }
     }
 }

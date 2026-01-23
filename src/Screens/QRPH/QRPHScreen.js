@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   Image,
   Linking,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,228 +11,173 @@ import {
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
+
 import { AlertBox } from '@/Components';
-import { WebView } from 'react-native-webview';
 import usePostRequest from '@/Services/Api';
-import { Constants } from '@/Utils';
+import { AppUtil, Constants } from '@/Utils';
+
+const FLOW = {
+  INIT: 'INIT',
+  CHECKING: 'CHECKING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+};
 
 const QRPHScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
   const route = useRoute();
+
   const { paymentData } = route.params || {};
+  const paymentUrl = paymentData?.paymentUrl || paymentData?.payment_url;
+  const referenceId = paymentData?.referenceId || paymentData?.reference_id;
 
-  //  Support both camelCase (new API) and snake_case (old format)
-  const payment_url = paymentData?.paymentUrl || paymentData?.payment_url;
-  const reference_id = paymentData?.referenceId || paymentData?.reference_id;
-
-  const webViewRef = useRef(null);
-  const [loading, setLoading] = useState(true);
+  const [flowState, setFlowState] = useState(FLOW.INIT);
   const [alertMessage, setAlertMessage] = useState('');
-  const [showAlert, setShowAlert] = useState(false);
-
-  const [isCheckStatusActive, setIsCheckStatusActive] = useState(false);
-  const [isPaymentComplete, setIsPaymentComplete] = useState(false);
 
   const checkPaymentStatus = usePostRequest();
-  const checkStatusIntervalRef = useRef();
-  const referenceIdRef = useRef(reference_id);
+  const intervalRef = useRef(null);
+  const referenceIdRef = useRef(referenceId);
 
-  // Update referenceIdRef when reference_id changes
   useEffect(() => {
-    console.log(referenceIdRef);
-    referenceIdRef.current = reference_id;
-  }, [reference_id]);
+    referenceIdRef.current = referenceId;
+  }, [referenceId]);
 
-  // Start polling when reference_id and payment_url are available
-  useEffect(() => {
-    if (reference_id && payment_url) {
-      setIsCheckStatusActive(true);
+  const openPayment = async url => {
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        await InAppBrowser.open(url, {
+          showTitle: true,
+          enableUrlBarHiding: true,
+          enableDefaultShare: false,
+          modalEnabled: true,
+        });
+        setFlowState(FLOW.CANCELLED);
+      } else {
+        Linking.openURL(url);
+        setFlowState(FLOW.CANCELLED);
+      }
+    } catch {
+      Linking.openURL(url);
+      setFlowState(FLOW.CANCELLED);
     }
-  }, [reference_id, payment_url]);
+  };
 
-  // Polling mechanism — check status every 5 seconds
   useEffect(() => {
-    if (isCheckStatusActive && !isPaymentComplete) {
-      checkStatusIntervalRef.current = setInterval(() => {
-        if (referenceIdRef.current) {
-          checkPaymentStatus.makePostRequest(
-            Constants.ENDPOINT.QRPH_CHECK_STATUS,
-            {
-              reference_id: referenceIdRef.current,
-            },
-            {},
-            'json',
-          );
-        }
-      }, 5000);
+    if (paymentUrl && referenceId) {
+      openPayment(paymentUrl);
+      setFlowState(FLOW.CHECKING);
     }
+  }, [paymentUrl, referenceId]);
+
+  useEffect(() => {
+    if (flowState !== FLOW.CHECKING) {return;}
+
+    intervalRef.current = setInterval(() => {
+      if (!referenceIdRef.current) {return;}
+
+      checkPaymentStatus.makePostRequest(
+        Constants.ENDPOINT.QRPH_CHECK_STATUS,
+        { reference_id: referenceIdRef.current },
+        {},
+        'json',
+      );
+    }, 5000);
 
     return () => {
-      if (checkStatusIntervalRef.current) {
-        clearInterval(checkStatusIntervalRef.current);
-        checkStatusIntervalRef.current = null;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [isCheckStatusActive, isPaymentComplete]);
+  }, [flowState]);
 
-  // Handle payment status check response
   useEffect(() => {
-    if (checkPaymentStatus.error) {
-      console.warn('Payment status check error:', checkPaymentStatus.error);
+    const result = checkPaymentStatus.response?.data;
+    AppUtil.debugDeep(result);
+    if (!result?.status) {return;}
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    if (result.status === 'success') {
+      setFlowState(FLOW.SUCCESS);
+
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'AppTransactionComplete',
+            params: {
+              referenceData: {
+                amount: paymentData?.amount || '0.00',
+                referenceId: result?.referenceId || referenceId,
+                status: result.status,
+                timestamp: result?.ts || new Date().toISOString(),
+                paymentMethod: 'QRPH',
+              },
+            },
+          },
+        ],
+      });
       return;
     }
 
-    if (
-      checkPaymentStatus.response &&
-      Object.keys(checkPaymentStatus.response).length > 0
-    ) {
-      const result = checkPaymentStatus.response?.data;
-
-      if (result?.status === 'success') {
-        setIsCheckStatusActive(false);
-        setIsPaymentComplete(true);
-
-        if (checkStatusIntervalRef.current) {
-          clearInterval(checkStatusIntervalRef.current);
-          checkStatusIntervalRef.current = null;
-        }
-
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'AppTransactionComplete',
-              params: {
-                referenceData: {
-                  amount: paymentData?.amount || '0.00',
-                  referenceId: result?.referenceId || reference_id,
-                  status: result?.status,
-                  timestamp: result?.ts || new Date().toISOString(),
-                  paymentMethod: 'QRPH',
-                },
-              },
-            },
-          ],
-        });
-      }
+    if (result.status === 'failed') {
+      setFlowState(FLOW.FAILED);
+      setAlertMessage('Payment failed. Please try again.');
+      return;
     }
-  }, [checkPaymentStatus.response, checkPaymentStatus.error]);
 
-  // Cleanup on unmount
+    if (result.status === 'expired') {
+      setFlowState(FLOW.EXPIRED);
+      setAlertMessage('Payment expired. Please restart the payment.');
+    }
+  }, [checkPaymentStatus.response]);
+
   useEffect(() => {
-    return () => {
-      if (checkStatusIntervalRef.current) {
-        clearInterval(checkStatusIntervalRef.current);
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active' && flowState === FLOW.CANCELLED) {
+        setFlowState(FLOW.CHECKING);
       }
-    };
-  }, []);
+    });
 
-  // NEW: Handle deep links and custom schemes
-  const handleShouldStartLoadWithRequest = request => {
-    const { url } = request;
+    return () => sub.remove();
+  }, [flowState]);
 
-    console.log('=== Navigation Request ===');
-    console.log('URL:', url);
-    console.log('========================');
-
-    // Allow HTTP and HTTPS URLs to load normally in the WebView
-    if (url.startsWith('https://') || url.startsWith('http://')) {
-      return true; // Let the WebView load it
-    }
-
-    // Handle custom schemes (deep links) - open in external app
-    if (
-      url.startsWith('gcash://') ||
-      url.startsWith('maya://') ||
-      url.startsWith('paymaya://') ||
-      url.startsWith('toppay://') ||
-      url.startsWith('topphapp://') ||
-      url.startsWith('topphapp-pre://') || // Pre-production TÓP.ph
-      url.startsWith('intent://') // Android intent URLs
-    ) {
-      console.log('Detected deep link:', url);
-
-      // Try to open the URL in the native app
-      Linking.openURL(url).catch(err => {
-        console.warn("Can't open url:", url);
-        console.error('Error details:', err);
-
-        // Show user-friendly error message
-        setAlertMessage(
-          'The required payment app is not installed on your device. Please install it to continue with this payment method.',
-        );
-        setShowAlert(true);
-      });
-
-      return false; // Prevent WebView from loading it
-    }
-
-    // For any other schemes, block by default for security
-    console.warn('Blocked unknown URL scheme:', url);
-    return false;
+  const handleBack = () => {
+    if (intervalRef.current) {clearInterval(intervalRef.current);}
+    navigation.goBack();
   };
 
-  // Handle navigation state changes (especially for iOS)
-  const handleNavigationStateChange = navState => {
-    console.log('=== Navigation State Change ===');
-    console.log('URL:', navState.url);
-    console.log('Can Go Back:', navState.canGoBack);
-    console.log('Loading:', navState.loading);
-    console.log('==============================');
+  const retryPayment = () => {
+    setAlertMessage('');
+    setFlowState(FLOW.INIT);
+    openPayment(paymentUrl);
+    setFlowState(FLOW.CHECKING);
   };
 
-  const handleError = syntheticEvent => {
-    const { nativeEvent } = syntheticEvent;
-    console.warn('WebView error: ', nativeEvent);
-    setAlertMessage('Failed to load payment page. Please try again.');
-    setShowAlert(true);
-  };
-
-  if (!payment_url) {
+  if (!paymentUrl) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.iconButton}>
-              <Image
-                source={require('@/Assets/Common/Back_2.png')}
-                style={styles.backIcon}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Cash In</Text>
-            <View style={styles.spacing} />
-          </View>
-        </View>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>No payment URL provided</Text>
-        </View>
+        <Text>No payment URL provided</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => {
-              setIsCheckStatusActive(false);
-              if (checkStatusIntervalRef.current) {
-                clearInterval(checkStatusIntervalRef.current);
-              }
-              navigation.goBack();
-            }}
-            style={styles.iconButton}>
+          <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
             <Image
               source={require('@/Assets/Common/Back_2.png')}
               style={styles.backIcon}
-              resizeMode="contain"
             />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>QRPH</Text>
@@ -240,63 +185,33 @@ const QRPHScreen = () => {
         </View>
       </View>
 
-      {/* Alert */}
-      {alertMessage ? (
+      {!!alertMessage && (
         <AlertBox
-          title={
-            alertMessage.includes('Unable') ||
-            alertMessage.includes('not installed')
-              ? 'Error'
-              : alertMessage.includes('success')
-              ? 'Success'
-              : 'Error'
-          }
+          title="Payment Status"
           message={alertMessage}
-          visible={showAlert}
-          setVisible={setShowAlert}
+          visible={true}
+          setVisible={() => setAlertMessage('')}
         />
-      ) : null}
+      )}
 
-      {/* WebView Container */}
-      <View style={styles.webViewContainer}>
-        {loading && (
-          <View style={styles.loadingContainer}>
+      <View style={styles.center}>
+        {flowState === FLOW.CHECKING && (
+          <>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Loading payment...</Text>
-          </View>
+            <Text style={styles.text}>Complete payment in your browser</Text>
+            <Text style={styles.subText}>
+              This screen will update automatically
+            </Text>
+          </>
         )}
-        <WebView
-          ref={webViewRef}
-          source={{ uri: payment_url }}
-          style={styles.webView}
-          onLoadStart={() => {
-            console.log('WebView load started');
-            setLoading(true);
-          }}
-          onLoadEnd={() => {
-            console.log('WebView load ended');
-            setLoading(false);
-          }}
-          onError={handleError}
-          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-          onNavigationStateChange={handleNavigationStateChange}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          thirdPartyCookiesEnabled={true}
-          mixedContentMode="compatibility"
-          startInLoadingState={true}
-          allowsLinkPreview={false}
-          // Important: Allow inline media playback and user interaction
-          allowsInlineMediaPlayback={true}
-          mediaPlaybackRequiresUserAction={false}
-          // Ensure touch events work
-          scrollEnabled={true}
-          bounces={false}
-          // Additional iOS specific settings
-          {...(Platform.OS === 'ios' && {
-            decelerationRate: 'normal',
-          })}
-        />
+
+        {(flowState === FLOW.FAILED || flowState === FLOW.EXPIRED) && (
+          <TouchableOpacity onPress={retryPayment}>
+            <Text style={[styles.text, { color: colors.primary }]}>
+              Retry Payment
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -306,10 +221,7 @@ export default QRPHScreen;
 
 const getStyles = ({ colors }) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
+    container: { flex: 1, backgroundColor: colors.background },
     headerContainer: {
       backgroundColor: colors.primary,
       paddingTop: 60,
@@ -319,60 +231,33 @@ const getStyles = ({ colors }) =>
     headerRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
     },
-    iconButton: {
-      width: 25,
-    },
-    spacing: {
-      width: 25,
-    },
-    backIcon: {
-      width: 23,
-      height: 23,
-    },
+    iconButton: { width: 25 },
+    spacing: { width: 25 },
+    backIcon: { width: 23, height: 23 },
     headerTitle: {
-      fontFamily: 'Poppins Regular',
-      fontSize: 16,
-      fontWeight: '400',
-      color: colors.onPrimary,
+      flex: 1,
       textAlign: 'center',
-      flex: 1,
-    },
-    webViewContainer: {
-      flex: 1,
-      backgroundColor: colors.onPrimary,
-    },
-    webView: {
-      flex: 1,
-    },
-    loadingContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.background,
-      zIndex: 10,
-    },
-    loadingText: {
-      marginTop: 10,
-      fontFamily: 'Poppins Regular',
-      fontSize: 14,
-      color: colors.grey4,
-    },
-    errorContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-      backgroundColor: colors.onPrimary,
-    },
-    errorText: {
+      color: colors.onPrimary,
       fontSize: 16,
       fontFamily: 'Poppins Regular',
+    },
+    center: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 30,
+    },
+    text: {
+      marginTop: 16,
+      fontSize: 16,
+      fontFamily: 'Poppins Regular',
+      color: colors.text,
+      textAlign: 'center',
+    },
+    subText: {
+      marginTop: 8,
+      fontSize: 13,
       color: colors.grey4,
       textAlign: 'center',
     },
