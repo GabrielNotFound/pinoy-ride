@@ -92,7 +92,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0.2"
+        versionName "1.0.3"
     }
     signingConfigs {
         debug {
@@ -190,4 +190,6 @@ dependencies {
     implementation 'com.facebook.android:facebook-android-sdk:15.0.1'
 
     implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation("androidx.browser:browser:1.8.0")
+
 }
