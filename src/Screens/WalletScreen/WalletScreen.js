@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -21,49 +22,66 @@ const WalletScreen = () => {
   const navigation = useNavigation();
 
   const userInfo = useSelector(selectUserInfo);
-  const [walletDetails, setWalletDetails] = useState([]);
+
+  const [walletDetails, setWalletDetails] = useState({});
+  const [walletHistory, setWalletHistory] = useState([]);
 
   const getWalletDetails = usePostRequest();
+  const {
+    makePostRequest: getWalletHistory,
+    loading: historyLoading,
+    error: historyError,
+    response: historyResponse,
+  } = usePostRequest();
 
+  /* =====================
+     FETCH DATA
+  ===================== */
   useEffect(() => {
-    if (userInfo?.id) {
-      getWalletDetails.makePostRequest(Constants.ENDPOINT.GET_RIDER_DETAILS, {
-        rider_id: userInfo?.id,
-      });
-    }
+    if (!userInfo?.id) {return;}
+
+    getWalletDetails.makePostRequest(Constants.ENDPOINT.GET_RIDER_DETAILS, {
+      rider_id: userInfo.id,
+    });
+
+    getWalletHistory(Constants.ENDPOINT.GET_WALLET_HISTORY, {
+      page: 1,
+      perpage: 10,
+      query: '',
+      sort_by: '-id',
+    });
   }, [userInfo?.id]);
 
-  const handleGetWalletDetails = () => {
+  /* =====================
+     WALLET DETAILS
+  ===================== */
+  useEffect(() => {
     if (getWalletDetails.error) {
       console.warn('wallet status check error:', getWalletDetails.error);
       return;
     }
 
-    if (
-      getWalletDetails.response &&
-      Object.keys(getWalletDetails.response).length > 0
-    ) {
-      const result = getWalletDetails.response?.data.wallet_details;
-      AppUtil.debugDeep(result);
+    const result = getWalletDetails.response?.data?.wallet_details;
+    if (result) {
       setWalletDetails(result);
     }
-  };
-
-  // Handle eKYC status check response
-  useEffect(() => {
-    handleGetWalletDetails();
   }, [getWalletDetails.response, getWalletDetails.error]);
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
+  /* =====================
+     WALLET HISTORY
+  ===================== */
+  useEffect(() => {
+    if (historyError) {
+      console.warn('wallet history error:', historyError);
+      return;
+    }
 
-  const cashlessPayments = [
-    { id: '1', date: 'June 20, 2025 | 12:00PM', amount: '70.00' },
-    { id: '2', date: 'June 20, 2025 | 12:00PM', amount: '70.00' },
-    { id: '3', date: 'June 20, 2025 | 12:00PM', amount: '70.00' },
-    { id: '4', date: 'June 20, 2025 | 12:00PM', amount: '70.00' },
-  ];
+    const history = historyResponse?.data?.wallet_history ?? [];
+
+    setWalletHistory(history);
+  }, [historyResponse, historyError]);
+
+  const handleBack = () => navigation.goBack();
 
   return (
     <Container style={styles.container}>
@@ -93,21 +111,15 @@ const WalletScreen = () => {
           <Text style={styles.cardSubtitle}>
             Earnings from cashless, Promo Fare & Incentives
           </Text>
+
           <View style={styles.balanceButtons}>
             <TouchableOpacity
               style={styles.cardButton}
-              onPress={() => {
-                navigation.navigate('CashOutScreen', {
-                  walletDetails: walletDetails,
-                });
-              }}>
-              <Image
-                source={require('@/Assets/Common/WalletScreen/Cash_Out.png')}
-                style={styles.cardButtonIcon}
-              />
-              <Text style={styles.cardButtonText}>Cash Out</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cardButton}>
+              onPress={() =>
+                navigation.navigate('TransferScreen', {
+                  walletDetails,
+                })
+              }>
               <Image
                 source={require('@/Assets/Common/WalletScreen/Transfer.png')}
                 style={styles.cardButtonIcon}
@@ -125,9 +137,7 @@ const WalletScreen = () => {
           </Text>
           <TouchableOpacity
             style={styles.cardButton}
-            onPress={() => {
-              navigation.navigate('TopUpScreen');
-            }}>
+            onPress={() => navigation.navigate('TopUpScreen')}>
             <Image
               source={require('@/Assets/Common/WalletScreen/Top_Up.png')}
               style={styles.cardButtonIcon}
@@ -139,18 +149,44 @@ const WalletScreen = () => {
 
       {/* Scrollable Cash History */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {cashlessPayments.map(payment => (
-          <View key={payment.id} style={styles.cashlessPaymentItem}>
-            <View>
-              <Text style={styles.cashlessPaymentTitle}>Cashless Payment</Text>
-              <Text style={styles.cashlessPaymentDate}>{payment.date}</Text>
-              <View style={styles.statusContainer}>
-                <Text style={styles.statusText}>Successful</Text>
-              </View>
-            </View>
-            <Text style={styles.cashlessPaymentAmount}>+₱{payment.amount}</Text>
+        {historyLoading ? (
+          <View style={{ paddingVertical: 20 }}>
+            <ActivityIndicator size="small" color={colors.primary} />
           </View>
-        ))}
+        ) : walletHistory.length === 0 ? (
+          <Text style={{ textAlign: 'center', color: colors.grey3 }}>
+            No transaction history available
+          </Text>
+        ) : (
+          walletHistory.map(item => {
+            const isCredit = item.type === 'credit';
+            const amount = Number(item.amount);
+
+            return (
+              <View key={item.id} style={styles.cashlessPaymentItem}>
+                <View>
+                  <Text style={styles.cashlessPaymentTitle}>
+                    {item.description}
+                  </Text>
+
+                  <View style={styles.statusContainer}>
+                    <Text style={styles.statusText}>
+                      {isCredit ? 'Credit' : 'Debit'}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text
+                  style={[
+                    styles.cashlessPaymentAmount,
+                    { color: isCredit ? colors.primary : colors.error },
+                  ]}>
+                  {isCredit ? '+' : '-'}₱{amount.toFixed(2)}
+                </Text>
+              </View>
+            );
+          })
+        )}
       </ScrollView>
     </Container>
   );

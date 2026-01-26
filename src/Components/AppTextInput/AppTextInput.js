@@ -56,16 +56,18 @@ const AppTextInput = ({
   onChangeText,
   onBlur,
   placeholder,
-  inputMode = 'text', // 'text' | 'phone' | 'amount' | 'comment'
+  inputMode = 'text', // 'text' | 'phone' | 'amount' | 'comment' | 'numeric'
   error,
   labelColor,
   onValidationChange,
+  editable = true, // Add editable prop with default value true
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const isPhone = inputMode === 'phone';
   const isAmount = inputMode === 'amount';
   const isComment = inputMode === 'comment';
+  const isNumeric = inputMode === 'numeric';
 
   const [isFocused, setIsFocused] = useState(false);
   const [phoneError, setPhoneError] = useState(null);
@@ -222,6 +224,14 @@ const AppTextInput = ({
       : ''
     : value;
 
+  // Get keyboard type based on inputMode
+  const getKeyboardType = () => {
+    if (isAmount) {return 'decimal-pad';}
+    if (isNumeric) {return 'numeric';}
+    if (isPhone) {return 'phone-pad';}
+    return 'default';
+  };
+
   return (
     <View style={styles.container}>
       {label && (
@@ -235,6 +245,7 @@ const AppTextInput = ({
           style={[
             styles.phoneContainer,
             (error || phoneError) && styles.inputError,
+            !editable && styles.disabledInput,
           ]}>
           {/* PH Flag Emoji */}
           <Text style={styles.flagEmoji}>🇵🇭</Text>
@@ -252,6 +263,7 @@ const AppTextInput = ({
             placeholderTextColor={colors.onSurfaceVariant}
             style={styles.phoneInput}
             keyboardType="phone-pad"
+            editable={editable}
           />
         </View>
       ) : (
@@ -265,11 +277,13 @@ const AppTextInput = ({
           style={[
             isComment ? styles.commentBox : styles.input,
             error && styles.inputError,
+            !editable && styles.disabledInput,
           ]}
-          keyboardType={isAmount ? 'decimal-pad' : 'default'}
+          keyboardType={getKeyboardType()}
           multiline={isComment}
           numberOfLines={isComment ? 4 : 1}
           textAlignVertical={isComment ? 'top' : 'center'}
+          editable={editable}
         />
       )}
 
@@ -303,6 +317,11 @@ const getStyles = ({ colors }) =>
     },
     inputError: {
       borderColor: colors.error,
+    },
+    disabledInput: {
+      backgroundColor: colors.surfaceDisabled || colors.grey5,
+      opacity: 0.6,
+      color: colors.grey3,
     },
     phoneContainer: {
       flexDirection: 'row',

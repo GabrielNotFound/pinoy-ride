@@ -27,6 +27,7 @@ const usePostRequest = () => {
     const requiredParams = {
       user_type: 'rider',
       rider_id: userInfo?.id,
+      user_id: userInfo?.id,
     };
     const params = { ...requiredParams, ...obj };
 

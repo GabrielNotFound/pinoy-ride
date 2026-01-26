@@ -11,10 +11,6 @@ import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { AlertBox, AppButton, AppTextInput } from '@/Components';
-import {
-  ensureLocationPermission,
-  requestLocationPermission,
-} from '@/Utils/Permissions';
 import usePostRequest from '@/Services/Api';
 import { AppUtil, Constants } from '@/Utils';
 
@@ -31,15 +27,6 @@ const RegisterScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const getEKYCUrl = usePostRequest();
-
-  useEffect(() => {
-    (async () => {
-      const granted = await ensureLocationPermission();
-      if (!granted) {
-        setShowAlert(true);
-      }
-    })();
-  }, []);
 
   const fetchEKYCUrl = user_id => {
     setIsLoading(true);
@@ -78,13 +65,6 @@ const RegisterScreen = () => {
     handleGetEKYCUrl();
   }, [getEKYCUrl.response, getEKYCUrl.error]);
 
-  const handleRetryPermission = async () => {
-    const result = await requestLocationPermission();
-    if (result !== 'granted') {
-      setShowAlert(true);
-    }
-  };
-
   const handleBack = () => {
     navigation.navigate('LandingScreen');
   };
@@ -114,14 +94,10 @@ const RegisterScreen = () => {
       <Container style={styles.container}>
         {showAlert && (
           <AlertBox
-            title={alertMessage ? 'Error' : 'Location Required'}
-            message={
-              alertMessage ||
-              'This app cannot continue without location access.'
-            }
+            title="Error"
+            message={alertMessage}
             visible={showAlert}
             setVisible={setShowAlert}
-            onConfirm={alertMessage ? undefined : handleRetryPermission}
           />
         )}
 
@@ -155,10 +131,6 @@ const RegisterScreen = () => {
 
         {/* Footer */}
         <View>
-          <Text style={styles.footerText}>
-            Enter your active number to receive a verification code. This helps
-            us keep your account secure.
-          </Text>
           <AppButton
             title="Next"
             onPress={handleNext}
@@ -210,12 +182,6 @@ const getStyles = ({ colors }) =>
       color: colors.text,
     },
     pageContainer: { flex: 1, paddingHorizontal: 20 },
-    footerText: {
-      textAlign: 'center',
-      fontFamily: 'Poppins Regular',
-      fontSize: 12,
-      color: colors.darkGrey,
-    },
     loadingOverlay: {
       position: 'absolute',
       top: 0,

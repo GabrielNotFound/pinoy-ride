@@ -33,6 +33,10 @@ const BASE_DEV = {
     //PAYMENT
     QRPH_REQUEST_TO_PAY: 'qrph/request-to-pay/',
     QRPH_CHECK_STATUS: 'qrph/check_status/',
+    //WALLET
+    GET_BANKS: 'cash_out/get-banks/',
+    CASH_OUT: 'cash_out/cash-out/',
+    GET_WALLET_HISTORY: 'riders/get_wallet_history/',
   },
 
   FEATURE_STATUS: {},

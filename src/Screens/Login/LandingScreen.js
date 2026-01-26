@@ -1,12 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  AppState,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { openSettings } from 'react-native-permissions';
@@ -15,9 +8,7 @@ import Container from '@/Components/Container/Container';
 import { AlertBox, AppButton } from '@/Components';
 import {
   ensureCameraPermission,
-  ensureLocationPermission,
   requestCameraPermission,
-  requestLocationPermission,
 } from '@/Utils/Permissions';
 
 const LandingScreen = () => {
@@ -25,103 +16,39 @@ const LandingScreen = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertType, setAlertType] = useState('location');
-  const appState = useRef(AppState.currentState);
+  const [showCameraAlert, setShowCameraAlert] = useState(false);
 
-  // ✅ Initial permission request (Location + Camera)
   useEffect(() => {
     (async () => {
-      const loc = await ensureLocationPermission();
       const cam = await ensureCameraPermission();
-
-      if (!loc) {
-        setAlertType('location');
-        setShowAlert(true);
-      } else if (!cam) {
-        setAlertType('camera');
-        setShowAlert(true);
+      if (!cam) {
+        setShowCameraAlert(true);
       }
     })();
   }, []);
 
-  // ✅ Retry based on alert type
-  const handleRetryPermission = async () => {
-    if (alertType === 'location') {
-      const result = await requestLocationPermission();
+  const handleRetryCameraPermission = async () => {
+    const result = await requestCameraPermission();
 
-      if (result === 'granted') {
-        // Now check camera next
-        const cam = await ensureCameraPermission();
-        if (!cam) {
-          setAlertType('camera');
-          setShowAlert(true);
-        } else {
-          setShowAlert(false);
-        }
-      } else if (result === 'blocked') {
-        openSettings();
-      } else {
-        setShowAlert(true);
-      }
+    if (result === 'granted') {
+      setShowCameraAlert(false);
+    } else if (result === 'blocked') {
+      openSettings();
     } else {
-      const result = await requestCameraPermission();
-
-      if (result === 'granted') {
-        setShowAlert(false);
-      } else if (result === 'blocked') {
-        openSettings();
-      } else {
-        setShowAlert(true);
-      }
+      setShowCameraAlert(true);
     }
   };
 
-  // ✅ Re-check when app returns from background
-  useEffect(() => {
-    const subscription = AppState.addEventListener(
-      'change',
-      async nextAppState => {
-        if (
-          appState.current.match(/inactive|background/) &&
-          nextAppState === 'active'
-        ) {
-          const loc = await ensureLocationPermission();
-          const cam = await ensureCameraPermission();
-
-          if (!loc) {
-            setAlertType('location');
-            setShowAlert(true);
-          } else if (!cam) {
-            setAlertType('camera');
-            setShowAlert(true);
-          } else {
-            setShowAlert(false);
-          }
-        }
-        appState.current = nextAppState;
-      },
-    );
-
-    return () => subscription.remove();
-  }, []);
-
   return (
     <Container>
-      {/* ✅ Permission Alert for Location + Camera */}
-      {showAlert && (
+      {/* ✅ Camera Permission Alert Only */}
+      {showCameraAlert && (
         <AlertBox
-          title={
-            alertType === 'location' ? 'Location Required' : 'Camera Required'
-          }
-          message={
-            alertType === 'location'
-              ? 'We need your location to provide rides. Please enable it.'
-              : 'Camera access is required to verify your identity. Please enable it.'
-          }
-          visible={showAlert}
-          setVisible={setShowAlert}
-          onConfirm={handleRetryPermission}
+          title="Camera Required"
+          message="Camera access is required to verify your identity. Please enable it."
+          visible={showCameraAlert}
+          setVisible={setShowCameraAlert}
+          onConfirm={handleRetryCameraPermission}
         />
       )}
 

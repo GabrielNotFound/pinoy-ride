@@ -1,3 +1,5 @@
+import TransferScreen from './WalletScreen/TransferScreen';
+
 export { default as SplashScreen } from './SplashScreen/SplashScreen';
 export { default as LandingScreen } from './Login/LandingScreen';
 export { default as RegisterScreen } from './Login/RegisterScreen';
@@ -25,3 +27,6 @@ export { default as SuccessfulBooking } from './SuccessfulBooking/SuccessfulBook
 export { default as EKYCScreen } from './Login/EKYCScreen';
 export { default as GeneralTermsScreen } from './TermsScreen/GeneralTermsScreen';
 export { default as TAC } from './TermsScreen/TAC';
+export { default as TransferScreen } from './WalletScreen/TransferScreen';
+export { default as BankInformationScreen } from './WalletScreen/BankInformationScreen';
+export { default as TransferConfirmationScreen } from './WalletScreen/TransferConfirmationScreen';

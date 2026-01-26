@@ -4,10 +4,6 @@ import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AlertBox, AppButton, AppTextInput } from '@/Components';
-import {
-  ensureLocationPermission,
-  requestLocationPermission,
-} from '@/Utils/Permissions';
 
 const LoginScreen = () => {
   const { colors } = useTheme();
@@ -15,21 +11,11 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const [showAlert, setShowAlert] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [mobileNumber, setMobileNumber] = useState(''); // Stores as 63XXXXXXXXXX
   const [errorMessage, setErrorMessage] = useState('');
   const [isPhoneValid, setIsPhoneValid] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const granted = await ensureLocationPermission();
-      if (!granted) {
-        setShowAlert(true);
-      }
-    })();
-  }, []);
 
   // Check if user is coming from successful registration
   useEffect(() => {
@@ -37,13 +23,6 @@ const LoginScreen = () => {
       setShowSuccessModal(true);
     }
   }, [route.params?.registrationComplete]);
-
-  const handleRetryPermission = async () => {
-    const result = await requestLocationPermission();
-    if (result !== 'granted') {
-      setShowAlert(true);
-    }
-  };
 
   const handleBack = () => {
     navigation.navigate('LandingScreen');
@@ -67,14 +46,6 @@ const LoginScreen = () => {
 
   return (
     <Container style={styles.container}>
-      {showAlert && (
-        <AlertBox
-          title="Location Required"
-          message="This app cannot continue without location access."
-          onConfirm={handleRetryPermission}
-        />
-      )}
-
       {/* Success Registration Modal */}
       {showSuccessModal && (
         <AlertBox

@@ -3,14 +3,38 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
+import { CommonActions } from '@react-navigation/native';
 
-const AppTransactionComplete = () => {
+const AppTransactionComplete = ({ route }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
+  const { formattedAmount } = route?.params || {};
+
   const handleDone = () => {
-    navigation.navigate('HomeScreen');
+    // Reset to HomeScreen
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'HomeScreen' }],
+      }),
+    );
+  };
+
+  const handleViewWallet = () => {
+    // Reset the navigation stack to: HomeScreen -> SettingsScreen -> WalletScreen
+    // This removes all transaction flow screens
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 2,
+        routes: [
+          { name: 'HomeScreen' },
+          { name: 'SettingsScreen' },
+          { name: 'WalletScreen' },
+        ],
+      }),
+    );
   };
 
   return (
@@ -21,28 +45,26 @@ const AppTransactionComplete = () => {
           style={styles.image}
           resizeMode="contain"
         />
-        <Text style={styles.amount}>₱200.00</Text>
-        <Text style={styles.title}>Cash-out request sent!</Text>
+        <Text style={styles.amount}>₱{formattedAmount || '0.00'}</Text>
+        <Text style={styles.title}>Transfer request sent!</Text>
         <Text style={styles.subtitle}>
-          Will notify you if your transaction is successfully transferred.{' '}
+          Will notify you if your transaction is successfully transferred.
         </Text>
       </View>
-      <View style={{ paddingBottom: 24 }}>
-        <AppButton
-          title="View Wallet"
-          onPress={() => {}}
-          isBold
-          noSpacing
-          featureStyle={{ marginBottom: 10 }}
-        />
-        <AppButton
-          title="Go back to Home screen"
-          onPress={handleDone}
-          isBold
-          noSpacing
-          mode="outlined"
-        />
-      </View>
+      <AppButton
+        title="View Wallet"
+        onPress={handleViewWallet}
+        isBold
+        noSpacing
+        featureStyle={{ marginBottom: 10 }}
+      />
+      <AppButton
+        title="Go to Dashboard"
+        onPress={handleDone}
+        isBold
+        noSpacing
+        mode="outlined"
+      />
     </Container>
   );
 };
@@ -53,7 +75,7 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      paddingHorizontal: 24,
+      paddingVertical: 24,
     },
     contents: {
       flex: 1,
@@ -76,6 +98,7 @@ const getStyles = ({ colors }) =>
       fontSize: 16,
       color: colors.primary,
       textAlign: 'center',
+      marginTop: 8,
     },
     subtitle: {
       fontFamily: 'Poppins Regular',
