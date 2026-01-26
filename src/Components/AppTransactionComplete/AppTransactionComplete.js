@@ -11,7 +11,11 @@ const AppTransactionComplete = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  //  Format amount with peso sign
+  // Check if we came from PaymentMethodModal
+  const returnTo = route?.params?.returnTo;
+  const returnScreen = route?.params?.returnScreen;
+
+  // Format amount with peso sign
   const formattedAmount = route?.params?.referenceData?.amount
     ? `₱${parseFloat(route?.params?.referenceData.amount).toFixed(2)}`
     : '₱0.00';
@@ -26,10 +30,18 @@ const AppTransactionComplete = () => {
   }, []);
 
   const handleDone = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'HomeScreen' }],
-    });
+    if (returnTo === 'PaymentMethodModal' && returnScreen) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: returnScreen }],
+      });
+    } else {
+      // Default behavior - go to home
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'HomeScreen' }],
+      });
+    }
   };
 
   const handleViewWallet = () => {
@@ -37,6 +49,14 @@ const AppTransactionComplete = () => {
       index: 0,
       routes: [{ name: 'WalletScreen' }],
     });
+  };
+
+  // Determine button text based on context
+  const getDoneButtonText = () => {
+    if (returnTo === 'PaymentMethodModal' && returnScreen) {
+      return 'Continue with Booking';
+    }
+    return 'Go back to Home screen';
   };
 
   return (
@@ -47,10 +67,10 @@ const AppTransactionComplete = () => {
           style={styles.image}
           resizeMode="contain"
         />
-        {/*  Display dynamic amount */}
+        {/* Display dynamic amount */}
         <Text style={styles.amount}>{formattedAmount}</Text>
 
-        {/*  Dynamic title based on payment method */}
+        {/* Dynamic title based on payment method */}
         <Text style={styles.title}>
           {route?.params?.referenceData?.paymentMethod === 'QRPH'
             ? 'QRPH Payment Successful!'
@@ -78,7 +98,7 @@ const AppTransactionComplete = () => {
           featureStyle={{ marginBottom: 10 }}
         />
         <AppButton
-          title="Go back to Home screen"
+          title={getDoneButtonText()}
           onPress={handleDone}
           isBold
           noSpacing
@@ -129,7 +149,6 @@ const getStyles = ({ colors }) =>
       textAlign: 'center',
       paddingHorizontal: 16,
     },
-    //  New style for transaction ID
     transactionId: {
       fontFamily: 'Poppins Regular',
       fontSize: 12,

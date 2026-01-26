@@ -4,10 +4,6 @@ import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AlertBox, AppButton, AppTextInput } from '@/Components';
-import {
-  ensureLocationPermission,
-  requestLocationPermission,
-} from '@/Utils/Permissions';
 
 const LoginScreen = () => {
   const { colors } = useTheme();
@@ -15,7 +11,6 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const [showAlert, setShowAlert] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [mobileNumber, setMobileNumber] = useState(''); // Stores as 63XXXXXXXXXX
@@ -23,26 +18,10 @@ const LoginScreen = () => {
   const [isPhoneValid, setIsPhoneValid] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const granted = await ensureLocationPermission();
-      if (!granted) {
-        setShowAlert(true);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
     if (route.params?.registrationComplete) {
       setShowSuccessModal(true);
     }
   }, [route.params?.registrationComplete]);
-
-  const handleRetryPermission = async () => {
-    const result = await requestLocationPermission();
-    if (result !== 'granted') {
-      setShowAlert(true);
-    }
-  };
 
   const handleBack = () => {
     navigation.navigate('LandingScreen');
@@ -60,20 +39,11 @@ const LoginScreen = () => {
     }
 
     setErrorMessage('');
-    // Pass the number in 63XXXXXXXXXX format
     navigation.navigate('OTPScreen', { mobileNumber });
   };
 
   return (
     <Container style={styles.container}>
-      {showAlert && (
-        <AlertBox
-          title="Location Required"
-          message="This app cannot continue without location access."
-          onConfirm={handleRetryPermission}
-        />
-      )}
-
       {showSuccessModal && (
         <AlertBox
           title="Registration Successful!"
@@ -92,6 +62,7 @@ const LoginScreen = () => {
             resizeMode="contain"
           />
         </TouchableOpacity>
+
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Get Started</Text>
         </View>
@@ -157,7 +128,10 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       color: colors.shadow,
     },
-    pageContainer: { flex: 1, paddingHorizontal: 20 },
+    pageContainer: {
+      flex: 1,
+      paddingHorizontal: 20,
+    },
     footerText: {
       textAlign: 'center',
       fontFamily: 'Poppins Regular',

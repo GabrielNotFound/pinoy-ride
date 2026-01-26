@@ -75,10 +75,14 @@ const QRPHScreen = () => {
   }, [paymentUrl, referenceId]);
 
   useEffect(() => {
-    if (flowState !== FLOW.CHECKING) {return;}
+    if (flowState !== FLOW.CHECKING) {
+      return;
+    }
 
     intervalRef.current = setInterval(() => {
-      if (!referenceIdRef.current) {return;}
+      if (!referenceIdRef.current) {
+        return;
+      }
 
       checkPaymentStatus.makePostRequest(
         Constants.ENDPOINT.QRPH_CHECK_STATUS,
@@ -99,7 +103,9 @@ const QRPHScreen = () => {
   useEffect(() => {
     const result = checkPaymentStatus.response?.data;
     AppUtil.debugDeep(result);
-    if (!result?.status) {return;}
+    if (!result?.status) {
+      return;
+    }
 
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -151,7 +157,9 @@ const QRPHScreen = () => {
   }, [flowState]);
 
   const handleBack = () => {
-    if (intervalRef.current) {clearInterval(intervalRef.current);}
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
     navigation.goBack();
   };
 

@@ -73,19 +73,19 @@ const WalletScreen = () => {
   const actionButtons = [
     {
       label: 'Cash In',
-      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+      icon: require('@/Assets/Common/WalletScreen/Cash_In.png'),
       onPress: handleCashIn,
     },
-    {
-      label: 'Transfer',
-      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-      onPress: () => {}, // Add transfer functionality
-    },
-    {
-      label: 'Send',
-      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-      onPress: () => {}, // Add send functionality
-    },
+    // {
+    //   label: 'Transfer',
+    //   icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+    //   onPress: () => {}, // Add transfer functionality
+    // },
+    // {
+    //   label: 'Send',
+    //   icon: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+    //   onPress: () => {}, // Add send functionality
+    // },
   ];
 
   return (
@@ -157,6 +157,7 @@ const WalletScreen = () => {
               key={index}
               style={[
                 styles.actionButton,
+                actionButtons.length === 1 && styles.singleButton,
                 isSmallScreen && styles.actionButtonSmall,
               ]}
               onPress={btn.onPress}>
@@ -295,7 +296,7 @@ const getStyles = ({ colors }) =>
     },
     buttonRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-start',
       marginTop: 16,
     },
     actionButton: {
@@ -313,6 +314,11 @@ const getStyles = ({ colors }) =>
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3,
+    },
+    singleButton: {
+      flex: 0,
+      minWidth: 110,
+      maxWidth: 150,
     },
     actionLabel: {
       fontFamily: 'Poppins Regular',

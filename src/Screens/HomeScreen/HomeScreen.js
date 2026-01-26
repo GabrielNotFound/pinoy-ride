@@ -113,7 +113,7 @@ const HomeScreen = () => {
   }, [hasShownLoginSuccess, dispatch]);
 
   useEffect(() => {
-    AppUtil.debugDeep(userInfo.ekyc_details);
+    AppUtil.debugDeep(userInfo);
     AppUtil.debugDeep(selectedService);
     // Get user's GPS location on mount
     getUserLocation();

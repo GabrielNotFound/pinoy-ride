@@ -11,10 +11,6 @@ import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { AlertBox, AppButton, AppTextInput } from '@/Components';
-import {
-  ensureLocationPermission,
-  requestLocationPermission,
-} from '@/Utils/Permissions';
 import usePostRequest from '@/Services/Api';
 import { AppUtil, Constants } from '@/Utils';
 
@@ -22,24 +18,15 @@ const RegisterScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
-  const [showAlert, setShowAlert] = useState(false);
 
-  const [mobileNumber, setMobileNumber] = useState(''); // Stores as 63XXXXXXXXXX
+  const [mobileNumber, setMobileNumber] = useState(''); // 63XXXXXXXXXX
   const [errorMessage, setErrorMessage] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [isPhoneValid, setIsPhoneValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
 
   const getEKYCUrl = usePostRequest();
-
-  useEffect(() => {
-    (async () => {
-      const granted = await ensureLocationPermission();
-      if (!granted) {
-        setShowAlert(true);
-      }
-    })();
-  }, []);
 
   const fetchEKYCUrl = user_id => {
     setIsLoading(true);
@@ -55,18 +42,17 @@ const RegisterScreen = () => {
       setShowAlert(true);
       return;
     }
+
     const results = getEKYCUrl.response?.data;
     AppUtil.debugDeep(results);
 
     if (results?.zkyc_url) {
-      console.log('eKYC URL received:', results.zkyc_url);
       setIsLoading(false);
       navigation.navigate('EKYCScreen', {
         ekycData: results,
-        mobile_number: mobileNumber, // Passes as 63XXXXXXXXXX
+        mobile_number: mobileNumber,
       });
     } else if (getEKYCUrl.response) {
-      console.log('API response but no URL');
       setIsLoading(false);
       setAlertMessage('Failed to get eKYC URL. Please try again.');
       setShowAlert(true);
@@ -76,13 +62,6 @@ const RegisterScreen = () => {
   useEffect(() => {
     handleGetEKYCUrl();
   }, [getEKYCUrl.response, getEKYCUrl.error]);
-
-  const handleRetryPermission = async () => {
-    const result = await requestLocationPermission();
-    if (result !== 'granted') {
-      setShowAlert(true);
-    }
-  };
 
   const handleBack = () => {
     navigation.navigate('GeneralTermsScreen');
@@ -100,7 +79,7 @@ const RegisterScreen = () => {
     }
 
     setErrorMessage('');
-    fetchEKYCUrl(mobileNumber); // Sends 63XXXXXXXXXX format
+    fetchEKYCUrl(mobileNumber);
   };
 
   return (
@@ -110,19 +89,17 @@ const RegisterScreen = () => {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       )}
+
       <Container style={styles.container}>
         {showAlert && (
           <AlertBox
-            title={alertMessage ? 'Error' : 'Location Required'}
-            message={
-              alertMessage ||
-              'This app cannot continue without location access.'
-            }
+            title="Error"
+            message={alertMessage}
             visible={showAlert}
             setVisible={setShowAlert}
-            onConfirm={alertMessage ? undefined : handleRetryPermission}
           />
         )}
+
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
             <Image
@@ -150,10 +127,6 @@ const RegisterScreen = () => {
         </View>
 
         <View>
-          <Text style={styles.footerText}>
-            Enter your active number to receive a verification code. This helps
-            us keep your account secure.
-          </Text>
           <AppButton
             title="Next"
             onPress={handleNext}
@@ -204,12 +177,9 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       color: colors.shadow,
     },
-    pageContainer: { flex: 1, paddingHorizontal: 20 },
-    footerText: {
-      textAlign: 'center',
-      fontFamily: 'Poppins Regular',
-      fontSize: 12,
-      color: colors.darkGrey,
+    pageContainer: {
+      flex: 1,
+      paddingHorizontal: 20,
     },
     loadingOverlay: {
       position: 'absolute',
