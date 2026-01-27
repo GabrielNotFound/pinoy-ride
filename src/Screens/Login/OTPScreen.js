@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AlertBox, Container, OTPInput } from '@/Components';
@@ -114,7 +121,9 @@ const OTPScreen = () => {
   const [resendDisabled, setResendDisabled] = useState(false);
 
   const handleResendOtp = async () => {
-    if (resendDisabled) {return;}
+    if (resendDisabled) {
+      return;
+    }
 
     setResendDisabled(true);
     setTimeout(() => setResendDisabled(false), 60000); // 60s cooldown
@@ -133,7 +142,7 @@ const OTPScreen = () => {
 
   return (
     <Container style={styles.container}>
-      {/* Header */}
+      {/* Fixed Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -159,36 +168,43 @@ const OTPScreen = () => {
         />
       ) : null}
 
-      {/* OTP Input */}
-      <View style={styles.pageContainer}>
-        <Text style={styles.title}>Enter One-Time PIN</Text>
-        <Text style={styles.subtitle}>
-          A One-Time PIN was sent to +63 ******{mobileNumber.slice(-4)}
-        </Text>
-        <OTPInput
-          length={6}
-          onOTPChange={setOtpCode}
-          onOTPComplete={verifyOtp} // Automatically call verify when complete
-        />
-
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('@/Assets/Common/LoginScreen/OTP_Image.png')}
-            style={styles.otpImage}
-            resizeMode="contain"
+      {/* Scrollable Content */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.pageContainer}>
+          <Text style={styles.title}>Enter One-Time PIN</Text>
+          <Text style={styles.subtitle}>
+            A One-Time PIN was sent to +63 ******{mobileNumber.slice(-4)}
+          </Text>
+          <OTPInput
+            length={6}
+            onOTPChange={setOtpCode}
+            onOTPComplete={verifyOtp}
           />
-        </View>
 
-        <View style={styles.resendContainer}>
-          <Text style={styles.resendLabel}>Didn't receive it?</Text>
-          <TouchableOpacity onPress={handleResendOtp} disabled={resendDisabled}>
-            <Text
-              style={[styles.resendLink, resendDisabled && { opacity: 0.5 }]}>
-              Request a new OTP
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.imageContainer}>
+            <Image
+              source={require('@/Assets/Common/LoginScreen/OTP_Image.png')}
+              style={styles.otpImage}
+              resizeMode="contain"
+            />
+          </View>
+
+          <View style={styles.resendContainer}>
+            <Text style={styles.resendLabel}>Didn't receive it?</Text>
+            <TouchableOpacity
+              onPress={handleResendOtp}
+              disabled={resendDisabled}>
+              <Text
+                style={[styles.resendLink, resendDisabled && { opacity: 0.5 }]}>
+                Request a new OTP
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </Container>
   );
 };
@@ -197,11 +213,16 @@ export default OTPScreen;
 
 const getStyles = ({ colors }) =>
   StyleSheet.create({
-    container: { flex: 1, paddingHorizontal: 10 },
+    container: {
+      flex: 1,
+      paddingHorizontal: 10,
+    },
     header: {
       height: 52,
       justifyContent: 'center',
       marginBottom: 20,
+      backgroundColor: colors.background || '#FFFFFF',
+      zIndex: 10,
     },
     backButton: {
       position: 'absolute',
@@ -219,13 +240,21 @@ const getStyles = ({ colors }) =>
       right: 0,
       alignItems: 'center',
       justifyContent: 'center',
+      height: 52,
     },
     headerTitle: {
       fontSize: 16,
       fontFamily: 'Poppins Medium',
       color: colors.shadow,
     },
-    pageContainer: { flex: 1, paddingHorizontal: 20, justifyContent: 'center' },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    pageContainer: {
+      paddingHorizontal: 20,
+      paddingVertical: 20,
+    },
     title: {
       fontSize: 20,
       fontWeight: '400',
