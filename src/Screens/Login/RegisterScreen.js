@@ -123,7 +123,7 @@ const RegisterScreen = () => {
             onChangeText={setMobileNumber}
             onValidationChange={setIsPhoneValid}
             inputMode="phone"
-            placeholder="09XX-XXX-XXXX"
+            placeholder="9XX-XXX-XXXX"
             error={errorMessage}
             editable={!isLoading}
           />
