@@ -4,7 +4,7 @@
     "slug": "pinoy-ride",
     "owner": "gabriel1337",
     "scheme": "pinoyride",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "plugins": [
       "expo-font",
       "expo-build-properties",
@@ -16,14 +16,14 @@
       ]
     ],
     "android": {
-      "package": "com.gabriel1337.pinoyride",
+      "package": "com.pinoyride.customer",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]
     },
     "ios": {
-      "bundleIdentifier": "com.gabriel1337.pinoyride",
+      "bundleIdentifier": "com.pinoyride.customer",
       "infoPlist": {
         "NSCameraUsageDescription": "[REASON]",
         "NSMicrophoneUsageDescription": "[REASON]"

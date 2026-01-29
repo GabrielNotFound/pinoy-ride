@@ -4,11 +4,14 @@ import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { AppButton } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
+import Constants from 'expo-constants';
 
 const LandingScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+
+  const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   return (
     <Container>
@@ -36,6 +39,9 @@ const LandingScreen = () => {
           </Text>
         </View>
       </View>
+      <View style={styles.versionTextContainer}>
+        <Text style={styles.versionText}>v{appVersion}</Text>
+      </View>
       <View />
     </Container>
   );
@@ -55,11 +61,10 @@ const getStyles = ({ colors }) =>
       height: 175,
     },
     buttonContainer: {
-      paddingBottom: 30,
+      paddingBottom: 10,
     },
     registerContainer: {
       alignItems: 'center',
-      marginTop: 20,
     },
     registerText: {
       fontSize: 14,
@@ -69,5 +74,17 @@ const getStyles = ({ colors }) =>
     registerLink: {
       color: colors.primary,
       fontFamily: 'Poppins SemiBold',
+    },
+    versionTextContainer: {
+      alignItems: 'center',
+      paddingBottom: 20,
+    },
+    versionText: {
+      alignItems: 'center',
+      marginTop: 8,
+      fontSize: 12,
+      color: colors.onSurfaceGrey,
+      opacity: 0.7,
+      fontFamily: 'Poppins Regular',
     },
   });

@@ -90,7 +90,9 @@ const BottomModal = ({
 
   // Helper function to get display text for location
   const getLocationText = (location, placeholder) => {
-    if (!location) {return placeholder;}
+    if (!location) {
+      return placeholder;
+    }
     // Try multiple possible property names
     return location.description || location.address || placeholder;
   };
@@ -205,13 +207,13 @@ const BottomModal = ({
                 </Text>
                 <Text
                   style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
-                  {inquireBookingResponse?.total_amount_wo_promo}
+                  {inquireBookingResponse?.pretty_total_amount_wo_promo}
                 </Text>
               </View>
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Total Fare w/ Discount</Text>
                 <Text style={styles.feeText}>
-                  {inquireBookingResponse?.total_amount}
+                  {inquireBookingResponse?.pretty_total_amount}
                 </Text>
               </View>
               <View style={styles.fareRow}>

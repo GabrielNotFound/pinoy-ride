@@ -42,7 +42,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>pinoyride</string>
-          <string>com.gabriel1337.pinoyride</string>
+          <string>com.pinoyride.customer</string>
           <string>com.googleusercontent.apps.795310358519-iquibpbcn5uhrhja0nb8nsdagq38c76l</string>
           <string>fb3041042182736964</string>
         </array>

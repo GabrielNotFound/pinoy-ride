@@ -131,7 +131,7 @@ const WalletScreen = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.activationRow}>
-          {[1, 2, 3].map((_, index) => (
+          {[1].map((_, index) => (
             <View key={index} style={styles.activationCard}>
               <Image
                 source={require('@/Assets/Common/WalletScreen/Shield.png')}

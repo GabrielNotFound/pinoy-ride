@@ -1,4 +1,4 @@
-package com.gabriel1337.pinoyride
+package com.pinoyride.customer
 
 import android.os.Build
 import android.os.Bundle

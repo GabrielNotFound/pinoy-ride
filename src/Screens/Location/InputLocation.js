@@ -121,6 +121,8 @@ const InputLocation = () => {
   const handleProfilePress = () => navigation.navigate('SettingsScreen');
 
   const handleOpenMap = () => {
+    setFocusedField(null);
+    setSearchResults([]);
     navigation.navigate('MapSelectionScreen', {
       // Pass through the original callbacks from route.params
       onPickupSelect: route.params?.onPickupSelect,
@@ -228,6 +230,7 @@ const InputLocation = () => {
           <FlatList
             data={searchResults}
             keyExtractor={(item, index) => index.toString()}
+            keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => handleSelectItem(item)}
@@ -281,10 +284,14 @@ const InputLocation = () => {
                 onChangeText={text =>
                   handleTextChange(text, setPickup, pickupInputRef)
                 }
+                onFocus={() => setFocusedField('pickup')}
+                onBlur={() => {
+                  setFocusedField(null);
+                  setSearchResults([]);
+                }}
                 placeholder="Input pickup location"
                 style={styles.locationIconText}
                 placeholderTextColor={colors.onPrimary}
-                onFocus={() => setFocusedField('pickup')}
                 autoCorrect={false}
                 autoComplete="off"
                 spellCheck={false}
@@ -320,10 +327,14 @@ const InputLocation = () => {
                 onChangeText={text =>
                   handleTextChange(text, setDropoff, dropoffInputRef)
                 }
+                onFocus={() => setFocusedField('dropoff')}
+                onBlur={() => {
+                  setFocusedField(null);
+                  setSearchResults([]);
+                }}
                 placeholder="Drop off to?"
                 style={styles.locationIconText}
                 placeholderTextColor={colors.onPrimary}
-                onFocus={() => setFocusedField('dropoff')}
                 autoCorrect={false}
                 autoComplete="off"
                 spellCheck={false}

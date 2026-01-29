@@ -344,7 +344,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.gabriel1337.pinoyride;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pinoyride.customer;
 				PRODUCT_NAME = pinoyride;
 				SWIFT_OBJC_BRIDGING_HEADER = "pinoyride/pinoyride-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -376,7 +376,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.gabriel1337.pinoyride;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pinoyride.customer;
 				PRODUCT_NAME = pinoyride;
 				SWIFT_OBJC_BRIDGING_HEADER = "pinoyride/pinoyride-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
