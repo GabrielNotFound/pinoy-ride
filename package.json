@@ -1,9 +1,10 @@
 {
   "name": "pinoy-ride",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "index.js",
   "scripts": {
     "start": "expo start --dev-client",
+    "install:all": "yarn && cd ios && pod update && pod install && cd ..",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
