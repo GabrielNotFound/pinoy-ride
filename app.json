@@ -2,7 +2,7 @@
   "expo": {
     "name": "pinoyriderider",
     "slug": "pinoyriderider",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "plugins": [
       "expo-font",
       "expo-build-properties",
@@ -14,14 +14,14 @@
       ]
     ],
     "android": {
-      "package": "com.gabriel1337.pinoyriderider",
+      "package": "com.pinoyride.rider",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]
     },
     "ios": {
-      "bundleIdentifier": "com.gabriel1337.pinoyriderider",
+      "bundleIdentifier": "com.pinoyride.rider",
       "infoPlist": {
         "NSCameraUsageDescription": "[REASON]",
         "NSMicrophoneUsageDescription": "[REASON]"

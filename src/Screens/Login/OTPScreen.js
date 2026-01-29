@@ -259,6 +259,7 @@ const getStyles = ({ colors }) =>
       fontSize: 20,
       fontWeight: '400',
       marginBottom: 15,
+      color: colors.text,
       fontFamily: 'Poppins Regular',
       textAlign: 'center',
     },

@@ -30,7 +30,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="com.gabriel1337.pinoyriderider"/>
+        <data android:scheme="com.pinoyride.rider"/>
       </intent-filter>
     </activity>
     <meta-data android:name="com.google.android.gms.version"

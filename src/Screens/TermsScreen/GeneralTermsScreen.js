@@ -124,6 +124,7 @@ const getStyles = ({ colors }) =>
       fontSize: 25,
       textAlign: 'center',
       letterSpacing: -0.45,
+      color: colors.text,
     },
     subtitle: {
       fontFamily: 'Poppins Regular',
@@ -131,6 +132,7 @@ const getStyles = ({ colors }) =>
       fontSize: 16,
       textAlign: 'center',
       letterSpacing: -0.45,
+      color: colors.text,
     },
     checkboxContainer: {
       flexDirection: 'row',

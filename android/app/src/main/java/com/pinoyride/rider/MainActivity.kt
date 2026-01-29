@@ -1,4 +1,4 @@
-package com.gabriel1337.pinoyriderider
+package com.pinoyride.rider
 
 import android.os.Build
 import android.os.Bundle

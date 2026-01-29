@@ -111,6 +111,7 @@ const getStyles = ({ colors }) =>
       borderWidth: 1,
       borderRadius: 5,
       borderColor: colors.grey,
+      color: colors.text,
       textAlign: 'center',
       fontSize: 20,
       fontFamily: 'Poppins Medium',

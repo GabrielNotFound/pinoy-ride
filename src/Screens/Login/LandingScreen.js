@@ -10,6 +10,7 @@ import {
   ensureCameraPermission,
   requestCameraPermission,
 } from '@/Utils/Permissions';
+import Constants from 'expo-constants';
 
 const LandingScreen = () => {
   const { colors } = useTheme();
@@ -17,6 +18,8 @@ const LandingScreen = () => {
   const navigation = useNavigation();
 
   const [showCameraAlert, setShowCameraAlert] = useState(false);
+
+  const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   useEffect(() => {
     (async () => {
@@ -74,6 +77,9 @@ const LandingScreen = () => {
           <Text style={styles.applyText}>Apply As Rider</Text>
         </TouchableOpacity>
       </View>
+      <View style={styles.versionTextContainer}>
+        <Text style={styles.versionText}>v{appVersion}</Text>
+      </View>
     </Container>
   );
 };
@@ -92,7 +98,7 @@ const getStyles = ({ colors }) =>
       height: 175,
     },
     buttonContainer: {
-      paddingBottom: 30,
+      paddingBottom: 10,
     },
     applyButton: {
       justifyContent: 'center',
@@ -103,5 +109,17 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins SemiBold',
       fontWeight: '600',
       fontSize: 16,
+    },
+    versionTextContainer: {
+      alignItems: 'center',
+      paddingBottom: 20,
+    },
+    versionText: {
+      alignItems: 'center',
+      marginTop: 8,
+      fontSize: 12,
+      color: colors.onSurfaceGrey,
+      opacity: 0.7,
+      fontFamily: 'Poppins Regular',
     },
   });

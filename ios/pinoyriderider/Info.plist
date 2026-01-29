@@ -27,7 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>com.gabriel1337.pinoyriderider</string>
+          <string>com.pinoyride.rider</string>
         </array>
       </dict>
     </array>

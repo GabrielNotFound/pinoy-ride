@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.gabriel1337.pinoyriderider'
+    namespace 'com.pinoyride.rider'
     defaultConfig {
-        applicationId 'com.gabriel1337.pinoyriderider'
+        applicationId 'com.pinoyride.rider'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

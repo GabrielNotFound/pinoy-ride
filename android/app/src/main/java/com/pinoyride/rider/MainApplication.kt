@@ -1,4 +1,4 @@
-package com.gabriel1337.pinoyriderider
+package com.pinoyride.rider
 
 import android.app.Application
 import android.content.res.Configuration
