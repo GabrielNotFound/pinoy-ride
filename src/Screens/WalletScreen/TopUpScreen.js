@@ -1,7 +1,15 @@
 import { AppButton, AppTextInput, Container } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 const TopUpScreen = () => {
@@ -31,59 +39,61 @@ const TopUpScreen = () => {
           </View>
         </View>
 
-        <View style={styles.transferRow}>
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>From</Text>
-            <View style={styles.cardRow}>
-              <Image
-                source={require('@/Assets/Common/WalletScreen/Money_Symbol_1.png')}
-                style={styles.moneySymbol}
-              />
-              <Text style={styles.cardTitle}>Cash{'\n'}Balance</Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.transferRow}>
+            <View style={styles.card}>
+              <Text style={styles.cardLabel}>From</Text>
+              <View style={styles.cardRow}>
+                <Image
+                  source={require('@/Assets/Common/WalletScreen/Money_Symbol_1.png')}
+                  style={styles.moneySymbol}
+                />
+                <Text style={styles.cardTitle}>Cash{'\n'}Balance</Text>
+              </View>
             </View>
-          </View>
 
-          <Image
-            source={require('@/Assets/Common/Right_Arrow.png')}
-            style={styles.arrowIcon}
-          />
-
-          <View style={[styles.card, styles.cardYellow]}>
-            <Text style={[styles.cardLabel, { color: colors.onPrimary }]}>
-              To
-            </Text>
-            <View style={styles.cardRow}>
-              <Image
-                source={require('@/Assets/Common/WalletScreen/Money_Symbol_2.png')}
-                style={styles.moneySymbol}
-              />
-              <Text style={[styles.cardTitle, { color: colors.onPrimary }]}>
-                Pinoy Ride{'\n'}Credit
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.lowerPart}>
-          <View style={styles.balanceContainer}>
-            <Text style={styles.balance}>₱250.00</Text>
-          </View>
-          <View style={styles.transaction}>
-            <Text style={styles.amountTitle}>Enter Amount</Text>
-            <AppTextInput
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="Amount"
-              inputMode="amount"
+            <Image
+              source={require('@/Assets/Common/Right_Arrow.png')}
+              style={styles.arrowIcon}
             />
+
+            <View style={[styles.card, styles.cardYellow]}>
+              <Text style={[styles.cardLabel, { color: colors.onPrimary }]}>
+                To
+              </Text>
+              <View style={styles.cardRow}>
+                <Image
+                  source={require('@/Assets/Common/WalletScreen/Money_Symbol_2.png')}
+                  style={styles.moneySymbol}
+                />
+                <Text style={[styles.cardTitle, { color: colors.onPrimary }]}>
+                  Pinoy Ride{'\n'}Credit
+                </Text>
+              </View>
+            </View>
           </View>
-          <Text style={styles.minimum}>
-            50.00 is the minimum amount you can transfer
-          </Text>
-          <Text style={styles.fee}>No Transaction fee</Text>
-        </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.lowerPart}>
+            <View style={styles.balanceContainer}>
+              <Text style={styles.balance}>₱250.00</Text>
+            </View>
+            <View style={styles.transaction}>
+              <Text style={styles.amountTitle}>Enter Amount</Text>
+              <AppTextInput
+                value={amount}
+                onChangeText={setAmount}
+                placeholder="Amount"
+                inputMode="amount"
+              />
+            </View>
+            <Text style={styles.minimum}>
+              50.00 is the minimum amount you can transfer
+            </Text>
+            <Text style={styles.fee}>No Transaction fee</Text>
+          </View>
+        </TouchableWithoutFeedback>
       </View>
       <AppButton
         title="Confirm"

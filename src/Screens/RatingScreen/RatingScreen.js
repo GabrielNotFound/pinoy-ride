@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -18,94 +27,98 @@ const RatingScreen = () => {
 
   const handleSubmit = () => {
     console.log('Submitted rating:', rating, comment);
-    // Add your submit logic here (e.g., API call)
   };
 
   return (
     <Container style={styles.container}>
-      <View style={{ flex: 1, paddingBottom: 70 }}>
-        {/* Top buttons */}
-        <View style={styles.buttonGroupContainer}>
-          <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
-            <Image
-              source={require('@/Assets/Common/Close.png')}
-              style={styles.backIcon}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Text style={styles.contactSupport}>Contact Support</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Title */}
-        <Text style={styles.title}>How was your Rider?</Text>
-
-        {/* Rider Image + Stars */}
-        <View style={styles.riderRatingRow}>
-          <Image
-            source={require('@/Assets/Common/Sample_Profile.png')}
-            style={styles.profileImage}
-          />
-          <View style={styles.starsContainer}>
-            {[1, 2, 3, 4, 5].map(star => (
-              <TouchableOpacity
-                key={star}
-                onPress={() => setRating(star)}
-                activeOpacity={0.7}>
-                <Text
-                  style={[styles.star, rating >= star && styles.filledStar]}>
-                  {rating >= star ? '★' : '★'}
-                </Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.buttonGroupContainer}>
+              <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
+                <Image
+                  source={require('@/Assets/Common/Close.png')}
+                  style={styles.backIcon}
+                  resizeMode="contain"
+                />
               </TouchableOpacity>
-            ))}
+              <TouchableOpacity>
+                <Text style={styles.contactSupport}>Contact Support</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.title}>How was your Rider?</Text>
+
+            <View style={styles.riderRatingRow}>
+              <Image
+                source={require('@/Assets/Common/Sample_Profile.png')}
+                style={styles.profileImage}
+              />
+              <View style={styles.starsContainer}>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => setRating(star)}
+                    activeOpacity={0.7}>
+                    <Text
+                      style={[
+                        styles.star,
+                        rating >= star && styles.filledStar,
+                      ]}>
+                      {rating >= star ? '★' : '★'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <AppTextInput
+              placeholder="Share your compliment (Optional)"
+              value={comment}
+              onChangeText={setComment}
+              inputMode="comment"
+            />
+
+            <View style={styles.fareRow}>
+              <Text
+                style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
+                Final Fare
+              </Text>
+              <Text
+                style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
+                ₱120.00
+              </Text>
+            </View>
+
+            <View style={styles.fareRow}>
+              <Text style={styles.feeText}>Payment Method</Text>
+              <Image
+                source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
+                style={styles.optionIcon}
+              />
+            </View>
+
+            <AppButton
+              title="View Booking Details"
+              onPress={() => console.log('View Booking Pressed')}
+              isBold
+              mode="outlined"
+            />
           </View>
-        </View>
 
-        {/* Comment input */}
-        <AppTextInput
-          placeholder="Share your compliment (Optional)"
-          value={comment}
-          onChangeText={setComment}
-          inputMode="comment"
-        />
-
-        {/* Fare and payment method */}
-        <View style={styles.fareRow}>
-          <Text style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
-            Final Fare
-          </Text>
-          <Text style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
-            ₱120.00
-          </Text>
-        </View>
-
-        <View style={styles.fareRow}>
-          <Text style={styles.feeText}>Payment Method</Text>
-          <Image
-            source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
-            style={styles.optionIcon}
-          />
-        </View>
-
-        {/* View Booking Details */}
-        <AppButton
-          title="View Booking Details"
-          onPress={() => console.log('View Booking Pressed')}
-          isBold
-          mode="outlined"
-        />
-      </View>
-
-      {/* Submit Button fixed at bottom */}
-      <View style={styles.bottomButtonWrapper}>
-        <AppButton
-          title="Submit"
-          onPress={handleSubmit}
-          isBold
-          mode="contained"
-        />
-      </View>
+          <View style={styles.bottomButtonWrapper}>
+            <AppButton
+              title="Submit"
+              onPress={handleSubmit}
+              isBold
+              mode="contained"
+            />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </Container>
   );
 };
@@ -117,6 +130,14 @@ const getStyles = ({ colors }) =>
     container: {
       flex: 1,
       paddingHorizontal: 15,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+      paddingBottom: 20,
+    },
+    content: {
+      flex: 1,
     },
     buttonGroupContainer: {
       flexDirection: 'row',
@@ -185,9 +206,6 @@ const getStyles = ({ colors }) =>
       color: '#333',
     },
     bottomButtonWrapper: {
-      position: 'absolute',
-      bottom: 20,
-      left: 15,
-      right: 15,
+      paddingTop: 20,
     },
   });

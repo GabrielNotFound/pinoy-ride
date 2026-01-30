@@ -15,19 +15,19 @@ const VEHICLES = [
   {
     id: 1,
     name: 'Motorcycle',
-    description: 'Lorem Ipsum',
+    description: 'Fast and affordable rides for quick trips.',
     icon: require('@/Assets/Common/HomeScreen/Motorcycle.png'),
   },
   {
     id: 2,
     name: 'Car (4 Seaters)',
-    description: 'Lorem Ipsum',
+    description: 'Comfortable rides for small groups or families.',
     icon: require('@/Assets/Common/HomeScreen/Car.png'),
   },
   {
     id: 3,
     name: 'Car (6 Seaters)',
-    description: 'Lorem Ipsum',
+    description: 'Spacious rides for bigger groups and extra luggage.',
     icon: require('@/Assets/Common/HomeScreen/Car.png'),
   },
 ];

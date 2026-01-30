@@ -2,7 +2,16 @@ import { AppButton, AppTextInput, Container } from '@/Components';
 import { AppUtil } from '@/Utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 const CashOutScreen = ({ route }) => {
@@ -47,7 +56,6 @@ const CashOutScreen = ({ route }) => {
   };
 
   const validateAmount = () => {
-    // Remove commas and convert to number
     const numericAmount = parseFloat(amount.replace(/,/g, ''));
 
     if (!amount || amount === '') {
@@ -78,7 +86,6 @@ const CashOutScreen = ({ route }) => {
 
   const handleNext = () => {
     if (validateAmount()) {
-      // Format the amount before moving to next slide
       const formattedAmount = formatAmount(amount);
       setAmount(formattedAmount);
       setIsFirstSlide(false);
@@ -86,7 +93,6 @@ const CashOutScreen = ({ route }) => {
   };
 
   const handleSubmit = () => {
-    // Pass the amount to the next screen
     navigation.navigate('AppTransactionComplete', {
       amount: parseFloat(amount.replace(/,/g, '')),
       formattedAmount: amount,
@@ -96,7 +102,6 @@ const CashOutScreen = ({ route }) => {
 
   const handleAmountChange = value => {
     setAmount(value);
-    // Clear error when user starts typing
     if (amountError) {
       setAmountError('');
     }
@@ -104,94 +109,101 @@ const CashOutScreen = ({ route }) => {
 
   return (
     <Container style={styles.container}>
-      <View style={styles.contents}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Image
-              source={require('@/Assets/Common/Back.png')}
-              style={styles.backIcon}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>Cash Out</Text>
-          </View>
-        </View>
-
-        <View style={styles.lowerPart}>
-          <View
-            style={[
-              styles.balanceContainer,
-              isSecondSlide && { alignItems: 'flex-start' },
-            ]}>
-            <Text
-              style={[
-                styles.availableText,
-                isSecondSlide && styles.confirmationTitle,
-              ]}>
-              {isFirstSlide ? 'Available for Cash out' : 'Confirmation'}
-            </Text>
-            <Text
-              style={[
-                styles.balance,
-                isSecondSlide && styles.confirmationSubtitle,
-              ]}>
-              {isFirstSlide
-                ? `₱${availableBalance.toFixed(2)}`
-                : 'Check if your transaction is correct before clicking Cash-out.'}
-            </Text>
-          </View>
-
-          {isFirstSlide && (
-            <>
-              <View style={styles.transaction}>
-                <Text style={styles.amountTitle}>Enter Amount</Text>
-                <AppTextInput
-                  value={amount}
-                  onChangeText={handleAmountChange}
-                  placeholder="Amount"
-                  inputMode="amount"
-                  error={amountError}
-                />
-              </View>
-              <Text style={styles.minimum}>
-                ₱{minimumAmount.toFixed(2)} is the minimum amount you can Cash
-                out
-              </Text>
-              <Text style={styles.fee}>No Transaction fee</Text>
-            </>
-          )}
-
-          {isSecondSlide && (
-            <>
-              <Text style={styles.cashOutLabel}>Cash Out</Text>
-              <View style={styles.divider} />
-              <View style={styles.rowBetween}>
-                <Text style={styles.label}>From</Text>
-                <Text style={styles.value}>Cash Balance</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.rowBetween}>
-                <Text style={styles.label}>To e-Wallet</Text>
-                <Text style={styles.value}>Gcash{'\n'}09999999999</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.rowBetween}>
-                <Text style={styles.label}>Amount</Text>
-                <Text style={[styles.icon, { color: colors.primary }]}>
-                  ₱{amount}
-                </Text>
-              </View>
-            </>
-          )}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+          <Image
+            source={require('@/Assets/Common/Back.png')}
+            style={styles.backIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Cash Out</Text>
         </View>
       </View>
 
-      <AppButton
-        title={isFirstSlide ? 'Confirm' : 'Submit'}
-        onPress={isFirstSlide ? handleNext : handleSubmit}
-        isBold
-      />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.lowerPart}>
+            <View
+              style={[
+                styles.balanceContainer,
+                isSecondSlide && { alignItems: 'flex-start' },
+              ]}>
+              <Text
+                style={[
+                  styles.availableText,
+                  isSecondSlide && styles.confirmationTitle,
+                ]}>
+                {isFirstSlide ? 'Available for Cash out' : 'Confirmation'}
+              </Text>
+              <Text
+                style={[
+                  styles.balance,
+                  isSecondSlide && styles.confirmationSubtitle,
+                ]}>
+                {isFirstSlide
+                  ? `₱${availableBalance.toFixed(2)}`
+                  : 'Check if your transaction is correct before clicking Cash-out.'}
+              </Text>
+            </View>
+
+            {isFirstSlide && (
+              <>
+                <View style={styles.transaction}>
+                  <Text style={styles.amountTitle}>Enter Amount</Text>
+                  <AppTextInput
+                    value={amount}
+                    onChangeText={handleAmountChange}
+                    placeholder="Amount"
+                    inputMode="amount"
+                    error={amountError}
+                  />
+                </View>
+                <Text style={styles.minimum}>
+                  ₱{minimumAmount.toFixed(2)} is the minimum amount you can Cash
+                  out
+                </Text>
+                <Text style={styles.fee}>No Transaction fee</Text>
+              </>
+            )}
+
+            {isSecondSlide && (
+              <>
+                <Text style={styles.cashOutLabel}>Cash Out</Text>
+                <View style={styles.divider} />
+                <View style={styles.rowBetween}>
+                  <Text style={styles.label}>From</Text>
+                  <Text style={styles.value}>Cash Balance</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.rowBetween}>
+                  <Text style={styles.label}>To e-Wallet</Text>
+                  <Text style={styles.value}>Gcash{'\n'}09999999999</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.rowBetween}>
+                  <Text style={styles.label}>Amount</Text>
+                  <Text style={[styles.icon, { color: colors.primary }]}>
+                    ₱{amount}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+
+          <View style={styles.buttonWrapper}>
+            <AppButton
+              title={isFirstSlide ? 'Confirm' : 'Submit'}
+              onPress={isFirstSlide ? handleNext : handleSubmit}
+              isBold
+            />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </Container>
   );
 };
@@ -202,10 +214,6 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
-    },
-    contents: {
-      flex: 1,
-      justifyContent: 'flex-start',
     },
     header: {
       height: 52,
@@ -237,8 +245,13 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       color: colors.primary,
     },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+    },
     lowerPart: {
       paddingHorizontal: 16,
+      flex: 1,
     },
     transaction: {
       marginTop: 20,
@@ -262,7 +275,6 @@ const getStyles = ({ colors }) =>
       fontSize: 16,
       fontFamily: 'Poppins SemiBold',
     },
-
     confirmationSubtitle: {
       fontSize: 12,
       fontFamily: 'Poppins Regular',
@@ -317,5 +329,9 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       fontSize: 14,
       color: colors.text,
+    },
+    buttonWrapper: {
+      paddingTop: 20,
+      paddingBottom: 20,
     },
   });

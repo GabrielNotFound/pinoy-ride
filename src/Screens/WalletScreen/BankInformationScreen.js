@@ -1,7 +1,16 @@
 import { AppButton, AppTextInput } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 const BankInformationScreen = ({ route }) => {
@@ -20,7 +29,6 @@ const BankInformationScreen = ({ route }) => {
   const [bankCodeError, setBankCodeError] = useState('');
   const [bankNumCodeError, setBankNumCodeError] = useState('');
 
-  // Check if bank codes should be editable (only if not provided from selectedBank)
   const isBankCodeEditable = !selectedBank?.code;
   const isBankNumCodeEditable = !selectedBank?.num_code;
 
@@ -42,7 +50,6 @@ const BankInformationScreen = ({ route }) => {
       setAccountNumberError('Please enter account number');
       isValid = false;
     } else if (!/^\d+$/.test(accountNumber.trim())) {
-      // Optional: Check if it's only digits
       setAccountNumberError('Account number must contain only digits');
       isValid = false;
     } else {
@@ -71,7 +78,6 @@ const BankInformationScreen = ({ route }) => {
       return;
     }
 
-    // Navigate to confirmation screen with all data
     navigation.navigate('TransferConfirmationScreen', {
       amount: amount,
       formattedAmount: formattedAmount,
@@ -126,90 +132,95 @@ const BankInformationScreen = ({ route }) => {
         </View>
       </View>
 
-      <View style={styles.contentContainer}>
-        <View style={styles.lowerPart}>
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoTitle}>Selected Bank</Text>
-            <Text style={styles.bankName}>{selectedBank?.name || 'N/A'}</Text>
-            <Text style={styles.amountText}>
-              Amount: ₱{formattedAmount || '0.00'}
-            </Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.contentContainer}>
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoTitle}>Selected Bank</Text>
+              <Text style={styles.bankName}>{selectedBank?.name || 'N/A'}</Text>
+              <Text style={styles.amountText}>
+                Amount: ₱{formattedAmount || '0.00'}
+              </Text>
+            </View>
+
+            <View style={styles.formSection}>
+              <Text style={styles.sectionTitle}>Account Details</Text>
+
+              <View style={styles.inputWrapper}>
+                <AppTextInput
+                  label="Account Name"
+                  value={accountName}
+                  onChangeText={handleAccountNameChange}
+                  placeholder="Enter account name"
+                  error={accountNameError}
+                />
+              </View>
+
+              <View style={styles.inputWrapper}>
+                <AppTextInput
+                  label="Account Number"
+                  value={accountNumber}
+                  onChangeText={handleAccountNumberChange}
+                  placeholder="Enter account number"
+                  inputMode="numeric"
+                  error={accountNumberError}
+                />
+              </View>
+
+              <View style={styles.inputWrapper}>
+                <AppTextInput
+                  label="Bank Code"
+                  value={bankCode}
+                  onChangeText={handleBankCodeChange}
+                  placeholder={
+                    isBankCodeEditable ? 'Enter bank code' : 'Auto-filled'
+                  }
+                  editable={isBankCodeEditable}
+                  error={bankCodeError}
+                />
+                {!isBankCodeEditable && (
+                  <Text style={styles.disabledNote}>
+                    This field is auto-filled based on your selected bank
+                  </Text>
+                )}
+              </View>
+
+              <View style={styles.inputWrapper}>
+                <AppTextInput
+                  label="Bank Number Code"
+                  value={bankNumCode}
+                  onChangeText={handleBankNumCodeChange}
+                  placeholder={
+                    isBankNumCodeEditable
+                      ? 'Enter bank number code'
+                      : 'Auto-filled'
+                  }
+                  editable={isBankNumCodeEditable}
+                  error={bankNumCodeError}
+                />
+                {!isBankNumCodeEditable && (
+                  <Text style={styles.disabledNote}>
+                    This field is auto-filled based on your selected bank
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.noteContainer}>
+              <Text style={styles.noteText}>
+                ⓘ Please ensure all information is correct before proceeding.
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Account Details</Text>
-
-            <View style={styles.inputWrapper}>
-              <AppTextInput
-                label="Account Name"
-                value={accountName}
-                onChangeText={handleAccountNameChange}
-                placeholder="Enter account name"
-                error={accountNameError}
-              />
-            </View>
-
-            <View style={styles.inputWrapper}>
-              <AppTextInput
-                label="Account Number"
-                value={accountNumber}
-                onChangeText={handleAccountNumberChange}
-                placeholder="Enter account number"
-                inputMode="numeric"
-                error={accountNumberError}
-              />
-            </View>
-
-            <View style={styles.inputWrapper}>
-              <AppTextInput
-                label="Bank Code"
-                value={bankCode}
-                onChangeText={handleBankCodeChange}
-                placeholder={
-                  isBankCodeEditable ? 'Enter bank code' : 'Auto-filled'
-                }
-                editable={isBankCodeEditable}
-                error={bankCodeError}
-              />
-              {!isBankCodeEditable && (
-                <Text style={styles.disabledNote}>
-                  This field is auto-filled based on your selected bank
-                </Text>
-              )}
-            </View>
-
-            <View style={styles.inputWrapper}>
-              <AppTextInput
-                label="Bank Number Code"
-                value={bankNumCode}
-                onChangeText={handleBankNumCodeChange}
-                placeholder={
-                  isBankNumCodeEditable
-                    ? 'Enter bank number code'
-                    : 'Auto-filled'
-                }
-                editable={isBankNumCodeEditable}
-                error={bankNumCodeError}
-              />
-              {!isBankNumCodeEditable && (
-                <Text style={styles.disabledNote}>
-                  This field is auto-filled based on your selected bank
-                </Text>
-              )}
-            </View>
+          <View style={styles.buttonContainer}>
+            <AppButton title="Next" onPress={handleNext} isBold />
           </View>
-
-          <View style={styles.noteContainer}>
-            <Text style={styles.noteText}>
-              ⓘ Please ensure all information is correct before proceeding.
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <AppButton title="Next" onPress={handleNext} isBold />
-      </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </View>
   );
 };
@@ -221,9 +232,6 @@ const getStyles = ({ colors }) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    contentContainer: {
-      flex: 1,
     },
     header: {
       height: 52,
@@ -256,7 +264,11 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       color: colors.primary,
     },
-    lowerPart: {
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+    },
+    contentContainer: {
       paddingHorizontal: 16,
       flex: 1,
     },
@@ -293,6 +305,9 @@ const getStyles = ({ colors }) =>
       fontSize: 16,
       color: colors.text,
       marginBottom: 16,
+    },
+    inputWrapper: {
+      marginBottom: 10,
     },
     disabledNote: {
       fontFamily: 'Poppins Regular',

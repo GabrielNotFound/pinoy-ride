@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -12,12 +21,10 @@ const LoginScreen = () => {
   const route = useRoute();
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  const [mobileNumber, setMobileNumber] = useState(''); // Stores as 63XXXXXXXXXX
+  const [mobileNumber, setMobileNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isPhoneValid, setIsPhoneValid] = useState(false);
 
-  // Check if user is coming from successful registration
   useEffect(() => {
     if (route.params?.registrationComplete) {
       setShowSuccessModal(true);
@@ -40,13 +47,11 @@ const LoginScreen = () => {
     }
 
     setErrorMessage('');
-    // Navigate to OTPScreen, pass mobile number in 63XXXXXXXXXX format
     navigation.navigate('OTPScreen', { mobileNumber });
   };
 
   return (
     <Container style={styles.container}>
-      {/* Success Registration Modal */}
       {showSuccessModal && (
         <AlertBox
           title="Registration Successful!"
@@ -70,27 +75,32 @@ const LoginScreen = () => {
         </View>
       </View>
 
-      {/* Input */}
-      <View style={styles.pageContainer}>
-        <AppTextInput
-          label="Mobile"
-          value={mobileNumber}
-          onChangeText={setMobileNumber}
-          onValidationChange={setIsPhoneValid}
-          inputMode="phone"
-          placeholder="9XX-XXX-XXXX"
-          error={errorMessage}
-        />
-      </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.pageContainer}>
+            <AppTextInput
+              label="Mobile"
+              value={mobileNumber}
+              onChangeText={setMobileNumber}
+              onValidationChange={setIsPhoneValid}
+              inputMode="phone"
+              placeholder="9XX-XXX-XXXX"
+              error={errorMessage}
+            />
+          </View>
 
-      {/* Footer */}
-      <View>
-        <Text style={styles.footerText}>
-          Enter your active number to receive a verification code. This helps us
-          keep your account secure.
-        </Text>
-        <AppButton title="Next" onPress={handleNext} isBold />
-      </View>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Enter your active number to receive a verification code. This
+              helps us keep your account secure.
+            </Text>
+            <AppButton title="Next" onPress={handleNext} isBold />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </Container>
   );
 };
@@ -132,11 +142,23 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       color: colors.shadow,
     },
-    pageContainer: { flex: 1, paddingHorizontal: 20 },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+    },
+    pageContainer: {
+      paddingHorizontal: 20,
+      paddingTop: 20,
+    },
+    footer: {
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+    },
     footerText: {
       textAlign: 'center',
       fontFamily: 'Poppins Regular',
       fontSize: 12,
       color: colors.darkGrey,
+      marginBottom: 15,
     },
   });

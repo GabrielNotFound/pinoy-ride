@@ -6,10 +6,13 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Keyboard,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
@@ -38,7 +41,6 @@ const TransferScreen = ({ route }) => {
     }
   }, [walletDetails]);
 
-  // Fetch banks when component mounts
   useEffect(() => {
     makePostRequest(Constants.ENDPOINT.GET_BANKS, {});
   }, []);
@@ -53,12 +55,10 @@ const TransferScreen = ({ route }) => {
       return;
     }
 
-    // Based on your API response, it's an array of bank objects
     const banksData = Array.isArray(response?.data)
       ? response.data
       : response?.data?.results || [];
 
-    // Filter only banks (is_bank: true) and not under maintenance
     const filtered = banksData.filter(
       bank => bank?.is_bank === true && bank?.is_maintenance === false,
     );
@@ -68,12 +68,10 @@ const TransferScreen = ({ route }) => {
     setFilteredBanks(filtered);
   };
 
-  // Handle banks response
   useEffect(() => {
     handleGetBanksResponse();
   }, [response, error]);
 
-  // Handle search
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredBanks(banks);
@@ -163,7 +161,6 @@ const TransferScreen = ({ route }) => {
     }
   };
 
-  // Bank List Component
   const BanksList = () => {
     if (loading) {
       return (
@@ -215,6 +212,7 @@ const TransferScreen = ({ route }) => {
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         style={styles.bankListContainer}
         showsVerticalScrollIndicator={true}
+        nestedScrollEnabled={true}
       />
     );
   };
@@ -234,55 +232,60 @@ const TransferScreen = ({ route }) => {
         </View>
       </View>
 
-      <View style={styles.contentContainer}>
-        <View style={styles.lowerPart}>
-          <View style={styles.balanceContainer}>
-            <Text style={styles.availableText}>Available for Transfer</Text>
-            <Text style={styles.balance}>₱{availableBalance.toFixed(2)}</Text>
-          </View>
-
-          <View style={styles.transaction}>
-            <Text style={styles.amountTitle}>Enter Amount</Text>
-            <AppTextInput
-              value={amount}
-              onChangeText={handleAmountChange}
-              placeholder="Amount"
-              inputMode="amount"
-              error={amountError}
-            />
-          </View>
-          <Text style={styles.minimum}>
-            ₱{minimumAmount.toFixed(2)} is the minimum amount you can Transfer
-          </Text>
-          <Text style={styles.fee}>No Transaction fee</Text>
-
-          <View style={styles.banksSection}>
-            <Text style={styles.banksSectionTitle}>Select Bank</Text>
-
-            {/* Search Input */}
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search banks..."
-                placeholderTextColor={colors.grey3}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Text style={styles.clearButton}>✕</Text>
-                </TouchableOpacity>
-              )}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}>
+          <View style={styles.lowerPart}>
+            <View style={styles.balanceContainer}>
+              <Text style={styles.availableText}>Available for Transfer</Text>
+              <Text style={styles.balance}>₱{availableBalance.toFixed(2)}</Text>
             </View>
 
-            <BanksList />
-          </View>
-        </View>
-      </View>
+            <View style={styles.transaction}>
+              <Text style={styles.amountTitle}>Enter Amount</Text>
+              <AppTextInput
+                value={amount}
+                onChangeText={handleAmountChange}
+                placeholder="Amount"
+                inputMode="amount"
+                error={amountError}
+              />
+            </View>
+            <Text style={styles.minimum}>
+              ₱{minimumAmount.toFixed(2)} is the minimum amount you can Transfer
+            </Text>
+            <Text style={styles.fee}>No Transaction fee</Text>
 
-      <View style={styles.buttonContainer}>
-        <AppButton title="Next" onPress={handleNext} isBold />
-      </View>
+            <View style={styles.banksSection}>
+              <Text style={styles.banksSectionTitle}>Select Bank</Text>
+
+              <View style={styles.searchContainer}>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search banks..."
+                  placeholderTextColor={colors.grey3}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <Text style={styles.clearButton}>✕</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <BanksList />
+            </View>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <AppButton title="Next" onPress={handleNext} isBold />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </View>
   );
 };
@@ -294,9 +297,6 @@ const getStyles = ({ colors }) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    contentContainer: {
-      flex: 1,
     },
     header: {
       height: 52,
@@ -328,6 +328,10 @@ const getStyles = ({ colors }) =>
       fontSize: 16,
       fontFamily: 'Poppins Medium',
       color: colors.primary,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
     },
     lowerPart: {
       paddingHorizontal: 16,

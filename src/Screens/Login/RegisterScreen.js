@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Keyboard,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import Container from '@/Components/Container/Container';
@@ -20,7 +23,7 @@ const RegisterScreen = () => {
   const navigation = useNavigation();
   const [showAlert, setShowAlert] = useState(false);
 
-  const [mobileNumber, setMobileNumber] = useState(''); // Stores as 63XXXXXXXXXX
+  const [mobileNumber, setMobileNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [isPhoneValid, setIsPhoneValid] = useState(false);
@@ -45,13 +48,12 @@ const RegisterScreen = () => {
     const results = getEKYCUrl.response?.data;
     AppUtil.debugDeep(results);
 
-    // Check if we got the zkyc_url from the response
     if (results?.zkyc_url) {
       console.log('eKYC URL received:', results.zkyc_url);
       setIsLoading(false);
       navigation.navigate('EKYCScreen', {
-        ekycData: results, // Pass the entire response
-        mobile_number: mobileNumber, // Pass in 63XXXXXXXXXX format
+        ekycData: results,
+        mobile_number: mobileNumber,
       });
     } else if (getEKYCUrl.response) {
       console.log('API response but no URL');
@@ -81,7 +83,7 @@ const RegisterScreen = () => {
     }
 
     setErrorMessage('');
-    fetchEKYCUrl(mobileNumber); // Sends 63XXXXXXXXXX format
+    fetchEKYCUrl(mobileNumber);
   };
 
   return (
@@ -101,7 +103,6 @@ const RegisterScreen = () => {
           />
         )}
 
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
             <Image
@@ -115,30 +116,35 @@ const RegisterScreen = () => {
           </View>
         </View>
 
-        {/* Input */}
-        <View style={styles.pageContainer}>
-          <AppTextInput
-            label="Mobile"
-            value={mobileNumber}
-            onChangeText={setMobileNumber}
-            onValidationChange={setIsPhoneValid}
-            inputMode="phone"
-            placeholder="9XX-XXX-XXXX"
-            error={errorMessage}
-            editable={!isLoading}
-          />
-        </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.pageContainer}>
+              <AppTextInput
+                label="Mobile"
+                value={mobileNumber}
+                onChangeText={setMobileNumber}
+                onValidationChange={setIsPhoneValid}
+                inputMode="phone"
+                placeholder="9XX-XXX-XXXX"
+                error={errorMessage}
+                editable={!isLoading}
+              />
+            </View>
 
-        {/* Footer */}
-        <View>
-          <AppButton
-            title="Next"
-            onPress={handleNext}
-            isBold
-            loading={isLoading}
-            disabled={isLoading}
-          />
-        </View>
+            <View style={styles.footer}>
+              <AppButton
+                title="Next"
+                onPress={handleNext}
+                isBold
+                loading={isLoading}
+                disabled={isLoading}
+              />
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </Container>
     </>
   );
@@ -181,7 +187,18 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       color: colors.text,
     },
-    pageContainer: { flex: 1, paddingHorizontal: 20 },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+    },
+    pageContainer: {
+      paddingHorizontal: 20,
+      paddingTop: 20,
+    },
+    footer: {
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+    },
     loadingOverlay: {
       position: 'absolute',
       top: 0,

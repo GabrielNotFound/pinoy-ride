@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import {
   Image,
-  KeyboardAvoidingView,
-  Platform,
+  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import Container from '@/Components/Container/Container';
@@ -39,7 +39,7 @@ const stepInputs = [
   [
     {
       key: 'licenseNumber',
-      label: 'Driver’s License No.',
+      label: "Driver's License No.",
       placeholder: 'Enter license number',
     },
     {
@@ -113,27 +113,27 @@ const RiderApplicationScreen = () => {
 
   return (
     <Container style={styles.container}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={{ flex: 1 }}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Image
-              source={require('@/Assets/Common/Back.png')}
-              style={styles.backIcon}
-              resizeMode="contain"
-            />
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>Personal Information</Text>
-            </View>
-          </TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+          <Image
+            source={require('@/Assets/Common/Back.png')}
+            style={styles.backIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Personal Information</Text>
+        </View>
+      </View>
 
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.formContainer}>
             {stepInputs[step].map(input => (
-              <View key={input.key} style={{ marginBottom: 5 }}>
+              <View key={input.key} style={styles.inputWrapper}>
                 <AppTextInput
                   label={input.label}
                   value={formData[input.key]}
@@ -143,11 +143,13 @@ const RiderApplicationScreen = () => {
                 />
               </View>
             ))}
-          </ScrollView>
-        </View>
+          </View>
 
-        <AppButton title="Next" onPress={handleNext} isBold />
-      </KeyboardAvoidingView>
+          <View style={styles.buttonWrapper}>
+            <AppButton title="Next" onPress={handleNext} isBold />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </Container>
   );
 };
@@ -159,16 +161,25 @@ const getStyles = ({ colors }) =>
     container: {
       flex: 1,
     },
-    backButton: {
+    header: {
+      height: 52,
+      justifyContent: 'center',
       marginTop: 10,
       marginBottom: 30,
+      position: 'relative',
+    },
+    backButton: {
+      position: 'absolute',
+      left: 0,
+      width: 52,
+      height: 52,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 2,
     },
     backIcon: {
       width: 23,
       height: 23,
-    },
-    scrollContent: {
-      paddingBottom: 20,
     },
     headerTitleContainer: {
       position: 'absolute',
@@ -181,5 +192,19 @@ const getStyles = ({ colors }) =>
       fontSize: 16,
       fontFamily: 'Poppins Medium',
       color: colors.primary,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+    },
+    formContainer: {
+      flex: 1,
+    },
+    inputWrapper: {
+      marginBottom: 5,
+    },
+    buttonWrapper: {
+      paddingTop: 20,
+      paddingBottom: 20,
     },
   });
