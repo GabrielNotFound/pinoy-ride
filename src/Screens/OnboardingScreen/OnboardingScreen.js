@@ -19,9 +19,7 @@ import { useTheme } from 'react-native-paper';
 import { AlertBox, AppButton } from '@/Components';
 import {
   ensureCameraPermission,
-  ensureLocationPermission,
   requestCameraPermission,
-  requestLocationPermission,
 } from '@/Utils/Permissions';
 import { openSettings } from 'react-native-permissions';
 
@@ -29,7 +27,7 @@ const { width, height } = Dimensions.get('window');
 
 // Calculate responsive dimensions
 const isSmallScreen = width < 375;
-const imageScale = Math.min(width / 400, 1); // Scale images proportionally
+const imageScale = Math.min(width / 400, 1);
 
 const slides = [
   {
@@ -70,63 +68,37 @@ const OnboardingScreen = () => {
   const styles = getStyles({ colors });
   const flatListRef = useRef(null);
   const navigation = useNavigation();
-  const [currentIndex, setCurrentIndex] = useState(0);
   const insets = useSafeAreaInsets();
-  const [showAlert, setShowAlert] = useState(false);
 
-  const [alertType, setAlertType] = useState('location');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showAlert, setShowAlert] = useState(false);
 
   const appState = useRef(AppState.currentState);
 
-  // Initial permission request (Location + Camera)
+  // Initial CAMERA permission check only
   useEffect(() => {
     (async () => {
-      const loc = await ensureLocationPermission();
       const cam = await ensureCameraPermission();
-
-      if (!loc) {
-        setAlertType('location');
-        setShowAlert(true);
-      } else if (!cam) {
-        setAlertType('camera');
+      if (!cam) {
         setShowAlert(true);
       }
     })();
   }, []);
 
-  // Retry based on alert type
+  // Retry camera permission
   const handleRetryPermission = async () => {
-    if (alertType === 'location') {
-      const result = await requestLocationPermission();
+    const result = await requestCameraPermission();
 
-      if (result === 'granted') {
-        // Now check camera next
-        const cam = await ensureCameraPermission();
-        if (!cam) {
-          setAlertType('camera');
-          setShowAlert(true);
-        } else {
-          setShowAlert(false);
-        }
-      } else if (result === 'blocked') {
-        openSettings();
-      } else {
-        setShowAlert(true);
-      }
+    if (result === 'granted') {
+      setShowAlert(false);
+    } else if (result === 'blocked') {
+      openSettings();
     } else {
-      const result = await requestCameraPermission();
-
-      if (result === 'granted') {
-        setShowAlert(false);
-      } else if (result === 'blocked') {
-        openSettings();
-      } else {
-        setShowAlert(true);
-      }
+      setShowAlert(true);
     }
   };
 
-  // Re-check when app returns foreground
+  // Re-check camera when app returns to foreground
   useEffect(() => {
     const subscription = AppState.addEventListener(
       'change',
@@ -135,14 +107,8 @@ const OnboardingScreen = () => {
           appState.current.match(/inactive|background/) &&
           nextAppState === 'active'
         ) {
-          const loc = await ensureLocationPermission();
           const cam = await ensureCameraPermission();
-
-          if (!loc) {
-            setAlertType('location');
-            setShowAlert(true);
-          } else if (!cam) {
-            setAlertType('camera');
+          if (!cam) {
             setShowAlert(true);
           }
         }
@@ -164,7 +130,7 @@ const OnboardingScreen = () => {
   };
 
   const handleSkip = () => {
-    navigation.navigate('LandingScreen');
+    navigation.replace('LandingScreen');
   };
 
   const handleBack = () => {
@@ -177,30 +143,23 @@ const OnboardingScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/*  Permission Alert for Location + Camera */}
+      {/* Camera Permission Alert */}
       {showAlert && (
         <AlertBox
-          title={
-            alertType === 'location' ? 'Location Required' : 'Camera Required'
-          }
-          message={
-            alertType === 'location'
-              ? 'We need your location to provide rides. Please enable it.'
-              : 'Camera access is required to verify your identity. Please enable it.'
-          }
+          title="Camera Required"
+          message="Camera access is required to verify your identity. Please enable it."
           visible={showAlert}
           setVisible={setShowAlert}
           onConfirm={handleRetryPermission}
         />
       )}
+
       {currentIndex > 0 && (
         <TouchableOpacity
           onPress={handleBack}
           style={[
             styles.backButton,
-            {
-              top: Platform.OS === 'ios' ? insets.top + 20 : 70,
-            },
+            { top: Platform.OS === 'ios' ? insets.top + 20 : 70 },
           ]}>
           <Image
             source={require('@/Assets/Common/OnboardingScreen/Back_Button.png')}
@@ -215,7 +174,7 @@ const OnboardingScreen = () => {
           ref={flatListRef}
           data={slides}
           horizontal
-          scrollEnabled={false} // Disable swipe
+          scrollEnabled={false}
           showsHorizontalScrollIndicator={false}
           keyExtractor={item => item.key}
           renderItem={({ item }) => (
@@ -233,12 +192,14 @@ const OnboardingScreen = () => {
                     resizeMode="contain"
                   />
                 )}
+
                 <View style={styles.textContainer}>
                   <Text style={styles.title}>{item.title}</Text>
                   <View style={styles.subtitleWrapper}>
                     <Text style={styles.subtitle}>{item.subtitle}</Text>
                   </View>
                 </View>
+
                 {item.imagePosition === 'bottom' && (
                   <Image
                     source={item.image}
@@ -305,7 +266,7 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
     },
     slide: {
-      width: width,
+      width,
       flex: 1,
     },
     slideContent: {
@@ -320,7 +281,7 @@ const getStyles = ({ colors }) =>
       paddingHorizontal: 10,
     },
     subtitleWrapper: {
-      maxWidth: width * 0.85, // Responsive width instead of fixed 300
+      maxWidth: width * 0.85,
     },
     title: {
       fontFamily: 'Poppins SemiBold',
@@ -330,7 +291,6 @@ const getStyles = ({ colors }) =>
     },
     subtitle: {
       fontFamily: 'Poppins Regular',
-      fontWeight: '400',
       fontSize: isSmallScreen ? 14 : 16,
       textAlign: 'center',
       letterSpacing: -0.5,
@@ -362,7 +322,6 @@ const getStyles = ({ colors }) =>
       marginBottom: isSmallScreen ? 30 : 40,
     },
     skip: {
-      paddingHorizontal: isSmallScreen ? 15 : 20,
       color: colors.primary,
       fontFamily: 'Poppins Medium',
       fontSize: isSmallScreen ? 14 : 16,
@@ -377,12 +336,10 @@ const getStyles = ({ colors }) =>
       color: 'white',
       fontFamily: 'Poppins Medium',
       fontSize: isSmallScreen ? 14 : 16,
-      lineHeight: 22,
     },
     nextContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
     },
     arrowIcon: {
       width: 11,
@@ -397,7 +354,6 @@ const getStyles = ({ colors }) =>
       height: 52,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: 30,
     },
     backIcon: {
       width: 52,
