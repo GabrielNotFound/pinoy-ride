@@ -32,7 +32,7 @@ const PendingBookingModal = ({
           <TouchableWithoutFeedback>
             <View style={styles.card}>
               {loading ? (
-                <Text>Loading booking...</Text>
+                <Text style={styles.text}>Loading booking...</Text>
               ) : booking ? (
                 <>
                   {/* Header row */}
@@ -97,7 +97,7 @@ const PendingBookingModal = ({
                   </View>
                 </>
               ) : (
-                <Text>No bookings available</Text>
+                <Text style={styles.text}>No bookings available</Text>
               )}
             </View>
           </TouchableWithoutFeedback>
@@ -140,7 +140,11 @@ const getStyles = ({ colors }) =>
       fontSize: 16,
       color: colors.onSurface,
     },
+    text: {
+      color: colors.text,
+    },
     amountBox: {
+      fontFamily: 'Poppins-SemiBold',
       alignItems: 'flex-end',
     },
     amount: {

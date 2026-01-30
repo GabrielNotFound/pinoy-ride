@@ -69,7 +69,6 @@ const BottomModal = ({
       setButtonStatus(3);
       onUpdateStatus(activeBooking, 3);
     } else if (buttonStatus === 3) {
-      onUpdateStatus(activeBooking, 4);
       navigation.navigate('SuccessfulBooking', activeBooking);
     }
   };
@@ -266,7 +265,7 @@ const getStyles = ({ colors }) =>
     containerBooking: {
       paddingHorizontal: 30,
       paddingVertical: 45,
-      backgroundColor: colors.onPrimary,
+      backgroundColor: colors.background,
       shadowOffset: { width: 0, height: -3 },
       shadowOpacity: 0.1,
       shadowRadius: 4,

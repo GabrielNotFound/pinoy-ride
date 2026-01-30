@@ -69,6 +69,45 @@ function decodePolyline(encoded) {
   return points;
 }
 
+// Calculate bearing between two coordinates
+function calculateBearing(start, end) {
+  const startLat = (start.latitude * Math.PI) / 180;
+  const startLng = (start.longitude * Math.PI) / 180;
+  const endLat = (end.latitude * Math.PI) / 180;
+  const endLng = (end.longitude * Math.PI) / 180;
+
+  const dLng = endLng - startLng;
+
+  const y = Math.sin(dLng) * Math.cos(endLat);
+  const x =
+    Math.cos(startLat) * Math.sin(endLat) -
+    Math.sin(startLat) * Math.cos(endLat) * Math.cos(dLng);
+
+  let bearing = (Math.atan2(y, x) * 180) / Math.PI;
+  return (bearing + 360) % 360;
+}
+
+// Find closest point on route to current location
+function findClosestPointIndex(currentLocation, routeCoords) {
+  if (!currentLocation || !routeCoords || routeCoords.length === 0) {return 0;}
+
+  let minDistance = Infinity;
+  let closestIndex = 0;
+
+  routeCoords.forEach((coord, index) => {
+    const distance = Math.sqrt(
+      Math.pow(coord.latitude - currentLocation.latitude, 2) +
+        Math.pow(coord.longitude - currentLocation.longitude, 2),
+    );
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestIndex = index;
+    }
+  });
+
+  return closestIndex;
+}
+
 const AppMap = ({
   initialLat = 14.6042,
   initialLong = 120.9822,
@@ -97,10 +136,13 @@ const AppMap = ({
 
   const [routeCoords, setRouteCoords] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
-  const [isRouteView, setIsRouteView] = useState(true); // Toggle between route view and free view
+  const [isRouteView, setIsRouteView] = useState(false); // Start with route view off by default
+  const [currentHeading, setCurrentHeading] = useState(0);
 
   // Store the route coordinates for re-fitting
   const savedRouteCoords = useRef([]);
+  const animationFrameRef = useRef(null);
+  const isUserInteracting = useRef(false);
 
   useEffect(() => {
     const apiKey = Constants.GOOGLE_MAP_API_KEY;
@@ -133,14 +175,14 @@ const AppMap = ({
         setRouteCoords(coords);
         savedRouteCoords.current = coords;
 
-        // Fit map to show entire route with padding (only if in route view mode)
-        if (coords.length > 0 && mapRef.current && isRouteView) {
+        // Fit map to show entire route with padding (only if NOT in route view mode)
+        if (coords.length > 0 && mapRef.current && !isRouteView) {
           setTimeout(() => {
             mapRef.current.fitToCoordinates(coords, {
               edgePadding: {
                 top: 100,
                 right: 50,
-                bottom: 300, // More padding at bottom for UI
+                bottom: 300,
                 left: 50,
               },
               animated: true,
@@ -149,7 +191,6 @@ const AppMap = ({
         }
       });
     } else if (firstMarkerLat != null) {
-      // Only first marker, center on it
       setRouteCoords([]);
       savedRouteCoords.current = [];
       setRegion({
@@ -159,7 +200,6 @@ const AppMap = ({
         longitudeDelta: 0.05,
       });
     } else if (riderLat != null && riderLong != null) {
-      // Only rider location, center on rider
       setRouteCoords([]);
       savedRouteCoords.current = [];
       setRegion({
@@ -169,7 +209,6 @@ const AppMap = ({
         longitudeDelta: 0.05,
       });
     } else {
-      // No markers or rider, use initial location
       setRouteCoords([]);
       savedRouteCoords.current = [];
       setRegion({
@@ -188,38 +227,130 @@ const AppMap = ({
     firstMarkerLong,
     secondMarkerLat,
     secondMarkerLong,
-    isRouteView, // Re-fit when toggling back to route view
   ]);
 
-  // Function to toggle between route view and free view
-  const handleToggleView = () => {
-    if (!isRouteView && savedRouteCoords.current.length > 0) {
-      // Switching back to route view - re-fit to route
-      mapRef.current?.fitToCoordinates(savedRouteCoords.current, {
-        edgePadding: {
-          top: 100,
-          right: 50,
-          bottom: 300,
-          left: 50,
-        },
-        animated: true,
-      });
+  // Google Maps-style route following effect
+  useEffect(() => {
+    if (
+      !isRouteView ||
+      !riderLat ||
+      !riderLong ||
+      savedRouteCoords.current.length === 0
+    ) {
+      if (animationFrameRef.current) {
+        clearInterval(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      return;
     }
-    setIsRouteView(!isRouteView);
+
+    const updateCamera = () => {
+      if (!mapRef.current || isUserInteracting.current) {return;}
+
+      const currentLocation = {
+        latitude: parseFloat(riderLat),
+        longitude: parseFloat(riderLong),
+      };
+
+      // Find closest point on route
+      const closestIndex = findClosestPointIndex(
+        currentLocation,
+        savedRouteCoords.current,
+      );
+
+      // Get next point for heading calculation
+      const nextIndex = Math.min(
+        closestIndex + 5,
+        savedRouteCoords.current.length - 1,
+      );
+      const nextPoint = savedRouteCoords.current[nextIndex];
+
+      // Calculate heading
+      const heading = calculateBearing(currentLocation, nextPoint);
+      setCurrentHeading(heading);
+
+      // Animate camera with Google Maps-style view
+      mapRef.current.animateCamera(
+        {
+          center: currentLocation,
+          pitch: 60, // Tilt angle (0-90)
+          heading: heading, // Direction of travel
+          altitude: 500, // Height above ground
+          zoom: 17, // Zoom level
+        },
+        { duration: 1000 },
+      );
+    };
+
+    // Initial camera update
+    updateCamera();
+
+    // Update camera periodically
+    animationFrameRef.current = setInterval(updateCamera, 2000);
+
+    return () => {
+      if (animationFrameRef.current) {
+        clearInterval(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [isRouteView, riderLat, riderLong]);
+
+  // Function to toggle between route view and overview
+  const handleToggleView = () => {
+    const newRouteView = !isRouteView;
+    setIsRouteView(newRouteView);
+
+    if (!newRouteView && savedRouteCoords.current.length > 0) {
+      // Switching to overview - show entire route
+      isUserInteracting.current = true;
+      mapRef.current?.animateCamera(
+        {
+          pitch: 0,
+          heading: 0,
+        },
+        { duration: 500 },
+      );
+
+      setTimeout(() => {
+        mapRef.current?.fitToCoordinates(savedRouteCoords.current, {
+          edgePadding: {
+            top: 100,
+            right: 50,
+            bottom: 300,
+            left: 50,
+          },
+          animated: true,
+        });
+        setTimeout(() => {
+          isUserInteracting.current = false;
+        }, 1000);
+      }, 500);
+    } else if (newRouteView) {
+      // Switching to route view
+      isUserInteracting.current = false;
+    }
   };
 
   // Center on rider location
   const handleCenterOnRider = () => {
     if (riderLat != null && riderLong != null && mapRef.current) {
-      mapRef.current.animateToRegion(
+      isUserInteracting.current = true;
+      mapRef.current.animateCamera(
         {
-          latitude: parseFloat(riderLat),
-          longitude: parseFloat(riderLong),
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
+          center: {
+            latitude: parseFloat(riderLat),
+            longitude: parseFloat(riderLong),
+          },
+          pitch: 0,
+          heading: 0,
+          zoom: 16,
         },
-        500,
+        { duration: 500 },
       );
+      setTimeout(() => {
+        isUserInteracting.current = false;
+      }, 1000);
     }
   };
 
@@ -228,7 +359,7 @@ const AppMap = ({
       <MapView
         ref={mapRef}
         style={[styles.container, style]}
-        region={region}
+        initialRegion={region}
         provider={PROVIDER_GOOGLE}
         scrollEnabled={interactive}
         zoomEnabled={interactive}
@@ -247,11 +378,18 @@ const AppMap = ({
               }
             : null
         }
-        onRegionChangeComplete={() => {
-          // When user manually moves map, switch to free view
+        onPanDrag={() => {
+          // When user manually moves map, temporarily pause route following
           if (isRouteView) {
-            setIsRouteView(false);
+            isUserInteracting.current = true;
+            setTimeout(() => {
+              isUserInteracting.current = false;
+            }, 3000); // Resume after 3 seconds
           }
+        }}
+        onRegionChangeComplete={() => {
+          // Optional: Could disable route view on manual interaction
+          // Commenting out to allow route view to continue after user pan
         }}>
         {selectedMarker && (
           <Marker coordinate={selectedMarker} title="Selected Location" />
@@ -268,12 +406,12 @@ const AppMap = ({
           />
         )}
 
-        {/* ✅ Rider Marker - Uses first point of route when route exists */}
+        {/* Rider Marker - Uses first point of route when route exists */}
         {riderLat != null && riderLong != null && (
           <Marker
             coordinate={
               routeCoords.length > 0
-                ? routeCoords[0] // Use first point of route if route exists
+                ? routeCoords[0]
                 : {
                     latitude: parseFloat(riderLat),
                     longitude: parseFloat(riderLong),
@@ -281,6 +419,8 @@ const AppMap = ({
             }
             title="You"
             anchor={{ x: 0.5, y: 0.5 }}
+            rotation={isRouteView ? currentHeading : 0}
+            flat={isRouteView}
             zIndex={1000}>
             <Image
               source={require('@/Assets/Common/Rider_Pin.png')}
@@ -323,12 +463,12 @@ const AppMap = ({
       </MapView>
 
       {/* View Toggle Button - Only show when there's a route */}
-      {routeCoords.length > 0 && (
+      {routeCoords.length > 0 && riderLat != null && riderLong != null && (
         <TouchableOpacity
           style={styles.viewToggleButton}
           onPress={handleToggleView}>
           <Text style={styles.viewToggleText}>
-            {isRouteView ? '🗺️ Free View' : '🧭 Route View'}
+            {isRouteView ? '🗺️ Overview' : '🧭 Route View'}
           </Text>
         </TouchableOpacity>
       )}
