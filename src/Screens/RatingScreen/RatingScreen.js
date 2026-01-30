@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -68,89 +77,101 @@ const RatingScreen = () => {
         />
       ) : null}
       <Container style={styles.container}>
-        <View style={{ flex: 1, paddingBottom: 70 }}>
-          {/* Top buttons */}
-          <View style={styles.buttonGroupContainer}>
-            <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
-              <Image
-                source={require('@/Assets/Common/Close.png')}
-                style={styles.backIcon}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Text style={styles.contactSupport}>Contact Support</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Title */}
-          <Text style={styles.title}>How was your Rider?</Text>
-
-          {/* Rider Image + Stars */}
-          <View style={styles.riderRatingRow}>
-            <Image
-              source={require('@/Assets/Common/Sample_Profile.png')}
-              style={styles.profileImage}
-            />
-            <View style={styles.starsContainer}>
-              {[1, 2, 3, 4, 5].map(star => (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.content}>
+              {/* Top buttons */}
+              <View style={styles.buttonGroupContainer}>
                 <TouchableOpacity
-                  key={star}
-                  onPress={() => setRating(star)}
-                  activeOpacity={0.7}>
-                  <Text
-                    style={[styles.star, rating >= star && styles.filledStar]}>
-                    {rating >= star ? '★' : '★'}
-                  </Text>
+                  onPress={handleBack}
+                  style={styles.iconButton}>
+                  <Image
+                    source={require('@/Assets/Common/Close.png')}
+                    style={styles.backIcon}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
-              ))}
+                <TouchableOpacity>
+                  <Text style={styles.contactSupport}>Contact Support</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Title */}
+              <Text style={styles.title}>How was your Rider?</Text>
+
+              {/* Rider Image + Stars */}
+              <View style={styles.riderRatingRow}>
+                <Image
+                  source={require('@/Assets/Common/Sample_Profile.png')}
+                  style={styles.profileImage}
+                />
+                <View style={styles.starsContainer}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <TouchableOpacity
+                      key={star}
+                      onPress={() => setRating(star)}
+                      activeOpacity={0.7}>
+                      <Text
+                        style={[
+                          styles.star,
+                          rating >= star && styles.filledStar,
+                        ]}>
+                        {rating >= star ? '★' : '★'}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Comment input */}
+              <AppTextInput
+                placeholder="Share your compliment (Optional)"
+                value={comment}
+                onChangeText={setComment}
+                inputMode="comment"
+              />
+
+              {/* Fare and payment method */}
+              <View style={styles.fareRow}>
+                <Text
+                  style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
+                  Final Fare
+                </Text>
+                <Text
+                  style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
+                  {paymentDetails.total_amount}
+                </Text>
+              </View>
+
+              <View style={styles.fareRow}>
+                <Text style={styles.feeText}>Payment Method</Text>
+                <Image
+                  source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
+                  style={styles.optionIcon}
+                />
+              </View>
             </View>
-          </View>
 
-          {/* Comment input */}
-          <AppTextInput
-            placeholder="Share your compliment (Optional)"
-            value={comment}
-            onChangeText={setComment}
-            inputMode="comment"
-          />
-
-          {/* Fare and payment method */}
-          <View style={styles.fareRow}>
-            <Text style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
-              Final Fare
-            </Text>
-            <Text style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
-              {paymentDetails.total_amount}
-            </Text>
-          </View>
-
-          <View style={styles.fareRow}>
-            <Text style={styles.feeText}>Payment Method</Text>
-            <Image
-              source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png')}
-              style={styles.optionIcon}
-            />
-          </View>
-
-          {/* View Booking Details */}
-        </View>
-
-        {/* Submit Button fixed at bottom */}
-        <View style={styles.bottomButtonWrapper}>
-          <AppButton
-            title="View Booking Details"
-            onPress={() => console.log('View Booking Pressed')}
-            isBold
-            mode="outlined"
-          />
-          <AppButton
-            title="Submit"
-            onPress={handleSubmit}
-            isBold
-            mode="contained"
-          />
-        </View>
+            {/* Submit Button fixed at bottom */}
+            <View style={styles.bottomButtonWrapper}>
+              <AppButton
+                title="View Booking Details"
+                onPress={() => console.log('View Booking Pressed')}
+                isBold
+                mode="outlined"
+              />
+              <AppButton
+                title="Submit"
+                onPress={handleSubmit}
+                isBold
+                mode="contained"
+              />
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </Container>
     </>
   );
@@ -163,6 +184,14 @@ const getStyles = ({ colors }) =>
     container: {
       flex: 1,
       paddingHorizontal: 15,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+      paddingBottom: 20,
+    },
+    content: {
+      flex: 1,
     },
     buttonGroupContainer: {
       flexDirection: 'row',
@@ -231,9 +260,6 @@ const getStyles = ({ colors }) =>
       color: '#333',
     },
     bottomButtonWrapper: {
-      position: 'absolute',
-      bottom: 20,
-      left: 15,
-      right: 15,
+      paddingTop: 20,
     },
   });

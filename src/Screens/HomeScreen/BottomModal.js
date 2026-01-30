@@ -4,6 +4,17 @@ import { AppButton } from '@/Components';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
+const PAYMENT_METHOD_CONFIG = {
+  cash: {
+    label: 'Cash',
+    icon: require('@/Assets/Common/HomeScreen/PaymentMethodModal/Cash.png'),
+  },
+  wallet: {
+    label: 'Wallet',
+    icon: require('@/Assets/Common/HomeScreen/PaymentMethodModal/Wallet.png'),
+  },
+};
+
 const BottomModal = ({
   onLayout,
   selectedService,
@@ -22,7 +33,7 @@ const BottomModal = ({
   setShowPaymentModal,
   setShowPromoModal,
   setShowNoteModal,
-  selectedPayment,
+  selectedPayment = 'wallet', // ✅ default to wallet
   selectedPromo,
   noteToRider,
   inquireBookingResponse,
@@ -32,22 +43,25 @@ const BottomModal = ({
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
+  const paymentConfig =
+    PAYMENT_METHOD_CONFIG[selectedPayment] || PAYMENT_METHOD_CONFIG.wallet;
+
   const buttons = [
     {
       id: 'payment',
-      image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
-      text: selectedPayment,
+      image: paymentConfig?.icon,
+      text: paymentConfig?.label ?? 'Wallet', // ✅ fallback to Wallet
       onPress: () => setShowPaymentModal(true),
     },
     {
       id: 'promo',
-      image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+      image: require('@/Assets/Common/HomeScreen/BottomModal/Promo.png'),
       text: selectedPromo ? selectedPromo.code : 'Promo',
       onPress: () => setShowPromoModal(true),
     },
     {
       id: 'note',
-      image: require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_9.png'),
+      image: require('@/Assets/Common/HomeScreen/BottomModal/Note_To_Rider.png'),
       text: noteToRider ? 'Note Added' : 'Note to Rider',
       onPress: () => setShowNoteModal(true),
     },
@@ -88,7 +102,6 @@ const BottomModal = ({
     });
   };
 
-  // Helper function to get display text for location
   const getLocationText = (location, placeholder) => {
     if (!location) {
       return placeholder;
@@ -97,7 +110,6 @@ const BottomModal = ({
     return location.description || location.address || placeholder;
   };
 
-  //  Extracted helper renderer
   const renderActionButton = () => {
     const btn = actionButtons.find(b => b.visible);
     if (!btn) {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Keyboard,
   Modal,
   StyleSheet,
   Text,
@@ -31,27 +32,31 @@ const NoteToRiderModal = ({ visible, onClose, onSave, initialNote = '' }) => {
       transparent
       animationType="fade"
       onRequestClose={handleClose}>
+      {/* Backdrop - closes modal */}
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
 
-      <View style={styles.modalContainer}>
-        <Text style={styles.title}>Note To Rider</Text>
+      {/* Modal content - dismisses keyboard */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>Note To Rider</Text>
 
-        <AppTextInput
-          value={note}
-          onChangeText={setNote}
-          placeholder="Message"
-          inputMode="comment"
-        />
+          <AppTextInput
+            value={note}
+            onChangeText={setNote}
+            placeholder="Message"
+            inputMode="comment"
+          />
 
-        <AppButton
-          title="Send"
-          onPress={handleSave}
-          isBold
-          buttonColor={colors.primary}
-        />
-      </View>
+          <AppButton
+            title="Send"
+            onPress={handleSave}
+            isBold
+            buttonColor={colors.primary}
+          />
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

@@ -11,6 +11,7 @@ export { default as PaymentMethodModal } from './HomeScreen/Components/PaymentMe
 export { default as ServiceModal } from './HomeScreen/Components/ServiceModal';
 export { default as InputLocation } from './Location/InputLocation';
 export { default as MapSelectionScreen } from './Location/MapSelectionScreen';
+export { default as SaveLocationScreen } from './Location/SaveLocationScreen';
 export { default as RatingScreen } from './RatingScreen/RatingScreen';
 export { default as SettingsScreen } from './SettingsScreen/SettingsScreen';
 export { default as BookingHistoryScreen } from './BookingHistoryScreen/BookingHistoryScreen';

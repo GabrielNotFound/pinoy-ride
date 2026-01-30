@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Keyboard,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import Container from '@/Components/Container/Container';
@@ -19,7 +22,7 @@ const RegisterScreen = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
 
-  const [mobileNumber, setMobileNumber] = useState(''); // 63XXXXXXXXXX
+  const [mobileNumber, setMobileNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [isPhoneValid, setIsPhoneValid] = useState(false);
@@ -113,28 +116,35 @@ const RegisterScreen = () => {
           </View>
         </View>
 
-        <View style={styles.pageContainer}>
-          <AppTextInput
-            label="Mobile"
-            value={mobileNumber}
-            onChangeText={setMobileNumber}
-            onValidationChange={setIsPhoneValid}
-            inputMode="phone"
-            placeholder="9XX-XXX-XXXX"
-            error={errorMessage}
-            editable={!isLoading}
-          />
-        </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.pageContainer}>
+              <AppTextInput
+                label="Mobile"
+                value={mobileNumber}
+                onChangeText={setMobileNumber}
+                onValidationChange={setIsPhoneValid}
+                inputMode="phone"
+                placeholder="9XX-XXX-XXXX"
+                error={errorMessage}
+                editable={!isLoading}
+              />
+            </View>
 
-        <View>
-          <AppButton
-            title="Next"
-            onPress={handleNext}
-            isBold
-            loading={isLoading}
-            disabled={isLoading}
-          />
-        </View>
+            <View style={styles.footer}>
+              <AppButton
+                title="Next"
+                onPress={handleNext}
+                isBold
+                loading={isLoading}
+                disabled={isLoading}
+              />
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </Container>
     </>
   );
@@ -177,9 +187,17 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       color: colors.shadow,
     },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+    },
     pageContainer: {
-      flex: 1,
       paddingHorizontal: 20,
+      paddingTop: 20,
+    },
+    footer: {
+      paddingHorizontal: 20,
+      paddingBottom: 20,
     },
     loadingOverlay: {
       position: 'absolute',

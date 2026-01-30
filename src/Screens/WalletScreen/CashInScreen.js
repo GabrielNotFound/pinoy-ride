@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
   Image,
   ImageBackground,
+  Keyboard,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
@@ -55,7 +58,6 @@ const CashInScreen = () => {
   };
 
   const handleCashInRequest = amount => {
-    // the value is already formatted, just a second line i added to amke sure
     const numAmount = parseFloat(amount.replace(/,/g, ''));
 
     requestToPay.makePostRequest(
@@ -74,11 +76,9 @@ const CashInScreen = () => {
     );
   };
 
-  // Handle API response
   useEffect(() => {
     if (requestToPay.error) {
       console.warn('Request to pay error:', requestToPay.error);
-      //  Use actual error message from API
       setAlertMessage(requestToPay.error);
       setShowAlert(true);
       return;
@@ -161,80 +161,89 @@ const CashInScreen = () => {
           };
 
           return (
-            <View style={styles.contents}>
-              <Text style={styles.title}>Enter Amount</Text>
-              <Text style={styles.subtitle}>
-                Choose or enter the amount you want to add to your PinoyRide
-                Wallet.
-              </Text>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}>
+                <View style={styles.contents}>
+                  <Text style={styles.title}>Enter Amount</Text>
+                  <Text style={styles.subtitle}>
+                    Choose or enter the amount you want to add to your PinoyRide
+                    Wallet.
+                  </Text>
 
-              {/* Wallet Card */}
-              <ImageBackground
-                source={require('@/Assets/Common/WalletScreen/WalletCard.png')}
-                style={styles.walletCard}
-                imageStyle={styles.walletCardImage}>
-                <Text style={styles.walletTitle}>PinoyRide Wallet</Text>
-                <Text style={styles.walletAmount}>
-                  {available_balance !== undefined
-                    ? `₱${AppUtil.fn(available_balance)}`
-                    : '₱0.00'}
-                </Text>
-              </ImageBackground>
+                  {/* Wallet Card */}
+                  <ImageBackground
+                    source={require('@/Assets/Common/WalletScreen/WalletCard.png')}
+                    style={styles.walletCard}
+                    imageStyle={styles.walletCardImage}>
+                    <Text style={styles.walletTitle}>PinoyRide Wallet</Text>
+                    <Text style={styles.walletAmount}>
+                      {available_balance !== undefined
+                        ? `₱${AppUtil.fn(available_balance)}`
+                        : '₱0.00'}
+                    </Text>
+                  </ImageBackground>
 
-              {/* Amount Input */}
-              <View style={styles.inputWrapper}>
-                <AppTextInput
-                  label="Amount"
-                  value={values.amount}
-                  onChangeText={value => {
-                    setFieldValue('amount', value);
-                  }}
-                  placeholder="0.00"
-                  inputMode="amount"
-                />
-                {touched.amount && errors.amount ? (
-                  <AppTextError>{errors.amount}</AppTextError>
-                ) : null}
-              </View>
-
-              {/* Quick Amount Buttons */}
-              <View style={styles.quickAmountContainer}>
-                <Text style={styles.quickAmountLabel}>Quick Amount</Text>
-                <View style={styles.quickAmountRow}>
-                  {quickAmounts.map((quickAmount, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.quickAmountButton}
-                      onPress={() => {
-                        const formattedAmount = quickAmount.toFixed(2);
-                        setFieldValue('amount', formattedAmount);
-                        setTouched({ amount: false });
+                  {/* Amount Input */}
+                  <View style={styles.inputWrapper}>
+                    <AppTextInput
+                      label="Amount"
+                      value={values.amount}
+                      onChangeText={value => {
+                        setFieldValue('amount', value);
                       }}
-                      disabled={requestToPay.loading}>
-                      <Text style={styles.quickAmountText}>₱{quickAmount}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Proceed Button */}
-              <View style={styles.buttonContainer}>
-                {requestToPay.loading ? (
-                  <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                    <Text style={styles.loadingText}>Processing...</Text>
+                      placeholder="0.00"
+                      inputMode="amount"
+                    />
+                    {touched.amount && errors.amount ? (
+                      <AppTextError>{errors.amount}</AppTextError>
+                    ) : null}
                   </View>
-                ) : (
-                  <AppButton
-                    title="Proceed to Payment"
-                    onPress={handleProceed}
-                    disabled={requestToPay.loading}
-                    isBold={true}
-                    noSpacing={true}
-                  />
-                )}
-              </View>
-            </View>
+
+                  {/* Quick Amount Buttons */}
+                  <View style={styles.quickAmountContainer}>
+                    <Text style={styles.quickAmountLabel}>Quick Amount</Text>
+                    <View style={styles.quickAmountRow}>
+                      {quickAmounts.map((quickAmount, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.quickAmountButton}
+                          onPress={() => {
+                            const formattedAmount = quickAmount.toFixed(2);
+                            setFieldValue('amount', formattedAmount);
+                            setTouched({ amount: false });
+                          }}
+                          disabled={requestToPay.loading}>
+                          <Text style={styles.quickAmountText}>
+                            ₱{quickAmount}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Proceed Button */}
+                <View style={styles.buttonContainer}>
+                  {requestToPay.loading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="large" color={colors.primary} />
+                      <Text style={styles.loadingText}>Processing...</Text>
+                    </View>
+                  ) : (
+                    <AppButton
+                      title="Proceed to Payment"
+                      onPress={handleProceed}
+                      disabled={requestToPay.loading}
+                      isBold={true}
+                      noSpacing={true}
+                    />
+                  )}
+                </View>
+              </ScrollView>
+            </TouchableWithoutFeedback>
           );
         }}
       </Formik>
@@ -279,8 +288,11 @@ const getStyles = ({ colors }) =>
       textAlign: 'center',
       flex: 1,
     },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+    },
     contents: {
-      flex: 1,
       paddingVertical: 5,
       paddingHorizontal: 30,
       backgroundColor: colors.onPrimary,
@@ -362,8 +374,9 @@ const getStyles = ({ colors }) =>
       color: colors.primary,
     },
     buttonContainer: {
-      marginTop: 'auto',
-      marginBottom: 20,
+      paddingHorizontal: 30,
+      paddingBottom: 20,
+      backgroundColor: colors.onPrimary,
     },
     loadingContainer: {
       alignItems: 'center',

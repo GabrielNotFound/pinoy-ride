@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -13,34 +14,49 @@ import {
 } from 'react-native';
 import { Portal, useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import usePostRequest from '@/Services/Api';
 import { Constants } from '@/Utils';
 import Geolocation from 'react-native-geolocation-service';
+import { removeSavedPlace, selectSavedPlaces } from '@/Redux/Slices/userSlice';
+
+const getIconForType = type => {
+  switch (type) {
+    case 'home':
+      return require('@/Assets/Common/Location/Home.png');
+    case 'work':
+      return require('@/Assets/Common/Location/Suitcase.png');
+    case 'school':
+      return require('@/Assets/Common/Location/School.png');
+    default:
+      return require('@/Assets/Common/Location/Location.png');
+  }
+};
 
 const savedLocationButtons = [
   {
     id: 'home',
+    type: 'home',
     icon: require('@/Assets/Common/Location/Home.png'),
     label: 'Add Home',
-    onPress: () => console.log('Home pressed'),
   },
   {
     id: 'work',
+    type: 'work',
     icon: require('@/Assets/Common/Location/Suitcase.png'),
     label: 'Add Work',
-    onPress: () => console.log('Work pressed'),
   },
   {
     id: 'school',
+    type: 'school',
     icon: require('@/Assets/Common/Location/School.png'),
     label: 'Add School',
-    onPress: () => console.log('School pressed'),
   },
   {
     id: 'other',
-    icon: require('@/Assets/Common/Location/Suitcase.png'),
-    label: 'Add Another Places',
-    onPress: () => console.log('Other pressed'),
+    type: 'other',
+    icon: require('@/Assets/Common/Location/Location.png'),
+    label: 'Add Another Place',
   },
 ];
 
@@ -49,6 +65,8 @@ const InputLocation = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
+  const savedPlaces = useSelector(selectSavedPlaces);
 
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
@@ -124,7 +142,6 @@ const InputLocation = () => {
     setFocusedField(null);
     setSearchResults([]);
     navigation.navigate('MapSelectionScreen', {
-      // Pass through the original callbacks from route.params
       onPickupSelect: route.params?.onPickupSelect,
       onDropoffSelect: route.params?.onDropoffSelect,
     });
@@ -138,7 +155,6 @@ const InputLocation = () => {
       setPickupLocation(item);
       route.params?.onPickupSelect?.(item);
 
-      // Check if dropoff is already filled
       if (dropoffLocation) {
         shouldNavigate = true;
       }
@@ -147,7 +163,6 @@ const InputLocation = () => {
       setDropoffLocation(item);
       route.params?.onDropoffSelect?.(item);
 
-      // Check if pickup is already filled
       if (pickupLocation) {
         shouldNavigate = true;
       }
@@ -183,13 +198,11 @@ const InputLocation = () => {
 
           let shouldNavigate = false;
 
-          // Set to focused field or pickup by default
           if (focusedField === 'dropoff') {
             setDropoff(currentAddress);
             setDropoffLocation(locationData);
             route.params?.onDropoffSelect?.(locationData);
 
-            // Navigate back if pickup is already filled
             if (pickupLocation) {
               shouldNavigate = true;
             }
@@ -198,7 +211,6 @@ const InputLocation = () => {
             setPickupLocation(locationData);
             route.params?.onPickupSelect?.(locationData);
 
-            // Navigate back if dropoff is already filled
             if (dropoffLocation) {
               shouldNavigate = true;
             }
@@ -223,6 +235,77 @@ const InputLocation = () => {
     );
   };
 
+  const handleAddSavedPlace = type => {
+    // Check if this type already exists (only for non-"other" types)
+    if (type !== 'other') {
+      const existingPlace = savedPlaces.find(place => place.type === type);
+
+      if (existingPlace) {
+        // Navigate to edit existing place
+        navigation.navigate('SaveLocationScreen', {
+          locationType: type,
+          existingPlace: existingPlace,
+        });
+        return;
+      }
+    }
+
+    // Navigate to add new place (for "other" type or non-existing places)
+    navigation.navigate('SaveLocationScreen', {
+      locationType: type,
+    });
+  };
+
+  const handleSelectSavedPlace = place => {
+    const locationData = {
+      address: place.address,
+      lat: place.lat,
+      long: place.long,
+    };
+
+    let shouldNavigate = false;
+
+    if (focusedField === 'dropoff' || (!focusedField && dropoff === '')) {
+      setDropoff(place.address);
+      setDropoffLocation(locationData);
+      route.params?.onDropoffSelect?.(locationData);
+
+      if (pickupLocation) {
+        shouldNavigate = true;
+      }
+    } else {
+      setPickup(place.address);
+      setPickupLocation(locationData);
+      route.params?.onPickupSelect?.(locationData);
+
+      if (dropoffLocation) {
+        shouldNavigate = true;
+      }
+    }
+
+    if (shouldNavigate) {
+      navigation.goBack();
+    }
+  };
+
+  const handleDeleteSavedPlace = placeId => {
+    Alert.alert(
+      'Delete Saved Place',
+      'Are you sure you want to delete this saved place?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => dispatch(removeSavedPlace(placeId)),
+        },
+      ],
+    );
+  };
+
   const renderDropdown = () => (
     <Portal>
       {focusedField && searchResults.length > 0 && (
@@ -244,11 +327,132 @@ const InputLocation = () => {
     </Portal>
   );
 
+  const renderSavedPlaceButton = button => {
+    // For non-"other" types, check if place exists
+    if (button.type !== 'other') {
+      const existingPlace = savedPlaces.find(
+        place => place.type === button.type,
+      );
+
+      if (existingPlace) {
+        return (
+          <TouchableOpacity
+            key={existingPlace.id}
+            style={styles.savedPlaceItem}
+            onPress={() => handleSelectSavedPlace(existingPlace)}>
+            <View style={styles.savedPlaceLeft}>
+              <Image
+                source={getIconForType(existingPlace.type)}
+                style={styles.iconSmall}
+                resizeMode="contain"
+              />
+              <View style={styles.savedPlaceTextContainer}>
+                <Text style={styles.savedPlaceLabel}>
+                  {existingPlace.label}
+                </Text>
+                <Text style={styles.savedPlaceAddress} numberOfLines={1}>
+                  {existingPlace.address}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.savedPlaceActions}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('SaveLocationScreen', {
+                    locationType: existingPlace.type,
+                    existingPlace: existingPlace,
+                  })
+                }
+                style={styles.actionButton}>
+                <Image
+                  source={require('@/Assets/Common/Location/Edit.png')}
+                  style={styles.actionIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleDeleteSavedPlace(existingPlace.id)}
+                style={styles.actionButton}>
+                <Image
+                  source={require('@/Assets/Common/Location/Delete.png')}
+                  style={styles.actionIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        );
+      }
+    }
+
+    // For "other" type or non-existing places, always show "Add" button
+    return (
+      <TouchableOpacity
+        key={button.id}
+        style={styles.buttons}
+        onPress={() => handleAddSavedPlace(button.type)}>
+        <Image
+          source={button.icon}
+          style={styles.iconSmall}
+          resizeMode="contain"
+        />
+        <Text style={styles.iconText}>{button.label}</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  // Render saved place item (used for "other" type places)
+  const renderSavedPlaceItem = place => (
+    <TouchableOpacity
+      key={place.id}
+      style={styles.savedPlaceItem}
+      onPress={() => handleSelectSavedPlace(place)}>
+      <View style={styles.savedPlaceLeft}>
+        <Image
+          source={require('@/Assets/Common/Location/Home.png')}
+          style={styles.iconSmall}
+          resizeMode="contain"
+        />
+        <View style={styles.savedPlaceTextContainer}>
+          <Text style={styles.savedPlaceLabel}>{place.label}</Text>
+          <Text style={styles.savedPlaceAddress} numberOfLines={1}>
+            {place.address}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.savedPlaceActions}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('SaveLocationScreen', {
+              locationType: place.type,
+              existingPlace: place,
+            })
+          }
+          style={styles.actionButton}>
+          <Image
+            source={require('@/Assets/Common/Location/Edit.png')}
+            style={styles.actionIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleDeleteSavedPlace(place.id)}
+          style={styles.actionButton}>
+          <Image
+            source={require('@/Assets/Common/Location/Delete.png')}
+            style={styles.actionIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+
+  // Filter out "other" type places for separate rendering
+  const otherPlaces = savedPlaces.filter(place => place.type === 'other');
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+    <View style={styles.container}>
       <View style={styles.headerContainer}>
         <View style={styles.buttonGroupContainer}>
           <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
@@ -358,7 +562,10 @@ const InputLocation = () => {
         </View>
       </View>
 
-      <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={styles.body}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}>
         <TouchableOpacity
           style={styles.currentLocationButton}
           onPress={handleUseCurrentLocation}>
@@ -372,33 +579,34 @@ const InputLocation = () => {
 
         <Text style={styles.savedPlacesText}>Saved Places</Text>
         <Text style={styles.savedPlacesSubtitleText}>
-          Lorem ipsum dolor sit amet consectetur.
+          Save your favorite places for faster booking.
         </Text>
 
-        {savedLocationButtons.map(button => (
-          <TouchableOpacity
-            key={button.id}
-            style={styles.buttons}
-            onPress={button.onPress}>
-            <Image
-              source={button.icon}
-              style={styles.iconSmall}
-              resizeMode="contain"
-            />
-            <Text style={styles.iconText}>{button.label}</Text>
-          </TouchableOpacity>
-        ))}
+        {/* Render Home, Work, School buttons/places */}
+        {savedLocationButtons
+          .filter(btn => btn.type !== 'other')
+          .map(button => renderSavedPlaceButton(button))}
+
+        {/* Render all "other" saved places */}
+        {otherPlaces.map(place => renderSavedPlaceItem(place))}
+
+        {/* Always show "Add Another Place" button */}
+        {renderSavedPlaceButton(
+          savedLocationButtons.find(btn => btn.type === 'other'),
+        )}
       </ScrollView>
 
-      <TouchableOpacity onPress={handleOpenMap} style={styles.bottomButton}>
-        <Image
-          source={require('@/Assets/Common/Location/Map.png')}
-          style={styles.bottomButtonIcon}
-          resizeMode="contain"
-        />
-        <Text style={styles.bottomButtonText}>Choose from Map</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+      <View style={styles.bottomButtonContainer}>
+        <TouchableOpacity onPress={handleOpenMap} style={styles.bottomButton}>
+          <Image
+            source={require('@/Assets/Common/Location/Map.png')}
+            style={styles.bottomButtonIcon}
+            resizeMode="contain"
+          />
+          <Text style={styles.bottomButtonText}>Choose from Map</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
@@ -453,7 +661,14 @@ const getStyles = ({ colors }) =>
       fontSize: 15,
       fontWeight: '600',
     },
-    body: { paddingHorizontal: 30, flex: 1 },
+    body: {
+      paddingHorizontal: 30,
+      flex: 1,
+      marginBottom: 67, // Reserve space for the fixed button (47 height + 20 bottom margin)
+    },
+    scrollContent: {
+      paddingBottom: 20,
+    },
     currentLocationButton: {
       backgroundColor: colors.grey2,
       flexDirection: 'row',
@@ -473,11 +688,13 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       fontSize: 14,
       fontWeight: '500',
+      marginBottom: 4,
     },
     savedPlacesSubtitleText: {
       fontFamily: 'Poppins Regular',
       fontSize: 8,
       fontWeight: '400',
+      marginBottom: 12,
     },
     buttons: {
       backgroundColor: colors.grey2,
@@ -487,17 +704,73 @@ const getStyles = ({ colors }) =>
       borderRadius: 10,
       marginVertical: 5,
     },
+    savedPlaceItem: {
+      backgroundColor: colors.grey2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 12,
+      borderRadius: 10,
+      marginVertical: 5,
+    },
+    savedPlaceLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    savedPlaceTextContainer: {
+      flex: 1,
+      marginRight: 8,
+    },
+    savedPlaceLabel: {
+      fontFamily: 'Poppins SemiBold',
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.grey3,
+      marginBottom: 2,
+    },
+    savedPlaceAddress: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 11,
+      color: colors.grey3,
+      opacity: 0.7,
+    },
+    savedPlaceActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    actionButton: {
+      padding: 8,
+      marginLeft: 4,
+    },
+    actionIcon: {
+      width: 16,
+      height: 16,
+      tintColor: colors.grey3,
+    },
+    bottomButtonContainer: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'white',
+      paddingBottom: 20,
+      paddingTop: 10,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 5,
+    },
     bottomButton: {
-      marginBottom: 40,
       height: 47,
       backgroundColor: 'white',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.grey2,
       elevation: 3,
     },
     bottomButtonIcon: { width: 20, height: 20, marginRight: 10 },

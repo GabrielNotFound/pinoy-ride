@@ -407,6 +407,9 @@ const HomeScreen = () => {
       setIsBooked(false);
       riderAlertShownRef.current = false;
       setBookingStatus(0);
+      setBookingDetails(null);
+      setRiderDetails(null);
+      setShowWaitingBanner(false);
       // Reset selections
       setSelectedPromo(null);
       setNoteToRider('');

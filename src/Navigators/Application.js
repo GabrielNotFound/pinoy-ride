@@ -20,6 +20,7 @@ import {
   QRPHScreen,
   RatingScreen,
   RegisterScreen,
+  SaveLocationScreen,
   SettingsScreen,
   SplashScreen,
   TAC,
@@ -107,6 +108,11 @@ const ApplicationNavigator = () => {
               <Stack.Screen
                 name="MapSelectionScreen"
                 component={MapSelectionScreen}
+                options={{ headerShown: false, animation: 'slide_from_bottom' }}
+              />
+              <Stack.Screen
+                name="SaveLocationScreen"
+                component={SaveLocationScreen}
                 options={{ headerShown: false, animation: 'slide_from_bottom' }}
               />
               <Stack.Screen

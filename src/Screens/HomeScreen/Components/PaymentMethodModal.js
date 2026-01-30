@@ -16,7 +16,7 @@ const PaymentMethodModal = ({
   visible,
   onClose,
   onSelect,
-  selectedPayment = 'Wallet',
+  selectedPayment = 'wallet',
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
@@ -63,22 +63,44 @@ const PaymentMethodModal = ({
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Select Payment</Text>
 
+          {/* Cash option */}
+          <TouchableOpacity
+            style={[
+              styles.option,
+              selectedPayment === 'cash' && styles.optionSelected,
+            ]}
+            onPress={() => {
+              onSelect?.('cash');
+              onClose();
+            }}>
+            <Image
+              source={require('@/Assets/Common/HomeScreen/PaymentMethodModal/Cash.png')}
+              style={styles.icon}
+            />
+            <Text style={styles.optionText}>Cash</Text>
+
+            {selectedPayment === 'cash' && (
+              <View style={styles.radioCircle}>
+                <View style={styles.radioInner} />
+              </View>
+            )}
+          </TouchableOpacity>
           {/* Wallet option */}
           <TouchableOpacity
             style={[
               styles.option,
-              selectedPayment === 'Wallet' && styles.optionSelected,
+              selectedPayment === 'wallet' && styles.optionSelected,
             ]}
             onPress={() => {
-              onSelect?.('Wallet');
+              onSelect?.('wallet');
               onClose();
             }}>
             <Image
-              source={require('@/Assets/Common/HomeScreen/BottomModal/cash.png')}
+              source={require('@/Assets/Common/HomeScreen/PaymentMethodModal/Wallet.png')}
               style={styles.icon}
             />
             <Text style={styles.optionText}>Pinoy Ride Wallet</Text>
-            {selectedPayment === 'Wallet' && (
+            {selectedPayment === 'wallet' && (
               <View style={styles.radioCircle}>
                 <View style={styles.radioInner} />
               </View>

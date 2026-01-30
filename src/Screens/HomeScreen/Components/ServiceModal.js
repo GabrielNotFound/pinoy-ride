@@ -15,19 +15,19 @@ const services = [
     id: 1,
     icon: require('@/Assets/Common/HomeScreen/Motorcycle.png'),
     title: 'Motorcycle',
-    subtitle: 'Lorem ipsum dolor sit amet consectetur.',
+    subtitle: 'Fast, affordable motorcycle rides at your fingertips.',
   },
   {
     id: 2,
     icon: require('@/Assets/Common/HomeScreen/Car.png'),
     title: 'Car (4 Seaters)',
-    subtitle: 'Lorem ipsum dolor sit amet consectetur.',
+    subtitle: 'Comfortable, reliable rides whenever you need them.',
   },
   {
     id: 3,
     icon: require('@/Assets/Common/HomeScreen/Car.png'),
     title: 'Car (6 Seaters)',
-    subtitle: 'Lorem ipsum dolor sit amet consectetur.',
+    subtitle: 'Comfortable, reliable 6 seater rides whenever you need them.',
   },
 ];
 
@@ -43,9 +43,9 @@ const ServiceModal = ({ visible, onClose, onSelect }) => {
             <View style={styles.cardWrapper}>
               <View style={styles.card}>
                 <View style={styles.header}>
-                  <Text style={styles.title}>Lorem Ipsum</Text>
+                  <Text style={styles.title}>Choose a Service</Text>
                   <Text style={styles.subtitle}>
-                    Lorem ipsum dolor sit amet consectetur.
+                    Select the ride that fits your trip.
                   </Text>
                 </View>
                 <View style={styles.servicesContainer}>

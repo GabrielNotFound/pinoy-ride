@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   Image,
+  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
@@ -168,43 +170,48 @@ const OTPScreen = () => {
         />
       ) : null}
 
-      {/* Scrollable Content */}
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.pageContainer}>
-          <Text style={styles.title}>Enter One-Time PIN</Text>
-          <Text style={styles.subtitle}>
-            A One-Time PIN was sent to +63 ******{mobileNumber.slice(-4)}
-          </Text>
-          <OTPInput
-            length={6}
-            onOTPChange={setOtpCode}
-            onOTPComplete={verifyOtp}
-          />
-
-          <View style={styles.imageContainer}>
-            <Image
-              source={require('@/Assets/Common/LoginScreen/OTP_Image.png')}
-              style={styles.otpImage}
-              resizeMode="contain"
+      {/* Scrollable Content with Keyboard Dismissal */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.pageContainer}>
+            <Text style={styles.title}>Enter One-Time PIN</Text>
+            <Text style={styles.subtitle}>
+              A One-Time PIN was sent to +63 ******{mobileNumber.slice(-4)}
+            </Text>
+            <OTPInput
+              length={6}
+              onOTPChange={setOtpCode}
+              onOTPComplete={verifyOtp}
             />
-          </View>
 
-          <View style={styles.resendContainer}>
-            <Text style={styles.resendLabel}>Didn't receive it?</Text>
-            <TouchableOpacity
-              onPress={handleResendOtp}
-              disabled={resendDisabled}>
-              <Text
-                style={[styles.resendLink, resendDisabled && { opacity: 0.5 }]}>
-                Request a new OTP
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.imageContainer}>
+              <Image
+                source={require('@/Assets/Common/LoginScreen/OTP_Image.png')}
+                style={styles.otpImage}
+                resizeMode="contain"
+              />
+            </View>
+
+            <View style={styles.resendContainer}>
+              <Text style={styles.resendLabel}>Didn't receive it?</Text>
+              <TouchableOpacity
+                onPress={handleResendOtp}
+                disabled={resendDisabled}>
+                <Text
+                  style={[
+                    styles.resendLink,
+                    resendDisabled && { opacity: 0.5 },
+                  ]}>
+                  Request a new OTP
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </Container>
   );
 };

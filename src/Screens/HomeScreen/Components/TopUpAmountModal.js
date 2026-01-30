@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   Modal,
   StyleSheet,
   Text,
@@ -66,8 +67,8 @@ const TopUpAmountModal = ({ visible, onClose, onError, onSuccess }) => {
   useEffect(() => {
     if (requestToPay.error) {
       console.warn('Request to pay error:', requestToPay.error);
-      onClose(); // Close the modal
-      onError?.(requestToPay.error); // Pass error to parent
+      onClose();
+      onError?.(requestToPay.error);
       return;
     }
 
@@ -76,8 +77,8 @@ const TopUpAmountModal = ({ visible, onClose, onError, onSuccess }) => {
       Object.keys(requestToPay.response).length > 0
     ) {
       const result = requestToPay.response?.data;
-      onClose(); // Close the TopUp modal
-      onSuccess?.(); // Close the PaymentMethod modal
+      onClose();
+      onSuccess?.();
       navigation.navigate('QRPHScreen', {
         paymentData: result,
       });
@@ -90,84 +91,93 @@ const TopUpAmountModal = ({ visible, onClose, onError, onSuccess }) => {
       transparent
       animationType="fade"
       onRequestClose={onClose}>
+      {/* Backdrop - closes modal */}
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
 
       <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Text style={styles.title}>Top Up Amount</Text>
+        {/* Modal content - dismisses keyboard */}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalContent}>
+            <Text style={styles.title}>Top Up Amount</Text>
 
-          <Formik
-            initialValues={{ amount: '' }}
-            validationSchema={topUpValidationSchema}
-            validateOnChange={false}
-            validateOnBlur={false}
-            onSubmit={values => {
-              handleTopUpRequest(values.amount);
-            }}>
-            {({
-              handleSubmit,
-              setFieldValue,
-              values,
-              errors,
-              touched,
-              validateForm,
-              setTouched,
-            }) => {
-              const handleConfirm = async () => {
-                if (values.amount) {
-                  const numValue = parseFloat(values.amount.replace(/,/g, ''));
-                  if (!isNaN(numValue)) {
-                    const formattedAmount = numValue.toFixed(2);
-                    setFieldValue('amount', formattedAmount);
+            <Formik
+              initialValues={{ amount: '' }}
+              validationSchema={topUpValidationSchema}
+              validateOnChange={false}
+              validateOnBlur={false}
+              onSubmit={values => {
+                handleTopUpRequest(values.amount);
+              }}>
+              {({
+                handleSubmit,
+                setFieldValue,
+                values,
+                errors,
+                touched,
+                validateForm,
+                setTouched,
+              }) => {
+                const handleConfirm = async () => {
+                  if (values.amount) {
+                    const numValue = parseFloat(
+                      values.amount.replace(/,/g, ''),
+                    );
+                    if (!isNaN(numValue)) {
+                      const formattedAmount = numValue.toFixed(2);
+                      setFieldValue('amount', formattedAmount);
+                    }
                   }
-                }
-                const formErrors = await validateForm();
-                setTouched({ amount: true });
+                  const formErrors = await validateForm();
+                  setTouched({ amount: true });
 
-                if (Object.keys(formErrors).length === 0) {
-                  handleSubmit();
-                }
-              };
+                  if (Object.keys(formErrors).length === 0) {
+                    handleSubmit();
+                  }
+                };
 
-              return (
-                <View>
-                  <View style={styles.inputWrapper}>
-                    <AppTextInput
-                      label="Input Amount"
-                      value={values.amount}
-                      onChangeText={value => {
-                        setFieldValue('amount', value);
-                      }}
-                      placeholder="0.00"
-                      inputMode="amount"
-                      editable={!requestToPay.loading}
-                    />
-                    {touched.amount && errors.amount ? (
-                      <AppTextError>{errors.amount}</AppTextError>
-                    ) : null}
-                  </View>
-
-                  {requestToPay.loading ? (
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="large" color={colors.primary} />
-                      <Text style={styles.loadingText}>Processing...</Text>
+                return (
+                  <View>
+                    <View style={styles.inputWrapper}>
+                      <AppTextInput
+                        label="Input Amount"
+                        value={values.amount}
+                        onChangeText={value => {
+                          setFieldValue('amount', value);
+                        }}
+                        placeholder="0.00"
+                        inputMode="amount"
+                        editable={!requestToPay.loading}
+                      />
+                      {touched.amount && errors.amount ? (
+                        <AppTextError>{errors.amount}</AppTextError>
+                      ) : null}
                     </View>
-                  ) : (
-                    <AppButton
-                      title="Confirm"
-                      onPress={handleConfirm}
-                      isBold
-                      noSpacing
-                      disabled={requestToPay.loading}
-                    />
-                  )}
-                </View>
-              );
-            }}
-          </Formik>
-        </View>
+
+                    {requestToPay.loading ? (
+                      <View style={styles.loadingContainer}>
+                        <ActivityIndicator
+                          size="large"
+                          color={colors.primary}
+                        />
+                        <Text style={styles.loadingText}>Processing...</Text>
+                      </View>
+                    ) : (
+                      <AppButton
+                        title="Confirm"
+                        onPress={handleConfirm}
+                        isBold
+                        noSpacing
+                        disabled={requestToPay.loading}
+                      />
+                    )}
+                  </View>
+                );
+              }}
+            </Formik>
+          </View>
+        </TouchableWithoutFeedback>
       </View>
     </Modal>
   );
