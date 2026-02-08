@@ -152,7 +152,7 @@ const BookingHistoryScreen = () => {
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.replace('SettingsScreen');
   };
 
   const handleCardPress = item => {

@@ -21,14 +21,32 @@ const userSlice = createSlice({
     },
     // Saved Places Actions
     addSavedPlace: (state, action) => {
-      state.savedPlaces.push(action.payload);
+      const place = action.payload;
+
+      if (!place.label || !place.address || !place.lat || !place.long) {
+        console.warn('Invalid place data:', place);
+        return;
+      }
+      state.savedPlaces.push(place);
     },
     updateSavedPlace: (state, action) => {
+      const updatedPlace = action.payload;
+
+      if (
+        !updatedPlace.label ||
+        !updatedPlace.address ||
+        !updatedPlace.lat ||
+        !updatedPlace.long
+      ) {
+        console.warn('Invalid place data:', updatedPlace);
+        return;
+      }
+
       const index = state.savedPlaces.findIndex(
-        place => place.id === action.payload.id,
+        place => place.id === updatedPlace.id,
       );
       if (index !== -1) {
-        state.savedPlaces[index] = action.payload;
+        state.savedPlaces[index] = updatedPlace;
       }
     },
     removeSavedPlace: (state, action) => {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   Image,
   StyleSheet,
@@ -8,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import Geolocation from 'react-native-geolocation-service';
+import { openSettings } from 'react-native-permissions';
 import BottomModal from './BottomModal';
 import {
   AlertBox,
@@ -30,6 +31,8 @@ import PaymentMethodModal from './Components/PaymentMethodModal';
 import BookingStatusModal from './Components/BookingStatusModal';
 import NoteToRiderModal from './Components/NoteToRiderModal';
 import PromoModal from './Components/PromoModal';
+import { ensureLocationPermission } from '@/Utils/Permissions';
+import { useLocationWatch } from '@/Hooks/useLocation';
 
 const HomeScreen = () => {
   const { colors } = useTheme();
@@ -42,11 +45,23 @@ const HomeScreen = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [modalHeight, setModalHeight] = useState(0);
 
-  // State for user's actual GPS location
-  const [userLocation, setUserLocation] = useState({
-    latitude: 14.5995, // Manila as fallback
+  // Use location watch hook for real-time location updates
+  const {
+    location: userLocation,
+    error: locationError,
+    permissionStatus,
+    startWatching,
+    stopWatching,
+  } = useLocationWatch(false); // Don't start watching immediately
+
+  // Default location (Manila)
+  const defaultLocation = {
+    latitude: 14.5995,
     longitude: 120.9842,
-  });
+  };
+
+  const currentLocation = userLocation || defaultLocation;
+  const locationReady = permissionStatus === 'granted';
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showRiderFound, setShowRiderFound] = useState(false);
@@ -93,7 +108,30 @@ const HomeScreen = () => {
   const isLoading = inquireBooking.loading || createBooking.loading;
   const [showWaitingBanner, setShowWaitingBanner] = useState(false);
 
-  const onBookPressed = () => {
+  const onBookPressed = async () => {
+    // Check location permission before allowing booking
+    const permission = await ensureLocationPermission();
+
+    if (permission !== 'granted') {
+      if (permission === 'blocked') {
+        Alert.alert(
+          'Location Required',
+          'Location access is blocked. Please enable it in Settings to book a ride.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => openSettings() },
+          ],
+        );
+      } else {
+        Alert.alert(
+          'Location Required',
+          'Location access is required to book a ride. Please enable location services.',
+          [{ text: 'OK' }],
+        );
+      }
+      return;
+    }
+
     setShowServiceModal(true);
     riderFoundTimeout.current = setTimeout(() => {
       // setShowRiderFound(true);
@@ -103,6 +141,34 @@ const HomeScreen = () => {
   const handleTopRightPress = () => {
     navigation.navigate('SettingsScreen');
   };
+
+  // Request location when screen is focused
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', async () => {
+      const permission = await ensureLocationPermission();
+
+      if (permission === 'granted') {
+        startWatching();
+      } else if (permission === 'blocked') {
+        Alert.alert(
+          'Location Access Blocked',
+          'Please enable location in Settings to use the app.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => openSettings() },
+          ],
+        );
+      } else if (permission === 'denied') {
+        Alert.alert(
+          'Location Required',
+          'This app needs location access to show your position on the map.',
+          [{ text: 'OK' }],
+        );
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, startWatching]);
 
   // Separate useEffect for login success modal - only runs once
   useEffect(() => {
@@ -115,63 +181,23 @@ const HomeScreen = () => {
   useEffect(() => {
     AppUtil.debugDeep(userInfo);
     AppUtil.debugDeep(selectedService);
-    // Get user's GPS location on mount
-    getUserLocation();
 
     triggerGetPromoList();
-
-    // OPTIONAL: Add real-time location tracking
-    const watchId = Geolocation.watchPosition(
-      pos => {
-        setUserLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        });
-        console.log(
-          'User location updated:',
-          pos.coords.latitude,
-          pos.coords.longitude,
-        );
-      },
-      error => console.warn('Location watch error:', error),
-      {
-        enableHighAccuracy: true,
-        distanceFilter: 10, // Update every 10 meters
-        interval: 5000, // Update every 5 seconds
-      },
-    );
 
     return () => {
       if (riderFoundTimeout.current) {
         clearTimeout(riderFoundTimeout.current);
       }
-      Geolocation.clearWatch(watchId);
+      stopWatching();
     };
   }, []);
 
-  // Get the user's real GPS location
-  const getUserLocation = () => {
-    Geolocation.getCurrentPosition(
-      pos => {
-        setUserLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        });
-        console.log(
-          'User location:',
-          pos.coords.latitude,
-          pos.coords.longitude,
-        );
-      },
-      error => {
-        console.warn('Location error:', error);
-        // Keep Manila as fallback if GPS fails
-        setAlertMessage('Unable to get your location. Using default location.');
-        setShowAlert(true);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
-    );
-  };
+  // Show location error if any
+  useEffect(() => {
+    if (locationError && permissionStatus === 'granted') {
+      console.warn('Location error:', locationError);
+    }
+  }, [locationError, permissionStatus]);
 
   // GET PROMO LIST
   const triggerGetPromoList = () => {
@@ -204,7 +230,18 @@ const HomeScreen = () => {
   }, [getPromoList.response, getPromoList.error]);
 
   //INQUIRE BOOKING
-  const triggerInquireBooking = () => {
+  const triggerInquireBooking = async () => {
+    const permission = await ensureLocationPermission();
+
+    if (permission !== 'granted') {
+      Alert.alert(
+        'Location Required',
+        'Location access is required to inquire booking.',
+        [{ text: 'OK' }],
+      );
+      return;
+    }
+
     const postdata = {
       booking_type: selectedService?.id,
       pickup_location: pickupLocation?.address,
@@ -246,7 +283,18 @@ const HomeScreen = () => {
   }, [inquireBooking.response, inquireBooking.error]);
 
   //CREATE BOOKING
-  const triggerCreateBooking = () => {
+  const triggerCreateBooking = async () => {
+    const permission = await ensureLocationPermission();
+
+    if (permission !== 'granted') {
+      Alert.alert(
+        'Location Required',
+        'Location access is required to create booking.',
+        [{ text: 'OK' }],
+      );
+      return;
+    }
+
     const payment_details = {
       type: selectedPayment.toLowerCase(),
       distance_km_round: inquireBookingResponse.distance_km_round,
@@ -257,7 +305,7 @@ const HomeScreen = () => {
       commission: inquireBookingResponse.commission,
       rider_net_amount: inquireBookingResponse.rider_net_amount,
       promo_discount: inquireBookingResponse.promo_discount,
-      tip: 0, // until tip is added make sure this is 0, also add thsi to total_amount
+      tip: 0,
       total_amount_wo_promo: inquireBookingResponse.total_amount_wo_promo,
       total_amount: inquireBookingResponse.total_amount,
     };
@@ -365,7 +413,7 @@ const HomeScreen = () => {
     }
 
     let intervalId;
-    const intervalTime = bookingStatus === 0 ? 1000 : 5000;
+    const intervalTime = bookingStatus === 0 ? 1000 : 2000;
 
     intervalId = setInterval(() => {
       triggeGetBookingDetails();
@@ -442,8 +490,9 @@ const HomeScreen = () => {
       ) : null}
       <View style={styles.container}>
         <AppMap
-          initialLat={userLocation.latitude}
-          initialLong={userLocation.longitude}
+          initialLat={currentLocation.latitude}
+          initialLong={currentLocation.longitude}
+          locationReady={locationReady}
           firstMarkerLat={pickupLocation?.lat}
           firstMarkerLong={pickupLocation?.long}
           secondMarkerLat={dropoffLocation?.lat}
@@ -514,10 +563,12 @@ const HomeScreen = () => {
             onCreateBooking={triggerCreateBooking}
             onCancelBooking={() => {
               triggerUpdateBookingStatus();
+              setShowWaitingBanner(false);
             }}
             onBackToEdit={() => {
               setIsBooked(false);
               setInquireBookingResponse([]);
+              setShowWaitingBanner(false);
             }}
             isBooked={isBooked}
             isConfirmed={isConfirmed}
@@ -530,6 +581,7 @@ const HomeScreen = () => {
             noteToRider={noteToRider}
             inquireBookingResponse={inquireBookingResponse}
             isLoading={isLoading}
+            permissionStatus={permissionStatus}
           />
         )}
 

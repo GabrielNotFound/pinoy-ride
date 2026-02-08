@@ -78,7 +78,6 @@ const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
             ref={ref => (inputs.current[i] = ref)}
             style={styles.input}
             keyboardType="number-pad"
-            maxLength={1}
             value={value}
             onChangeText={t => handleChange(t, i)}
             onKeyPress={e => handleKeyPress(e, i)}
@@ -100,14 +99,17 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 20,
+      paddingHorizontal: 10,
     },
     container: {
       flexDirection: 'row',
-      gap: 12, // RN >= 0.71; if older, replace with marginRight on inputs
+      gap: 8, // Reduced from 12 to fit smaller screens
+      justifyContent: 'center',
+      width: '100%',
     },
     input: {
-      width: 42,
-      height: 52,
+      width: 40, // Reduced from 42 to fit smaller screens
+      height: 50, // Reduced from 52 for better proportion
       borderWidth: 1,
       borderRadius: 5,
       borderColor: colors.grey,

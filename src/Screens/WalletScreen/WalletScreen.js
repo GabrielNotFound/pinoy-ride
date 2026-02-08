@@ -61,7 +61,7 @@ const WalletScreen = () => {
   }, [getWalletDetails.response, getWalletDetails.error]);
 
   const handleBack = () => {
-    navigation.navigate('SettingsScreen');
+    navigation.replace('SettingsScreen');
   };
 
   const handleCashIn = () => {

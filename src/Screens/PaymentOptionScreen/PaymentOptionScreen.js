@@ -9,7 +9,7 @@ const PaymentOptionScreen = () => {
   const navigation = useNavigation();
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.replace('SettingsScreen');
   };
 
   const addMethods = [

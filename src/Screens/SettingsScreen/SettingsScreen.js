@@ -1,16 +1,41 @@
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect } from 'react';
+import {
+  BackHandler,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { selectUserInfo } from '@/Redux/Slices/userSlice';
 import { useSelector } from 'react-redux';
+import { AppUtil } from '@/Utils';
 
 const SettingsScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
   const userInfo = useSelector(selectUserInfo);
+
+  useEffect(() => {
+    AppUtil.debugDeep(userInfo?.ekyc_details?.selfie);
+  });
+
+  // Intercept hardware back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.popToTop(); // Go straight to HomeScreen
+        return true; // Prevent default behavior
+      },
+    );
+
+    return () => backHandler.remove(); // Cleanup on unmount
+  }, [navigation]);
 
   const getDisplayName = () => {
     if (userInfo?.ekyc_details) {
@@ -54,7 +79,7 @@ const SettingsScreen = () => {
   ];
 
   const handleBack = () => {
-    navigation.navigate('HomeScreen');
+    navigation.popToTop();
   };
 
   return (
@@ -72,9 +97,12 @@ const SettingsScreen = () => {
           style={styles.profileButton}
           onPress={() => console.log('Profile Pressed')}>
           <Image
-            source={require('@/Assets/Common/Sample_Profile.png')}
+            source={
+              userInfo?.ekyc_details?.selfie
+                ? { uri: userInfo.ekyc_details.selfie }
+                : require('@/Assets/Common/Sample_Profile.png')
+            }
             style={styles.profile}
-            resizeMode="contain"
           />
           <View style={styles.profileTextContainer}>
             <Text style={styles.name}>{getDisplayName()}</Text>
@@ -138,7 +166,7 @@ const getStyles = ({ colors }) =>
     profile: {
       width: 46,
       height: 46,
-      marginRight: 10,
+      borderRadius: 23,
     },
     name: {
       fontFamily: 'Poppins Medium',

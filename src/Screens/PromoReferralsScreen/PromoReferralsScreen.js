@@ -20,7 +20,7 @@ const PromoReferralsScreen = () => {
   const [referralCode] = useState('4F45HFA9AS');
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.replace('SettingsScreen');
   };
 
   const handleCopy = () => {

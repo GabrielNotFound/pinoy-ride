@@ -1,6 +1,7 @@
 import { AppButton, AppMap } from '@/Components';
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   Image,
   ScrollView,
@@ -11,8 +12,9 @@ import {
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { openSettings } from 'react-native-permissions';
 import { Constants } from '@/Utils';
-import Geolocation from 'react-native-geolocation-service';
+import { useLocation } from '@/Hooks/useLocation';
 
 const MapSelectionScreen = () => {
   const { colors } = useTheme();
@@ -22,28 +24,48 @@ const MapSelectionScreen = () => {
 
   const { onPickupSelect, onDropoffSelect } = route.params || {};
 
+  // Use location hook
+  const { location, permissionStatus } = useLocation();
+
   const [activeField, setActiveField] = useState('pickup');
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropoffLocation, setDropoffLocation] = useState(null);
   const [pickupAddress, setPickupAddress] = useState('');
   const [dropoffAddress, setDropoffAddress] = useState('');
-  const [initialRegion, setInitialRegion] = useState({
+
+  // Default location (Manila)
+  const defaultLocation = {
     lat: 14.5995,
     lng: 120.9842,
-  });
+  };
 
+  const currentLocation = location
+    ? { lat: location.latitude, lng: location.longitude }
+    : defaultLocation;
+
+  // Check permission on mount
   useEffect(() => {
-    Geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-        setInitialRegion({ lat: latitude, lng: longitude });
-      },
-      error => {
-        console.log('Location error:', error);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
-    );
-  }, []);
+    if (permissionStatus === 'blocked') {
+      Alert.alert(
+        'Location Access Blocked',
+        'Please enable location in Settings to select locations on the map.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => navigation.goBack(),
+          },
+          { text: 'Open Settings', onPress: () => openSettings() },
+        ],
+      );
+    } else if (permissionStatus === 'denied') {
+      Alert.alert(
+        'Location Required',
+        'Location access helps you select locations more easily.',
+        [{ text: 'OK' }],
+      );
+    }
+  }, [permissionStatus]);
 
   const handleMapPress = async ({ latitude, longitude }) => {
     if (activeField === 'pickup') {
@@ -79,7 +101,6 @@ const MapSelectionScreen = () => {
       return;
     }
 
-    // Prepare location objects
     const pickupData = pickupLocation
       ? {
           address: pickupAddress,
@@ -96,7 +117,6 @@ const MapSelectionScreen = () => {
         }
       : null;
 
-    // Call the callback functions if provided
     if (pickupData && onPickupSelect) {
       onPickupSelect(pickupData);
     }
@@ -104,8 +124,6 @@ const MapSelectionScreen = () => {
       onDropoffSelect(dropoffData);
     }
 
-    // Navigate back to HomeScreen, skipping InputLocation
-    // pop(2) removes both MapSelectionScreen and InputLocation from stack
     navigation.pop(2);
   };
 
@@ -115,7 +133,6 @@ const MapSelectionScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header with back button */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Image
@@ -128,11 +145,11 @@ const MapSelectionScreen = () => {
         <View style={styles.backButton} />
       </View>
 
-      {/* Map Section - 60% */}
       <View style={styles.mapWrapper}>
         <AppMap
-          initialLat={initialRegion.lat}
-          initialLong={initialRegion.lng}
+          initialLat={currentLocation.lat}
+          initialLong={currentLocation.lng}
+          locationReady={permissionStatus === 'granted'}
           firstMarkerLat={pickupLocation?.latitude}
           firstMarkerLong={pickupLocation?.longitude}
           secondMarkerLat={dropoffLocation?.latitude}
@@ -144,12 +161,10 @@ const MapSelectionScreen = () => {
         />
       </View>
 
-      {/* Bottom Panel - 40% */}
       <View style={styles.bottomPanel}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
-          {/* Toggle Buttons */}
           <View style={styles.toggleContainer}>
             <TouchableOpacity
               style={[
@@ -182,7 +197,6 @@ const MapSelectionScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Selected Addresses */}
           <View style={styles.addressContainer}>
             <View style={styles.addressRow}>
               <Image

@@ -30,7 +30,7 @@ const RatingScreen = () => {
   const rateBooking = usePostRequest();
 
   const handleBack = () => {
-    navigation.navigate('HomeScreen');
+    navigation.replace('HomeScreen');
   };
 
   const handleSubmit = () => {

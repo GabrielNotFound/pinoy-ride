@@ -1,6 +1,7 @@
 import { AppButton, AppMap } from '@/Components';
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   Image,
   ScrollView,
@@ -13,9 +14,23 @@ import {
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
+import { openSettings } from 'react-native-permissions';
 import { Constants } from '@/Utils';
-import Geolocation from 'react-native-geolocation-service';
 import { addSavedPlace, updateSavedPlace } from '@/Redux/Slices/userSlice';
+import { useLocation } from '@/Hooks/useLocation';
+
+const getIconForType = type => {
+  switch (type) {
+    case 'home':
+      return require('@/Assets/Common/Location/Home.png');
+    case 'work':
+      return require('@/Assets/Common/Location/Suitcase.png');
+    case 'school':
+      return require('@/Assets/Common/Location/School.png');
+    default:
+      return require('@/Assets/Common/Location/Location.png');
+  }
+};
 
 const SaveLocationScreen = () => {
   const { colors } = useTheme();
@@ -26,13 +41,23 @@ const SaveLocationScreen = () => {
 
   const { locationType, existingPlace } = route.params || {};
 
+  // Use location hook
+  const { location, loading, error, permissionStatus, requestLocation } =
+    useLocation();
+
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState('');
   const [label, setLabel] = useState('');
-  const [initialRegion, setInitialRegion] = useState({
+
+  // Default location (Manila)
+  const defaultLocation = {
     lat: 14.5995,
     lng: 120.9842,
-  });
+  };
+
+  const currentLocation = location
+    ? { lat: location.latitude, lng: location.longitude }
+    : defaultLocation;
 
   useEffect(() => {
     // Set initial label based on location type
@@ -48,24 +73,32 @@ const SaveLocationScreen = () => {
         latitude: existingPlace.lat,
         longitude: existingPlace.long,
       });
-      setInitialRegion({
-        lat: existingPlace.lat,
-        lng: existingPlace.long,
-      });
-    } else {
-      // Get current location for initial map position
-      Geolocation.getCurrentPosition(
-        position => {
-          const { latitude, longitude } = position.coords;
-          setInitialRegion({ lat: latitude, lng: longitude });
-        },
-        error => {
-          console.log('Location error:', error);
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
-      );
     }
   }, [locationType, existingPlace]);
+
+  // Check permission on mount
+  useEffect(() => {
+    if (permissionStatus === 'blocked') {
+      Alert.alert(
+        'Location Access Blocked',
+        'Please enable location in Settings to save locations.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => navigation.goBack(),
+          },
+          { text: 'Open Settings', onPress: () => openSettings() },
+        ],
+      );
+    } else if (permissionStatus === 'denied') {
+      Alert.alert(
+        'Location Required',
+        'Location access helps you save locations more easily.',
+        [{ text: 'OK' }],
+      );
+    }
+  }, [permissionStatus]);
 
   const handleMapPress = async ({ latitude, longitude }) => {
     setSelectedLocation({ latitude, longitude });
@@ -90,15 +123,47 @@ const SaveLocationScreen = () => {
     }
   };
 
+  // ✅ Enhanced validation
   const handleSave = () => {
-    if (!selectedLocation) {
-      alert('Please select a location on the map');
+    // Validate label
+    if (!label.trim()) {
+      Alert.alert(
+        'Label Required',
+        'Please enter a label for this location (e.g., Home, Office, Gym).',
+        [{ text: 'OK' }],
+      );
       return;
     }
 
-    if (!label.trim()) {
-      alert('Please enter a label for this location');
+    // ✅ Validate that user actually selected a location on the map
+    if (!selectedLocation || !selectedAddress) {
+      Alert.alert(
+        'Location Required',
+        'Please tap on the map to select a location before saving.',
+        [{ text: 'OK' }],
+      );
       return;
+    }
+
+    // ✅ Additional validation: Check if address is not just coordinates
+    // This prevents saving locations with generic "lat, lng" addresses
+    if (
+      selectedAddress.includes(',') &&
+      selectedAddress.split(',').length === 2
+    ) {
+      const parts = selectedAddress.split(',');
+      const isCoordinates = parts.every(
+        part => !isNaN(parseFloat(part.trim())),
+      );
+
+      if (isCoordinates) {
+        Alert.alert(
+          'Invalid Location',
+          'Unable to get address for this location. Please try selecting a different location or check your internet connection.',
+          [{ text: 'OK' }],
+        );
+        return;
+      }
     }
 
     const savedPlace = {
@@ -140,11 +205,11 @@ const SaveLocationScreen = () => {
         <View style={styles.backButton} />
       </View>
 
-      {/* Map Section - 60% */}
       <View style={styles.mapWrapper}>
         <AppMap
-          initialLat={initialRegion.lat}
-          initialLong={initialRegion.lng}
+          initialLat={existingPlace?.lat || currentLocation.lat}
+          initialLong={existingPlace?.long || currentLocation.lng}
+          locationReady={permissionStatus === 'granted'}
           firstMarkerLat={selectedLocation?.latitude}
           firstMarkerLong={selectedLocation?.longitude}
           onMapPress={handleMapPress}
@@ -152,19 +217,30 @@ const SaveLocationScreen = () => {
           latOffset={-5}
           style={{ flex: 1 }}
         />
+
+        {/* ✅ Visual indicator when no location selected */}
+        {!selectedLocation && (
+          <View style={styles.mapOverlay}>
+            <View style={styles.instructionBubble}>
+              <Text style={styles.instructionText}>
+                📍 Tap anywhere on the map to select a location
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
 
-      {/* Bottom Panel - 40% */}
       <View style={styles.bottomPanel}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
-          {/* Label Input */}
           <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>Label</Text>
+            <Text style={styles.inputLabel}>Label *</Text>
             <View style={styles.inputRow}>
               <Image
-                source={require('@/Assets/Common/Location/Home.png')}
+                source={getIconForType(
+                  locationType || existingPlace?.type || 'other',
+                )}
                 style={styles.inputIcon}
                 resizeMode="contain"
               />
@@ -178,22 +254,36 @@ const SaveLocationScreen = () => {
             </View>
           </View>
 
-          {/* Selected Address */}
           <View style={styles.addressContainer}>
-            <Text style={styles.inputLabel}>Selected Location</Text>
-            <View style={styles.addressRow}>
+            <Text style={styles.inputLabel}>Selected Location *</Text>
+            <View
+              style={[
+                styles.addressRow,
+                !selectedAddress && styles.addressRowEmpty,
+              ]}>
               <Image
                 source={require('@/Assets/Common/Location/Location.png')}
                 style={styles.addressIcon}
                 resizeMode="contain"
               />
-              <Text style={styles.addressText} numberOfLines={2}>
+              <Text
+                style={[
+                  styles.addressText,
+                  !selectedAddress && styles.addressTextPlaceholder,
+                ]}
+                numberOfLines={2}>
                 {selectedAddress || 'Tap map to select location'}
               </Text>
             </View>
           </View>
 
-          <AppButton title="Save Location" onPress={handleSave} isBold />
+          <AppButton
+            title="Save Location"
+            onPress={handleSave}
+            isBold
+            // ✅ Disable button if required fields are empty
+            disabled={!label.trim() || !selectedLocation || !selectedAddress}
+          />
         </ScrollView>
       </View>
     </View>
@@ -239,6 +329,27 @@ const getStyles = ({ colors }) =>
     mapWrapper: {
       flex: 6,
       width,
+      position: 'relative',
+    },
+    mapOverlay: {
+      position: 'absolute',
+      top: 20,
+      left: 20,
+      right: 20,
+      alignItems: 'center',
+      pointerEvents: 'none',
+    },
+    instructionBubble: {
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 20,
+    },
+    instructionText: {
+      color: 'white',
+      fontFamily: 'Poppins Medium',
+      fontSize: 14,
+      textAlign: 'center',
     },
     bottomPanel: {
       flex: 4,
@@ -296,6 +407,12 @@ const getStyles = ({ colors }) =>
       borderRadius: 10,
       minHeight: 50,
     },
+    // ✅ New style for empty address state
+    addressRowEmpty: {
+      borderWidth: 1,
+      borderColor: colors.primary,
+      borderStyle: 'dashed',
+    },
     addressIcon: {
       width: 16,
       height: 16,
@@ -306,5 +423,10 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Regular',
       fontSize: 12,
       color: colors.grey3,
+    },
+    // ✅ New style for placeholder text
+    addressTextPlaceholder: {
+      fontStyle: 'italic',
+      opacity: 0.6,
     },
   });

@@ -15,6 +15,7 @@ const AppMap = forwardRef(
     {
       initialLat,
       initialLong,
+      locationReady,
       firstMarkerLat,
       firstMarkerLong,
       secondMarkerLat,
@@ -30,6 +31,7 @@ const AppMap = forwardRef(
     const { colors } = useTheme();
     const styles = getStyles({ colors });
     const mapRef = useRef(null);
+    const [mapReady, setMapReady] = useState(false);
     const [routeCoords, setRouteCoords] = useState([]);
 
     useImperativeHandle(ref, () => ({
@@ -56,7 +58,7 @@ const AppMap = forwardRef(
     }));
 
     useEffect(() => {
-      if (!mapRef.current) {return;}
+      if (!mapReady || !mapRef.current || !locationReady) {return;}
 
       if (firstMarkerLat && secondMarkerLat) {
         mapRef.current.fitToCoordinates(
@@ -97,6 +99,8 @@ const AppMap = forwardRef(
         );
       }
     }, [
+      mapReady,
+      locationReady,
       firstMarkerLat,
       firstMarkerLong,
       secondMarkerLat,
@@ -107,7 +111,9 @@ const AppMap = forwardRef(
 
     useEffect(() => {
       const fetchRoute = async () => {
-        if (!firstMarkerLat || !secondMarkerLat) {return;}
+        if (!firstMarkerLat || !secondMarkerLat) {
+          return;
+        }
         try {
           const response = await fetch(
             `https://maps.googleapis.com/maps/api/directions/json?origin=${firstMarkerLat},${firstMarkerLong}&destination=${secondMarkerLat},${secondMarkerLong}&mode=driving&key=${Constants.GOOGLE_MAP_API_KEY}`,
@@ -160,6 +166,13 @@ const AppMap = forwardRef(
         ref={mapRef}
         style={[styles.container, style]}
         provider="google"
+        onMapReady={() => setMapReady(true)}
+        initialRegion={{
+          latitude: 14.5995,
+          longitude: 120.9842,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        }}
         scrollEnabled={interactive}
         zoomEnabled={interactive}
         rotateEnabled={interactive}
