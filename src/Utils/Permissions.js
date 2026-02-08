@@ -11,6 +11,26 @@ export const CAMERA_PERMISSION = Platform.select({
   android: PERMISSIONS.ANDROID.CAMERA,
 });
 
+// ============================================================================
+// LOCATION PERMISSIONS
+// ============================================================================
+
+// Check location permission status (does NOT request)
+export async function checkLocationPermission() {
+  const status = await check(LOCATION_PERMISSION);
+
+  switch (status) {
+    case RESULTS.GRANTED:
+      return 'granted';
+    case RESULTS.BLOCKED:
+      return 'blocked';
+    case RESULTS.DENIED:
+      return 'denied';
+    default:
+      return 'unavailable';
+  }
+}
+
 // Request Location Permission
 export async function requestLocationPermission() {
   const result = await request(LOCATION_PERMISSION);
@@ -43,6 +63,26 @@ export async function ensureLocationPermission() {
   }
 }
 
+// ============================================================================
+// CAMERA PERMISSIONS
+// ============================================================================
+
+// Check camera permission status (does NOT request)
+export async function checkCameraPermission() {
+  const status = await check(CAMERA_PERMISSION);
+
+  switch (status) {
+    case RESULTS.GRANTED:
+      return 'granted';
+    case RESULTS.BLOCKED:
+      return 'blocked';
+    case RESULTS.DENIED:
+      return 'denied';
+    default:
+      return 'unavailable';
+  }
+}
+
 // Request Camera Permission
 export async function requestCameraPermission() {
   const result = await request(CAMERA_PERMISSION);
@@ -59,7 +99,7 @@ export async function requestCameraPermission() {
   }
 }
 
-// ✅ Check first, then request ONLY IF denied
+// Check first, then request ONLY IF denied
 export async function ensureCameraPermission() {
   const status = await check(CAMERA_PERMISSION);
 

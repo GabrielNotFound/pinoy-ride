@@ -11,8 +11,6 @@ export { default as HomeScreen } from './HomeScreen/HomeScreen';
 export { default as BottomModal } from './HomeScreen/BottomModal';
 export { default as PendingBookingModal } from './HomeScreen/PendingBookingModal';
 export { default as VehicleSelectionModal } from './HomeScreen/VehicleSelectionModal';
-export { default as InputLocation } from './Location/InputLocation';
-export { default as MapSelectionModal } from './Location/MapSelectionModal';
 export { default as RatingScreen } from './RatingScreen/RatingScreen';
 export { default as SettingsScreen } from './SettingsScreen/SettingsScreen';
 export { default as BookingHistoryScreen } from './BookingHistoryScreen/BookingHistoryScreen';

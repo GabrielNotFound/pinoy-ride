@@ -1,7 +1,7 @@
 const IS_DEV = true;
 
 const PROD_URL = '';
-const DEV_URL = ' https://riderapp.escarez.com/api/';
+const DEV_URL = 'https://riderapp.escarez.com/api/';
 // const DEV_URL = 'https://pinoy-ride-api.onrender.com/api/';
 
 const BASE_DEV = {

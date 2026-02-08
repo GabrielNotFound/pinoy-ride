@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  BackHandler,
   Image,
   ScrollView,
   StyleSheet,
@@ -8,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
 import { Container } from '@/Components';
 import { selectUserInfo } from '@/Redux/Slices/userSlice';
@@ -20,6 +21,7 @@ const WalletScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
   const userInfo = useSelector(selectUserInfo);
 
@@ -38,7 +40,9 @@ const WalletScreen = () => {
      FETCH DATA
   ===================== */
   useEffect(() => {
-    if (!userInfo?.id) {return;}
+    if (!userInfo?.id) {
+      return;
+    }
 
     getWalletDetails.makePostRequest(Constants.ENDPOINT.GET_RIDER_DETAILS, {
       rider_id: userInfo.id,
@@ -81,7 +85,22 @@ const WalletScreen = () => {
     setWalletHistory(history);
   }, [historyResponse, historyError]);
 
-  const handleBack = () => navigation.goBack();
+  // Only handle back button when this screen is focused
+  useEffect(() => {
+    if (!isFocused) {return;}
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.popToTop(); // Go straight to HomeScreen
+        return true; // Prevent default behavior
+      },
+    );
+
+    return () => backHandler.remove(); // Cleanup on unmount
+  }, [navigation, isFocused]);
+
+  const handleBack = () => navigation.popToTop();
 
   return (
     <Container style={styles.container}>

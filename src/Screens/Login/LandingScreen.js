@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { openSettings } from 'react-native-permissions';
@@ -8,7 +15,9 @@ import Container from '@/Components/Container/Container';
 import { AlertBox, AppButton } from '@/Components';
 import {
   ensureCameraPermission,
+  ensureLocationPermission,
   requestCameraPermission,
+  requestLocationPermission,
 } from '@/Utils/Permissions';
 import Constants from 'expo-constants';
 
@@ -18,17 +27,27 @@ const LandingScreen = () => {
   const navigation = useNavigation();
 
   const [showCameraAlert, setShowCameraAlert] = useState(false);
+  const [showLocationAlert, setShowLocationAlert] = useState(false);
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   useEffect(() => {
-    (async () => {
-      const cam = await ensureCameraPermission();
-      if (!cam) {
-        setShowCameraAlert(true);
-      }
-    })();
+    checkPermissions();
   }, []);
+
+  const checkPermissions = async () => {
+    // Check camera permission
+    const cam = await ensureCameraPermission();
+    if (cam !== 'granted') {
+      setShowCameraAlert(true);
+    }
+
+    // Check location permission
+    const loc = await ensureLocationPermission();
+    if (loc !== 'granted') {
+      setShowLocationAlert(true);
+    }
+  };
 
   const handleRetryCameraPermission = async () => {
     const result = await requestCameraPermission();
@@ -36,22 +55,77 @@ const LandingScreen = () => {
     if (result === 'granted') {
       setShowCameraAlert(false);
     } else if (result === 'blocked') {
-      openSettings();
+      Alert.alert(
+        'Camera Access Blocked',
+        'Please enable camera access in Settings to verify your identity.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => setShowCameraAlert(false),
+          },
+          { text: 'Open Settings', onPress: () => openSettings() },
+        ],
+      );
     } else {
+      // User denied, keep alert showing
       setShowCameraAlert(true);
+    }
+  };
+
+  const handleRetryLocationPermission = async () => {
+    const result = await requestLocationPermission();
+
+    if (result === 'granted') {
+      setShowLocationAlert(false);
+    } else if (result === 'blocked') {
+      Alert.alert(
+        'Location Access Blocked',
+        'Please enable location access in Settings to use the app.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => setShowLocationAlert(false),
+          },
+          { text: 'Open Settings', onPress: () => openSettings() },
+        ],
+      );
+    } else {
+      // User denied, keep alert showing
+      setShowLocationAlert(true);
     }
   };
 
   return (
     <Container>
-      {/* ✅ Camera Permission Alert Only */}
+      {/* ✅ Camera Permission Alert */}
       {showCameraAlert && (
         <AlertBox
           title="Camera Required"
           message="Camera access is required to verify your identity. Please enable it."
           visible={showCameraAlert}
           setVisible={setShowCameraAlert}
+          confirmText="Enable Camera"
+          cancelText="Later"
           onConfirm={handleRetryCameraPermission}
+          onCancel={() => setShowCameraAlert(false)}
+          dismissable={true}
+        />
+      )}
+
+      {/* ✅ Location Permission Alert */}
+      {showLocationAlert && !showCameraAlert && (
+        <AlertBox
+          title="Location Required"
+          message="Location access is required to accept bookings and track rides. Please enable it."
+          visible={showLocationAlert}
+          setVisible={setShowLocationAlert}
+          confirmText="Enable Location"
+          cancelText="Later"
+          onConfirm={handleRetryLocationPermission}
+          onCancel={() => setShowLocationAlert(false)}
+          dismissable={true}
         />
       )}
 

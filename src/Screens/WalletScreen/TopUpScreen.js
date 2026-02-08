@@ -1,7 +1,8 @@
 import { AppButton, AppTextInput, Container } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  BackHandler,
   Image,
   Keyboard,
   StyleSheet,
@@ -18,6 +19,19 @@ const TopUpScreen = () => {
   const navigation = useNavigation();
 
   const [amount, setAmount] = useState('');
+
+  // Handle Android back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.goBack();
+        return true; // Prevent default behavior
+      },
+    );
+
+    return () => backHandler.remove(); // Cleanup on unmount
+  }, [navigation]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -40,58 +54,60 @@ const TopUpScreen = () => {
         </View>
 
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.transferRow}>
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>From</Text>
-              <View style={styles.cardRow}>
-                <Image
-                  source={require('@/Assets/Common/WalletScreen/Money_Symbol_1.png')}
-                  style={styles.moneySymbol}
-                />
-                <Text style={styles.cardTitle}>Cash{'\n'}Balance</Text>
+          <View style={{ flex: 1 }}>
+            <View style={styles.transferRow}>
+              <View style={styles.card}>
+                <Text style={styles.cardLabel}>From</Text>
+                <View style={styles.cardRow}>
+                  <Image
+                    source={require('@/Assets/Common/WalletScreen/Money_Symbol_1.png')}
+                    style={styles.moneySymbol}
+                  />
+                  <Text style={styles.cardTitle}>Cash{'\n'}Balance</Text>
+                </View>
               </View>
-            </View>
 
-            <Image
-              source={require('@/Assets/Common/Right_Arrow.png')}
-              style={styles.arrowIcon}
-            />
-
-            <View style={[styles.card, styles.cardYellow]}>
-              <Text style={[styles.cardLabel, { color: colors.onPrimary }]}>
-                To
-              </Text>
-              <View style={styles.cardRow}>
-                <Image
-                  source={require('@/Assets/Common/WalletScreen/Money_Symbol_2.png')}
-                  style={styles.moneySymbol}
-                />
-                <Text style={[styles.cardTitle, { color: colors.onPrimary }]}>
-                  Pinoy Ride{'\n'}Credit
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.lowerPart}>
-            <View style={styles.balanceContainer}>
-              <Text style={styles.balance}>₱250.00</Text>
-            </View>
-            <View style={styles.transaction}>
-              <Text style={styles.amountTitle}>Enter Amount</Text>
-              <AppTextInput
-                value={amount}
-                onChangeText={setAmount}
-                placeholder="Amount"
-                inputMode="amount"
+              <Image
+                source={require('@/Assets/Common/Right_Arrow.png')}
+                style={styles.arrowIcon}
               />
+
+              <View style={[styles.card, styles.cardYellow]}>
+                <Text style={[styles.cardLabel, { color: colors.onPrimary }]}>
+                  To
+                </Text>
+                <View style={styles.cardRow}>
+                  <Image
+                    source={require('@/Assets/Common/WalletScreen/Money_Symbol_2.png')}
+                    style={styles.moneySymbol}
+                  />
+                  <Text style={[styles.cardTitle, { color: colors.onPrimary }]}>
+                    Pinoy Ride{'\n'}Credit
+                  </Text>
+                </View>
+              </View>
             </View>
-            <Text style={styles.minimum}>
-              50.00 is the minimum amount you can transfer
-            </Text>
-            <Text style={styles.fee}>No Transaction fee</Text>
+
+            <View style={styles.divider} />
+
+            <View style={styles.lowerPart}>
+              <View style={styles.balanceContainer}>
+                <Text style={styles.balance}>₱250.00</Text>
+              </View>
+              <View style={styles.transaction}>
+                <Text style={styles.amountTitle}>Enter Amount</Text>
+                <AppTextInput
+                  value={amount}
+                  onChangeText={setAmount}
+                  placeholder="Amount"
+                  inputMode="amount"
+                />
+              </View>
+              <Text style={styles.minimum}>
+                50.00 is the minimum amount you can transfer
+              </Text>
+              <Text style={styles.fee}>No Transaction fee</Text>
+            </View>
           </View>
         </TouchableWithoutFeedback>
       </View>
