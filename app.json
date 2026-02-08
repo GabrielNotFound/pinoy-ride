@@ -2,7 +2,7 @@
   "expo": {
     "name": "Pinoy Ride Driver",
     "slug": "pinoyriderider",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "plugins": [
       "expo-font",
       "expo-build-properties",
