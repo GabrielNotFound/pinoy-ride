@@ -21,7 +21,7 @@
     <meta-data android:name="expo.modules.updates.ENABLED" android:value="false"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0"/>
-    
+
     <activity 
       android:name=".MainActivity" 
       android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode" 
@@ -46,6 +46,6 @@
       android:value="@integer/google_play_services_version" />
     <meta-data
      android:name="com.google.android.geo.API_KEY"
-     android:value="AIzaSyDH5_5MOexjcOzOqpA3c86Jj79rEVoPWos"/>
+     android:value="AIzaSyAlpSoXuJzvo8uR1qbdtbbbk1sx4MHKIQk"/>
   </application>
 </manifest>

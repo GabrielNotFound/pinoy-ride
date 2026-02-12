@@ -28,3 +28,4 @@ export { default as TAC } from './TermsScreen/TAC';
 export { default as TransferScreen } from './WalletScreen/TransferScreen';
 export { default as BankInformationScreen } from './WalletScreen/BankInformationScreen';
 export { default as TransferConfirmationScreen } from './WalletScreen/TransferConfirmationScreen';
+export { default as QRPH } from './QRPH/QRPH';

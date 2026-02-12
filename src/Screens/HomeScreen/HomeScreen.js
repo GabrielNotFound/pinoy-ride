@@ -11,8 +11,8 @@ import { useSelector } from 'react-redux';
 import { selectUserInfo } from '@/Redux/Slices/userSlice';
 import PendingBookingModal from './PendingBookingModal';
 import VehicleSelectionModal from './VehicleSelectionModal';
-import { useLocationWatch } from '@/Hooks/useLocation';
 import { ensureLocationPermission } from '@/Utils/Permissions';
+import { useLocationWatch } from '@/Hooks/useLocation';
 
 // Testing Switch
 const isTesting = false;
@@ -41,29 +41,34 @@ const HomeScreen = () => {
   const [showVehicleSelection, setShowVehicleSelection] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
-  // ✅ Use location watch hook for real-time location updates
+  // Use location watch hook for real-time location updates
+  // Pass FALSE - we'll start watching manually after permission check
   const {
-    location: riderLocation,
-    watching,
+    location: userLocation,
     error: locationError,
     permissionStatus,
     startWatching,
     stopWatching,
-  } = useLocationWatch(false); // Don't start watching immediately
+  } = useLocationWatch(true);
 
-  // Default location
-  const defaultLocation = isTesting
+  // Default location (Manila)
+  const defaultLocation = {
+    latitude: 14.53507,
+    longitude: 120.98216,
+  };
+
+  // ✅ State for rider's location - uses hook location or default
+  const riderLocation = isTesting
     ? MANILA_LOCATION
-    : { latitude: 14.53507, longitude: 120.98216 };
+    : userLocation || defaultLocation;
 
-  const currentLocation = riderLocation || defaultLocation;
   const locationReady = permissionStatus === 'granted';
 
   const [showDropoff, setShowDropoff] = useState(false);
-  const [bookingStatus, setBookingStatus] = useState(1);
+  const [bookingStatus, setBookingStatus] = useState(1); // Start at 1 when booking accepted
 
   // ✅ FIXED MARKER LOGIC - Based on bookingStatus from BottomModal
-  const showRiderMarker = activeBooking !== null;
+  const showRiderMarker = activeBooking !== null; // Always show rider when there's a booking
 
   // First marker changes based on status
   const firstMarkerLat =
@@ -96,71 +101,70 @@ const HomeScreen = () => {
     }
 
     // Request location permission and start watching
-    requestLocationAndStartWatching();
+    const requestLocationAndWatch = async () => {
+      const permission = await ensureLocationPermission();
+
+      if (permission === 'granted') {
+        console.log('✅ Permission granted, starting location watch...');
+        startWatching();
+      } else if (permission === 'blocked') {
+        console.warn('❌ Location blocked');
+        Alert.alert(
+          'Location Access Blocked',
+          'Please enable location in Settings to use the app.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => openSettings() },
+          ],
+        );
+      } else if (permission === 'denied') {
+        console.warn('❌ Location denied');
+        Alert.alert(
+          'Location Required',
+          'This app needs location access to track your position.',
+          [{ text: 'OK' }],
+        );
+      }
+    };
+
+    requestLocationAndWatch();
 
     return () => {
+      console.log('🛑 Stopping location watch...');
       stopWatching();
     };
-  }, []);
+  }, [startWatching, stopWatching]);
 
-  // ✅ Request location permission and start watching
-  const requestLocationAndStartWatching = async () => {
-    const permission = await ensureLocationPermission();
-
-    if (permission === 'granted') {
-      startWatching();
-    } else if (permission === 'blocked') {
-      Alert.alert(
-        'Location Required',
-        'Location access is blocked. Riders need location enabled to accept bookings. Please enable it in Settings.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Open Settings', onPress: () => openSettings() },
-        ],
-      );
-    } else if (permission === 'denied') {
-      Alert.alert(
-        'Location Required',
-        'Riders need location access to accept and track bookings. Please enable location services.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Try Again',
-            onPress: () => requestLocationAndStartWatching(),
-          },
-        ],
-      );
-    }
-  };
-
-  // ✅ Show location error if any
+  // Debug: Log location updates
   useEffect(() => {
-    if (locationError && permissionStatus === 'granted') {
-      console.warn('⚠️ Location error:', locationError);
-      setAlertMessage('Unable to get your location. Using default location.');
-      setShowAlert(true);
+    if (userLocation) {
+      console.log('📍 Location updated:', {
+        lat: userLocation.latitude,
+        lng: userLocation.longitude,
+        accuracy: userLocation.accuracy,
+      });
+    }
+  }, [userLocation]);
+
+  // Show location error if any
+  useEffect(() => {
+    if (locationError) {
+      console.error('❌ Location error:', locationError);
+      if (permissionStatus === 'granted') {
+        setAlertMessage('Unable to get your location. Using default location.');
+        setShowAlert(true);
+      }
     }
   }, [locationError, permissionStatus]);
 
-  const triggerGetPendingBooking = async () => {
-    // ✅ Check location permission before getting pending bookings
-    const permission = await ensureLocationPermission();
-
-    if (permission !== 'granted') {
-      Alert.alert(
-        'Location Required',
-        'Location access is required to view pending bookings.',
-        [{ text: 'OK' }],
-      );
-      return;
-    }
-
+  const triggerGetPendingBooking = () => {
     const postdata = {
       rider_id: userInfo?.id,
-      current_lat: currentLocation.latitude,
-      current_long: currentLocation.longitude,
+      current_lat: riderLocation.latitude,
+      current_long: riderLocation.longitude,
       booking_type: selectedVehicleId,
     };
+    console.log('📡 Sending location to server:', postdata);
     getPendingBooking.makePostRequest(Constants.ENDPOINT.GET_PENDING, postdata);
   };
 
@@ -186,24 +190,12 @@ const HomeScreen = () => {
   }, [getPendingBooking.response, getPendingBooking.error]);
 
   /** ───── ACCEPT BOOKING ───── */
-  const triggerAcceptBooking = async bookingId => {
-    // ✅ Check location permission before accepting booking
-    const permission = await ensureLocationPermission();
-
-    if (permission !== 'granted') {
-      Alert.alert(
-        'Location Required',
-        'Location access is required to accept bookings.',
-        [{ text: 'OK' }],
-      );
-      return;
-    }
-
+  const triggerAcceptBooking = bookingId => {
     const postdata = {
       rider_id: userInfo?.id,
       booking_id: bookingId,
-      current_lat: currentLocation.latitude,
-      current_long: currentLocation.longitude,
+      current_lat: riderLocation.latitude,
+      current_long: riderLocation.longitude,
     };
     acceptBooking.makePostRequest(Constants.ENDPOINT.ACCEPT_BOOKING, postdata);
   };
@@ -232,24 +224,12 @@ const HomeScreen = () => {
   }, [acceptBooking.response, acceptBooking.error]);
 
   /** ───── UPDATE BOOKING STATUS ───── */
-  const triggerUpdateBookingStatus = async (bookingId, status) => {
-    // ✅ Check location permission before updating status
-    const permission = await ensureLocationPermission();
-
-    if (permission !== 'granted') {
-      Alert.alert(
-        'Location Required',
-        'Location access is required to update booking status.',
-        [{ text: 'OK' }],
-      );
-      return;
-    }
-
+  const triggerUpdateBookingStatus = (bookingId, status) => {
     const postdata = {
       rider_id: userInfo?.id,
       booking_id: bookingId,
-      current_lat: currentLocation.latitude,
-      current_long: currentLocation.longitude,
+      current_lat: riderLocation.latitude,
+      current_long: riderLocation.longitude,
       status,
     };
     updateBookingStatus.makePostRequest(
@@ -299,32 +279,8 @@ const HomeScreen = () => {
     triggerUpdateBookingStatus(booking.id, newStatus);
   };
 
-  const handleVehicleSelect = async vehicle => {
+  const handleVehicleSelect = vehicle => {
     console.log('Vehicle selected:', vehicle);
-
-    // ✅ Check location permission before viewing bookings
-    const permission = await ensureLocationPermission();
-
-    if (permission !== 'granted') {
-      if (permission === 'blocked') {
-        Alert.alert(
-          'Location Required',
-          'Location access is blocked. Please enable it in Settings to view bookings.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Open Settings', onPress: () => openSettings() },
-          ],
-        );
-      } else {
-        Alert.alert(
-          'Location Required',
-          'Location access is required to view bookings. Please enable location services.',
-          [{ text: 'OK' }],
-        );
-      }
-      return;
-    }
-
     setSelectedVehicleId(vehicle.id);
     setShowVehicleSelection(false);
     triggerGetPendingBooking();
@@ -344,11 +300,11 @@ const HomeScreen = () => {
 
       <View style={styles.container}>
         <AppMap
-          initialLat={currentLocation.latitude}
-          initialLong={currentLocation.longitude}
+          initialLat={riderLocation.latitude}
+          initialLong={riderLocation.longitude}
           locationReady={locationReady}
-          riderLat={showRiderMarker ? currentLocation.latitude : null}
-          riderLong={showRiderMarker ? currentLocation.longitude : null}
+          riderLat={riderLocation.latitude}
+          riderLong={riderLocation.longitude}
           firstMarkerLat={firstMarkerLat}
           firstMarkerLong={firstMarkerLong}
           secondMarkerLat={secondMarkerLat}
@@ -373,7 +329,6 @@ const HomeScreen = () => {
           activeBooking={activeBooking}
           onUpdateStatus={handleUpdateBookingStatus}
           bookingStatus={bookingStatus}
-          permissionStatus={permissionStatus}
         />
 
         <VehicleSelectionModal

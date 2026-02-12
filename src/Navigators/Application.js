@@ -16,6 +16,7 @@ import {
   OTPScreen,
   PaymentOptionScreen,
   PromoReferralsScreen,
+  QRPH,
   RatingScreen,
   RegisterScreen,
   RiderApplicationScreen,
@@ -147,6 +148,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="BankInformationScreen"
               component={BankInformationScreen}
+            />
+            <Stack.Screen
+              name="QRPH"
+              component={QRPH}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
               name="TransferConfirmationScreen"

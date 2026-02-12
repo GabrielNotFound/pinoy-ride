@@ -1848,6 +1848,8 @@ PODS:
     - React-Core
   - RNDeviceInfo (14.0.4):
     - React-Core
+  - RNInAppBrowser (3.7.0):
+    - React-Core
   - RNPermissions (5.4.2):
     - React-Core
   - RNReanimated (3.16.7):
@@ -2078,6 +2080,7 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
+  - RNInAppBrowser (from `../node_modules/react-native-inappbrowser-reborn`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -2272,6 +2275,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
+  RNInAppBrowser:
+    :path: "../node_modules/react-native-inappbrowser-reborn"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
   RNReanimated:
@@ -2376,6 +2381,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 23e56519cc41d3bade3c8d4479f7760cb1c11996
   RNCClipboard: dfeb43751adff21e588657b5b6c888c72f3aa68e
   RNDeviceInfo: feea80a690d2bde1fe51461cf548039258bd03f2
+  RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNPermissions: 622915f45921c279d3295701925438b59418331a
   RNReanimated: 849c4bfc1a185b123ca9a89f2a98d679b3d79b4e
   RNScreens: e52d2e7e5fa29266d6f8f68e8229452e5b2f4236

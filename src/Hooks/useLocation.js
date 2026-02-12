@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import Geolocation from '@react-native-community/geolocation';
 import { ensureLocationPermission } from '@/Utils/Permissions';
+import Geolocation from 'react-native-geolocation-service';
 
 /**
  * Custom hook to handle location permission and fetching
@@ -42,6 +42,7 @@ export const useLocation = (
         // Get current location
         Geolocation.getCurrentPosition(
           position => {
+            console.log('Got location:', position);
             setLocation({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
@@ -55,6 +56,7 @@ export const useLocation = (
             setError(null);
           },
           err => {
+            console.log('Location watch failed:', err);
             console.error('Geolocation error:', err);
             setError(err.message || 'Failed to get location');
             setLoading(false);

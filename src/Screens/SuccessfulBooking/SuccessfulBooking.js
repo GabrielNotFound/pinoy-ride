@@ -37,6 +37,18 @@ const SuccessfulBooking = () => {
 
   const distance = booking?.distance_km ? `${booking.distance_km} km` : '0 km';
 
+  const handleEndRide = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'HomeScreen',
+          params: { reset: true },
+        },
+      ],
+    });
+  };
+
   return (
     <Container>
       <ScrollView contentContainerStyle={styles.container}>
@@ -89,9 +101,7 @@ const SuccessfulBooking = () => {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('HomeScreen')}>
+        <TouchableOpacity style={styles.button} onPress={handleEndRide}>
           <Text style={styles.buttonText}>End Ride</Text>
         </TouchableOpacity>
       </ScrollView>

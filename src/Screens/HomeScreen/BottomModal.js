@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useTheme } from 'react-native-paper';
+import { openSettings } from 'react-native-permissions';
 import { AppButton, ThemeSwitch } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
+import { ensureLocationPermission } from '@/Utils/Permissions';
 
 const credits = [
   {
@@ -35,6 +44,7 @@ const BottomModal = ({
   activeBooking,
   onUpdateStatus,
   bookingStatus: externalStatus,
+  permissionStatus,
 }) => {
   const { colors, dark } = useTheme();
   const styles = getStyles({ colors });
@@ -61,7 +71,32 @@ const BottomModal = ({
     }
   };
 
-  const handleButtonPress = () => {
+  // ✅ Check location permission before updating status
+  const handleButtonPress = async () => {
+    // ✅ Always check permission before any status update
+    const permission = await ensureLocationPermission();
+
+    if (permission !== 'granted') {
+      if (permission === 'blocked') {
+        Alert.alert(
+          'Location Required',
+          'Location access is blocked. Please enable it in Settings to continue with the booking.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => openSettings() },
+          ],
+        );
+      } else {
+        Alert.alert(
+          'Location Required',
+          'Location access is required to update booking status. Please enable location services.',
+          [{ text: 'OK' }],
+        );
+      }
+      return;
+    }
+
+    // ✅ Proceed with status update only if location is granted
     if (buttonStatus === 1) {
       setButtonStatus(2);
       onUpdateStatus(activeBooking, 2);
@@ -73,9 +108,49 @@ const BottomModal = ({
     }
   };
 
+  // ✅ Check location permission before viewing bookings
+  const handleViewBooking = async () => {
+    const permission = await ensureLocationPermission();
+
+    if (permission !== 'granted') {
+      if (permission === 'blocked') {
+        Alert.alert(
+          'Location Required',
+          'Location access is blocked. Please enable it in Settings to view bookings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => openSettings() },
+          ],
+        );
+      } else {
+        Alert.alert(
+          'Location Required',
+          'Location access is required to view and accept bookings.',
+          [{ text: 'OK' }],
+        );
+      }
+      return;
+    }
+
+    // Proceed to view booking
+    onViewBooking();
+  };
+
+  // ✅ Check if location is granted
+  const isLocationGranted = permissionStatus === 'granted';
+
   if (activeBooking) {
     return (
       <View style={styles.containerBooking}>
+        {/* ✅ Show warning if location is not enabled */}
+        {!isLocationGranted && (
+          <View style={styles.warningBanner}>
+            <Text style={styles.warningText}>
+              ⚠️ Location is required to update booking status
+            </Text>
+          </View>
+        )}
+
         <View style={styles.rowBetween}>
           <View style={styles.row}>
             <Image
@@ -122,8 +197,11 @@ const BottomModal = ({
         <AppButton
           title={getButtonTitle(buttonStatus)}
           onPress={handleButtonPress}
-          buttonColor={colors.primary}
-          textColor={colors.onPrimary}
+          buttonColor={isLocationGranted ? colors.primary : colors.outline}
+          textColor={
+            isLocationGranted ? colors.onPrimary : colors.onSurfaceVariant
+          }
+          disabled={!isLocationGranted}
           isBold
         />
       </View>
@@ -165,7 +243,7 @@ const BottomModal = ({
         </View>
       </TouchableOpacity>
 
-      <AppButton title="View Booking" onPress={onViewBooking} />
+      <AppButton title="View Booking" onPress={handleViewBooking} />
     </View>
   );
 };
@@ -312,5 +390,21 @@ const getStyles = ({ colors }) =>
       color: colors.text,
       flexShrink: 1,
       letterSpacing: -0.45,
+    },
+    // ✅ Warning banner styles
+    warningBanner: {
+      backgroundColor: '#FF9800',
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    warningText: {
+      color: 'white',
+      fontFamily: 'Poppins Medium',
+      fontSize: 12,
+      textAlign: 'center',
     },
   });

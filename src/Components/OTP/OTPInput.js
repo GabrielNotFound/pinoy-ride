@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Dimensions, StyleSheet, TextInput, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 /**
@@ -7,10 +7,12 @@ import { useTheme } from 'react-native-paper';
  * - Calls `onOTPComplete` when the user has entered `length` digits
  * - Handles pasting multiple digits
  * - Prevents crashes for all 6-digit inputs including "000000"
+ * - Responsive to screen size
  */
 const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
   const { colors } = useTheme();
-  const styles = getStyles({ colors });
+  const screenWidth = Dimensions.get('window').width;
+  const styles = getStyles({ colors, screenWidth, length });
   const inputs = useRef([]);
   const [digits, setDigits] = useState(Array.from({ length }, () => ''));
 
@@ -78,7 +80,6 @@ const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
             ref={ref => (inputs.current[i] = ref)}
             style={styles.input}
             keyboardType="number-pad"
-            maxLength={1}
             value={value}
             onChangeText={t => handleChange(t, i)}
             onKeyPress={e => handleKeyPress(e, i)}
@@ -94,26 +95,54 @@ const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
 
 export default OTPInput;
 
-const getStyles = ({ colors }) =>
-  StyleSheet.create({
+const getStyles = ({ colors, screenWidth, length }) => {
+  // Calculate responsive dimensions
+  const horizontalPadding = 20;
+  const availableWidth = screenWidth - horizontalPadding * 2;
+
+  // Calculate input size based on available width
+  // Account for gaps between inputs
+  const minGap = 2;
+  const maxGap = 8;
+  const totalGapWidth = (length - 1) * maxGap;
+
+  let inputWidth = (availableWidth - totalGapWidth) / length;
+  let gap = maxGap;
+
+  // If inputs would be too small, reduce gap
+  if (inputWidth < 35) {
+    gap = minGap;
+    inputWidth = (availableWidth - (length - 1) * gap) / length;
+  }
+
+  // Ensure minimum and maximum sizes
+  inputWidth = Math.max(Math.min(inputWidth, 45), 32);
+  const inputHeight = Math.max(Math.min(inputWidth * 1.25, 52), 40);
+
+  return StyleSheet.create({
     wrapper: {
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 20,
+      paddingHorizontal: horizontalPadding,
     },
     container: {
       flexDirection: 'row',
-      gap: 12, // RN >= 0.71; if older, replace with marginRight on inputs
+      gap: gap,
+      justifyContent: 'center',
+      width: '100%',
+      maxWidth: 400, // Prevents it from getting too wide on tablets
     },
     input: {
-      width: 42,
-      height: 52,
+      width: inputWidth,
+      height: inputHeight,
       borderWidth: 1,
       borderRadius: 5,
       borderColor: colors.grey,
       color: colors.text,
       textAlign: 'center',
-      fontSize: 20,
+      fontSize: Math.min(inputWidth * 0.5, 20),
       fontFamily: 'Poppins Medium',
     },
   });
+};
