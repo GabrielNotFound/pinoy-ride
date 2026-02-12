@@ -4,11 +4,15 @@ import {
   Alert,
   Dimensions,
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
@@ -48,6 +52,7 @@ const SaveLocationScreen = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState('');
   const [label, setLabel] = useState('');
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   // Default location (Manila)
   const defaultLocation = {
@@ -75,6 +80,27 @@ const SaveLocationScreen = () => {
       });
     }
   }, [locationType, existingPlace]);
+
+  // ✅ Track keyboard visibility
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      },
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   // Check permission on mount
   useEffect(() => {
@@ -189,104 +215,132 @@ const SaveLocationScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header with back button */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Image
-            source={require('@/Assets/Common/Back_2.png')}
-            style={styles.backIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {existingPlace ? 'Edit Saved Place' : 'Add Saved Place'}
-        </Text>
-        <View style={styles.backButton} />
-      </View>
-
-      <View style={styles.mapWrapper}>
-        <AppMap
-          initialLat={existingPlace?.lat || currentLocation.lat}
-          initialLong={existingPlace?.long || currentLocation.lng}
-          locationReady={permissionStatus === 'granted'}
-          firstMarkerLat={selectedLocation?.latitude}
-          firstMarkerLong={selectedLocation?.longitude}
-          onMapPress={handleMapPress}
-          interactive={true}
-          latOffset={-5}
-          style={{ flex: 1 }}
-        />
-
-        {/* ✅ Visual indicator when no location selected */}
-        {!selectedLocation && (
-          <View style={styles.mapOverlay}>
-            <View style={styles.instructionBubble}>
-              <Text style={styles.instructionText}>
-                📍 Tap anywhere on the map to select a location
-              </Text>
-            </View>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.bottomPanel}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}>
-          <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>Label *</Text>
-            <View style={styles.inputRow}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          {/* Header with back button */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
               <Image
-                source={getIconForType(
-                  locationType || existingPlace?.type || 'other',
-                )}
-                style={styles.inputIcon}
+                source={require('@/Assets/Common/Back_2.png')}
+                style={styles.backIcon}
                 resizeMode="contain"
               />
-              <TextInput
-                value={label}
-                onChangeText={setLabel}
-                placeholder="e.g., Home, Office, Gym"
-                style={styles.inputText}
-                placeholderTextColor={colors.grey3}
-              />
-            </View>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>
+              {existingPlace ? 'Edit Saved Place' : 'Add Saved Place'}
+            </Text>
+            <View style={styles.backButton} />
           </View>
 
-          <View style={styles.addressContainer}>
-            <Text style={styles.inputLabel}>Selected Location *</Text>
-            <View
-              style={[
-                styles.addressRow,
-                !selectedAddress && styles.addressRowEmpty,
-              ]}>
-              <Image
-                source={require('@/Assets/Common/Location/Location.png')}
-                style={styles.addressIcon}
-                resizeMode="contain"
+          {/* ✅ Hide map when keyboard is visible to save space */}
+          {!isKeyboardVisible && (
+            <View style={styles.mapWrapper}>
+              <AppMap
+                initialLat={existingPlace?.lat || currentLocation.lat}
+                initialLong={existingPlace?.long || currentLocation.lng}
+                locationReady={permissionStatus === 'granted'}
+                firstMarkerLat={selectedLocation?.latitude}
+                firstMarkerLong={selectedLocation?.longitude}
+                onMapPress={handleMapPress}
+                interactive={true}
+                latOffset={-5}
+                style={{ flex: 1 }}
               />
-              <Text
-                style={[
-                  styles.addressText,
-                  !selectedAddress && styles.addressTextPlaceholder,
-                ]}
-                numberOfLines={2}>
-                {selectedAddress || 'Tap map to select location'}
-              </Text>
-            </View>
-          </View>
 
-          <AppButton
-            title="Save Location"
-            onPress={handleSave}
-            isBold
-            // ✅ Disable button if required fields are empty
-            disabled={!label.trim() || !selectedLocation || !selectedAddress}
-          />
-        </ScrollView>
-      </View>
-    </View>
+              {/* ✅ Visual indicator when no location selected */}
+              {!selectedLocation && (
+                <View style={styles.mapOverlay}>
+                  <View style={styles.instructionBubble}>
+                    <Text style={styles.instructionText}>
+                      📍 Tap anywhere on the map to select a location
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+
+          <View
+            style={[
+              styles.bottomPanel,
+              isKeyboardVisible && styles.bottomPanelExpanded,
+            ]}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled">
+              <View style={styles.inputSection}>
+                <Text style={styles.inputLabel}>Label *</Text>
+                <View style={styles.inputRow}>
+                  <Image
+                    source={getIconForType(
+                      locationType || existingPlace?.type || 'other',
+                    )}
+                    style={styles.inputIcon}
+                    resizeMode="contain"
+                  />
+                  <TextInput
+                    value={label}
+                    onChangeText={setLabel}
+                    placeholder="e.g., Home, Office, Gym"
+                    style={styles.inputText}
+                    placeholderTextColor={colors.grey3}
+                    returnKeyType="done"
+                    blurOnSubmit={true}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.addressContainer}>
+                <Text style={styles.inputLabel}>Selected Location *</Text>
+                <View
+                  style={[
+                    styles.addressRow,
+                    !selectedAddress && styles.addressRowEmpty,
+                  ]}>
+                  <Image
+                    source={require('@/Assets/Common/Location/Location.png')}
+                    style={styles.addressIcon}
+                    resizeMode="contain"
+                  />
+                  <Text
+                    style={[
+                      styles.addressText,
+                      !selectedAddress && styles.addressTextPlaceholder,
+                    ]}
+                    numberOfLines={2}>
+                    {selectedAddress || 'Tap map to select location'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* ✅ Show hint when keyboard is visible */}
+              {isKeyboardVisible && !selectedLocation && (
+                <View style={styles.keyboardHint}>
+                  <Text style={styles.keyboardHintText}>
+                    💡 Close keyboard to select location on map
+                  </Text>
+                </View>
+              )}
+
+              <AppButton
+                title="Save Location"
+                onPress={handleSave}
+                isBold
+                // ✅ Disable button if required fields are empty
+                disabled={
+                  !label.trim() || !selectedLocation || !selectedAddress
+                }
+              />
+            </ScrollView>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -363,6 +417,10 @@ const getStyles = ({ colors }) =>
       paddingHorizontal: 20,
       paddingTop: 16,
     },
+    // ✅ Expand bottom panel when keyboard is visible
+    bottomPanelExpanded: {
+      flex: 1,
+    },
     scrollContent: {
       paddingBottom: 20,
     },
@@ -428,5 +486,19 @@ const getStyles = ({ colors }) =>
     addressTextPlaceholder: {
       fontStyle: 'italic',
       opacity: 0.6,
+    },
+    // ✅ Hint shown when keyboard is visible
+    keyboardHint: {
+      backgroundColor: colors.grey2,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 10,
+      marginBottom: 16,
+    },
+    keyboardHintText: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 12,
+      color: colors.grey4,
+      textAlign: 'center',
     },
   });

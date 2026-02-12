@@ -52,7 +52,7 @@ const HomeScreen = () => {
     permissionStatus,
     startWatching,
     stopWatching,
-  } = useLocationWatch(false); // Don't start watching immediately
+  } = useLocationWatch(true); // Don't start watching immediately
 
   // Default location (Manila)
   const defaultLocation = {

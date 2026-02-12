@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
@@ -14,6 +16,10 @@ const NoteToRiderModal = ({ visible, onClose, onSave, initialNote = '' }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const [note, setNote] = useState(initialNote);
+
+  useEffect(() => {
+    setNote(initialNote);
+  }, [initialNote, visible]);
 
   const handleSave = () => {
     const cleanedNote = note.trimStart();
@@ -31,32 +37,36 @@ const NoteToRiderModal = ({ visible, onClose, onSave, initialNote = '' }) => {
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={handleClose}>
-      {/* Backdrop - closes modal */}
+      onRequestClose={handleClose}
+      statusBarTranslucent>
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
 
-      {/* Modal content - dismisses keyboard */}
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Note To Rider</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardContainer}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.title}>Note To Rider</Text>
 
-          <AppTextInput
-            value={note}
-            onChangeText={setNote}
-            placeholder="Message"
-            inputMode="comment"
-          />
+            <AppTextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="Message"
+              inputMode="comment"
+              multiline
+            />
 
-          <AppButton
-            title="Send"
-            onPress={handleSave}
-            isBold
-            buttonColor={colors.primary}
-          />
-        </View>
-      </TouchableWithoutFeedback>
+            <AppButton
+              title="Send"
+              onPress={handleSave}
+              isBold
+              buttonColor={colors.primary}
+            />
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -69,11 +79,13 @@ const getStyles = ({ colors }) =>
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.3)',
     },
-    modalContainer: {
+    keyboardContainer: {
       position: 'absolute',
       bottom: 0,
       left: 0,
       right: 0,
+    },
+    modalContainer: {
       backgroundColor: '#D9D9D9',
       padding: 20,
       paddingBottom: 40,

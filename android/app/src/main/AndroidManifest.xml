@@ -116,6 +116,6 @@
       android:value="@integer/google_play_services_version" />
     <meta-data
      android:name="com.google.android.geo.API_KEY"
-     android:value="AIzaSyDH5_5MOexjcOzOqpA3c86Jj79rEVoPWos"/>
+     android:value="AIzaSyAlpSoXuJzvo8uR1qbdtbbbk1sx4MHKIQk"/>
   </application>
 </manifest>
