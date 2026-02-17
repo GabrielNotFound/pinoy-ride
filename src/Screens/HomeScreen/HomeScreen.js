@@ -20,9 +20,28 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  clearBookingState,
+  selectActiveBooking,
+  selectBookingStatus,
+  selectDropoffLocation,
   selectHasShownLoginSuccess,
+  selectInquireBookingResponse,
+  selectIsBooked,
+  selectIsConfirmed,
+  selectPickupLocation,
+  selectRiderDetails,
+  selectSelectedService,
   selectUserInfo,
+  setActiveBooking,
+  setBookingStatus,
+  setDropoffLocation,
   setHasShownLoginSuccess,
+  setInquireBookingResponse,
+  setIsBooked,
+  setIsConfirmed,
+  setPickupLocation,
+  setRiderDetails,
+  setSelectedService,
 } from '@/Redux/Slices/userSlice';
 import { AppUtil, Constants } from '@/Utils';
 import usePostRequest from '@/Services/Api';
@@ -39,8 +58,20 @@ const HomeScreen = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
   const dispatch = useDispatch();
+
+  // ✅ Use Redux selectors instead of local state
   const userInfo = useSelector(selectUserInfo);
   const hasShownLoginSuccess = useSelector(selectHasShownLoginSuccess);
+  const activeBooking = useSelector(selectActiveBooking);
+  const bookingStatus = useSelector(selectBookingStatus);
+  const riderDetails = useSelector(selectRiderDetails);
+  const pickupLocation = useSelector(selectPickupLocation);
+  const dropoffLocation = useSelector(selectDropoffLocation);
+  const selectedService = useSelector(selectSelectedService);
+  const isBooked = useSelector(selectIsBooked);
+  const isConfirmed = useSelector(selectIsConfirmed);
+  const inquireBookingResponse = useSelector(selectInquireBookingResponse);
+
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [modalHeight, setModalHeight] = useState(0);
@@ -52,7 +83,7 @@ const HomeScreen = () => {
     permissionStatus,
     startWatching,
     stopWatching,
-  } = useLocationWatch(true); // Don't start watching immediately
+  } = useLocationWatch(true);
 
   // Default location (Manila)
   const defaultLocation = {
@@ -67,14 +98,13 @@ const HomeScreen = () => {
   const [showRiderFound, setShowRiderFound] = useState(false);
   const riderAlertShownRef = useRef(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
-  const [selectedService, setSelectedService] = useState(null);
 
-  // Modal states
+  // Modal states (not persisted)
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showPromoModal, setShowPromoModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
 
-  // Selection states
+  // Selection states (not persisted)
   const [selectedPayment, setSelectedPayment] = useState('Wallet');
   const [selectedPromo, setSelectedPromo] = useState(null);
   const [noteToRider, setNoteToRider] = useState('');
@@ -89,24 +119,17 @@ const HomeScreen = () => {
   };
 
   const riderFoundTimeout = useRef(null);
+  const [showWaitingBanner, setShowWaitingBanner] = useState(false);
 
-  const [pickupLocation, setPickupLocation] = useState(null);
-  const [dropoffLocation, setDropoffLocation] = useState(null);
-
-  const [isBooked, setIsBooked] = useState(false);
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  const checkActiveBooking = usePostRequest();
+  const [isRestoringBooking, setIsRestoringBooking] = useState(false);
 
   const inquireBooking = usePostRequest();
-  const [inquireBookingResponse, setInquireBookingResponse] = useState([]);
   const createBooking = usePostRequest();
-  const [bookingDetails, setBookingDetails] = useState([]);
   const updateBookingStatus = usePostRequest();
   const getBookingDetails = usePostRequest();
   const getPromoList = usePostRequest();
-  const [bookingStatus, setBookingStatus] = useState(0);
-  const [riderDetails, setRiderDetails] = useState(null);
   const isLoading = inquireBooking.loading || createBooking.loading;
-  const [showWaitingBanner, setShowWaitingBanner] = useState(false);
 
   const onBookPressed = async () => {
     // Check location permission before allowing booking
@@ -178,11 +201,26 @@ const HomeScreen = () => {
     }
   }, [hasShownLoginSuccess, dispatch]);
 
+  // ✅ NEW: Check for active booking on app launch (from Redux)
   useEffect(() => {
     AppUtil.debugDeep(userInfo);
     AppUtil.debugDeep(selectedService);
 
     triggerGetPromoList();
+
+    // ✅ If there's an active booking in Redux, verify it's still valid
+    if (activeBooking?.id) {
+      console.log('🔄 Found active booking in Redux:', activeBooking.id);
+      setIsRestoringBooking(true);
+
+      const postdata = {
+        booking_id: activeBooking.id,
+      };
+      checkActiveBooking.makePostRequest(
+        Constants.ENDPOINT.GET_BOOKING_DETAILS,
+        postdata,
+      );
+    }
 
     return () => {
       if (riderFoundTimeout.current) {
@@ -198,6 +236,83 @@ const HomeScreen = () => {
       console.warn('Location error:', locationError);
     }
   }, [locationError, permissionStatus]);
+
+  // ✅ NEW: Handle restored booking response
+  const handleRestoredBooking = () => {
+    if (checkActiveBooking.error) {
+      console.warn(
+        '❌ Error fetching active booking:',
+        checkActiveBooking.error,
+      );
+      dispatch(clearBookingState()); // Clear invalid booking
+      setIsRestoringBooking(false);
+      return;
+    }
+
+    if (!checkActiveBooking.response) {
+      return;
+    }
+
+    const results = checkActiveBooking.response;
+    console.log('📥 Restored booking response:', results);
+
+    if (results?.code === 200 && results?.data) {
+      const booking = results.data;
+
+      // Check if booking is still active
+      if (booking.status === 3) {
+        console.log('✅ Booking completed, navigating to rating');
+        dispatch(clearBookingState());
+        setIsRestoringBooking(false);
+
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'RatingScreen',
+              params: { bookingDetails: booking },
+            },
+          ],
+        });
+        return;
+      }
+
+      if (booking.status === 4) {
+        console.log('✅ Booking cancelled');
+        dispatch(clearBookingState());
+        setIsRestoringBooking(false);
+        return;
+      }
+
+      // ✅ Update Redux with latest booking data
+      console.log('✅ Restoring active booking state');
+      dispatch(setActiveBooking(booking));
+      dispatch(setBookingStatus(booking.status));
+      dispatch(setIsConfirmed(true));
+      dispatch(setIsBooked(true));
+      setShowWaitingBanner(true);
+
+      // Restore rider details if available
+      if (booking.rider_details) {
+        dispatch(setRiderDetails(booking.rider_details));
+
+        // Show rider found alert if status is 1
+        if (booking.status === 1 && !riderAlertShownRef.current) {
+          setShowRiderFound(true);
+          riderAlertShownRef.current = true;
+        }
+      }
+    } else {
+      // No active booking found or error
+      dispatch(clearBookingState());
+    }
+
+    setIsRestoringBooking(false);
+  };
+
+  useEffect(() => {
+    handleRestoredBooking();
+  }, [checkActiveBooking.response, checkActiveBooking.error]);
 
   // GET PROMO LIST
   const triggerGetPromoList = () => {
@@ -273,8 +388,9 @@ const HomeScreen = () => {
     AppUtil.debugDeep(results?.data);
 
     if (results?.code === 200) {
-      setInquireBookingResponse(results.data);
-      setIsBooked(true);
+      // ✅ Save to Redux instead of local state
+      dispatch(setInquireBookingResponse(results.data));
+      dispatch(setIsBooked(true));
     }
   };
 
@@ -340,8 +456,9 @@ const HomeScreen = () => {
     AppUtil.debugDeep(results);
 
     if (results?.code === 200) {
-      setIsConfirmed(true);
-      setBookingDetails(results?.data);
+      // ✅ Save to Redux (automatically persisted)
+      dispatch(setIsConfirmed(true));
+      dispatch(setActiveBooking(results?.data));
       setShowWaitingBanner(true);
     }
   };
@@ -353,7 +470,7 @@ const HomeScreen = () => {
   //GET BOOKING DETAILS
   const triggeGetBookingDetails = () => {
     const postdata = {
-      booking_id: bookingDetails?.id,
+      booking_id: activeBooking?.id,
     };
     getBookingDetails.makePostRequest(
       Constants.ENDPOINT.GET_BOOKING_DETAILS,
@@ -379,16 +496,20 @@ const HomeScreen = () => {
     if (code === 200 && data) {
       const { status, rider_details } = data;
 
-      setBookingStatus(status);
+      // ✅ Update Redux
+      dispatch(setBookingStatus(status));
 
       if (status === 1) {
-        setRiderDetails(rider_details);
+        dispatch(setRiderDetails(rider_details));
         if (!riderAlertShownRef.current) {
           setShowRiderFound(true);
           riderAlertShownRef.current = true;
         }
       }
       if (status === 3) {
+        // ✅ Clear Redux state when completed
+        dispatch(clearBookingState());
+
         navigation.reset({
           index: 0,
           routes: [
@@ -408,7 +529,7 @@ const HomeScreen = () => {
 
   // Poll booking details when confirmed
   useEffect(() => {
-    if (!bookingDetails?.id) {
+    if (!activeBooking?.id) {
       return;
     }
 
@@ -422,12 +543,12 @@ const HomeScreen = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [bookingStatus, bookingDetails?.id]);
+  }, [bookingStatus, activeBooking?.id]);
 
   //UPDATE BOOKING STATUS
   const triggerUpdateBookingStatus = () => {
     const postdata = {
-      booking_id: bookingDetails?.id,
+      booking_id: activeBooking?.id,
       status: '4',
     };
     updateBookingStatus.makePostRequest(
@@ -451,12 +572,9 @@ const HomeScreen = () => {
     AppUtil.debugDeep(results);
 
     if (results?.code === 200) {
-      setIsConfirmed(false);
-      setIsBooked(false);
+      // ✅ Clear Redux state when cancelled
+      dispatch(clearBookingState());
       riderAlertShownRef.current = false;
-      setBookingStatus(0);
-      setBookingDetails(null);
-      setRiderDetails(null);
       setShowWaitingBanner(false);
       // Reset selections
       setSelectedPromo(null);
@@ -477,6 +595,19 @@ const HomeScreen = () => {
     setNoteToRider(note);
     console.log('Note to rider:', note);
   };
+
+  // ✅ Show loading indicator while restoring
+  if (isRestoringBooking) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>
+            Checking for active bookings...
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -556,8 +687,8 @@ const HomeScreen = () => {
             onBookPressed={onBookPressed}
             pickup={pickupLocation}
             dropoff={dropoffLocation}
-            onPickupChange={setPickupLocation}
-            onDropoffChange={setDropoffLocation}
+            onPickupChange={location => dispatch(setPickupLocation(location))}
+            onDropoffChange={location => dispatch(setDropoffLocation(location))}
             onChangeService={() => setShowServiceModal(true)}
             onInquireBooking={triggerInquireBooking}
             onCreateBooking={triggerCreateBooking}
@@ -566,8 +697,8 @@ const HomeScreen = () => {
               setShowWaitingBanner(false);
             }}
             onBackToEdit={() => {
-              setIsBooked(false);
-              setInquireBookingResponse([]);
+              dispatch(setIsBooked(false));
+              dispatch(setInquireBookingResponse(null));
               setShowWaitingBanner(false);
             }}
             isBooked={isBooked}
@@ -585,12 +716,12 @@ const HomeScreen = () => {
           />
         )}
 
-        {bookingStatus !== 0 && (
+        {bookingStatus !== 0 && bookingStatus !== 4 && (
           <BookingStatusModal
             onLayout={e => setModalHeight(e.nativeEvent.layout.height)}
             visible={bookingStatus !== 0}
             riderDetails={riderDetails}
-            bookingDetails={bookingDetails}
+            bookingDetails={activeBooking}
             bookingStatus={bookingStatus}
             pickup={pickupLocation}
             dropoff={dropoffLocation}
@@ -628,7 +759,7 @@ const HomeScreen = () => {
           visible={showServiceModal}
           onClose={() => setShowServiceModal(false)}
           onSelect={service => {
-            setSelectedService(service);
+            dispatch(setSelectedService(service));
             setShowServiceModal(false);
           }}
         />
@@ -677,5 +808,17 @@ const getStyles = ({ colors }) =>
     bannerText: {
       fontWeight: '600',
       color: colors.onPrimary,
+    },
+    // ✅ NEW: Loading indicator styles
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+    loadingText: {
+      fontFamily: 'Poppins Medium',
+      fontSize: 16,
+      color: colors.text,
     },
   });

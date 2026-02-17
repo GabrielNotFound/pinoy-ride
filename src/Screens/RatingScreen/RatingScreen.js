@@ -12,6 +12,8 @@ import {
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { clearBookingState } from '@/Redux/Slices/userSlice';
 import { AlertBox, AppButton, AppTextInput } from '@/Components';
 import { AppUtil, Constants } from '@/Utils';
 import usePostRequest from '@/Services/Api';
@@ -21,6 +23,8 @@ const RatingScreen = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
+
   const paymentDetails = route?.params?.bookingDetails?.payment_details;
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
@@ -30,7 +34,12 @@ const RatingScreen = () => {
   const rateBooking = usePostRequest();
 
   const handleBack = () => {
-    navigation.replace('HomeScreen');
+    dispatch(clearBookingState());
+
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'HomeScreen' }],
+    });
   };
 
   const handleSubmit = () => {
@@ -55,6 +64,9 @@ const RatingScreen = () => {
     if (!rateBooking.response) {
       return;
     }
+
+    dispatch(clearBookingState());
+
     navigation.reset({
       index: 0,
       routes: [{ name: 'HomeScreen' }],
