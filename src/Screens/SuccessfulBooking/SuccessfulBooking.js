@@ -9,14 +9,17 @@ import {
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import { AppUtil } from '@/Utils';
 import { Container } from '@/Components';
+import { clearRiderBookingState } from '@/Redux/Slices/userSlice';
 
 const SuccessfulBooking = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     AppUtil.debugDeep(route?.params);
@@ -38,6 +41,8 @@ const SuccessfulBooking = () => {
   const distance = booking?.distance_km ? `${booking.distance_km} km` : '0 km';
 
   const handleEndRide = () => {
+    dispatch(clearRiderBookingState());
+
     navigation.reset({
       index: 0,
       routes: [

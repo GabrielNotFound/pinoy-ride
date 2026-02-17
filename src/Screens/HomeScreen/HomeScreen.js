@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Dimensions, StyleSheet, View } from 'react-native';
+import { Alert, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { openSettings } from 'react-native-permissions';
 
@@ -7,8 +7,17 @@ import BottomModal from './BottomModal';
 import { AlertBox, AppMap, OfflineAlertBox } from '@/Components';
 import usePostRequest from '@/Services/Api';
 import { AppUtil, Constants } from '@/Utils';
-import { useSelector } from 'react-redux';
-import { selectUserInfo } from '@/Redux/Slices/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  clearRiderBookingState,
+  selectRiderActiveBooking,
+  selectRiderBookingStatus,
+  selectRiderSelectedVehicleId,
+  selectUserInfo,
+  setRiderActiveBooking,
+  setRiderBookingStatus,
+  setRiderSelectedVehicleId,
+} from '@/Redux/Slices/userSlice';
 import PendingBookingModal from './PendingBookingModal';
 import VehicleSelectionModal from './VehicleSelectionModal';
 import { ensureLocationPermission } from '@/Utils/Permissions';
@@ -26,10 +35,15 @@ const MANILA_LOCATION = {
 const HomeScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
+  const dispatch = useDispatch();
+
+  // ✅ Use Redux selectors instead of local state
   const userInfo = useSelector(selectUserInfo);
+  const riderActiveBooking = useSelector(selectRiderActiveBooking);
+  const riderBookingStatus = useSelector(selectRiderBookingStatus);
+  const riderSelectedVehicleId = useSelector(selectRiderSelectedVehicleId);
 
   const [showOffline, setShowOffline] = useState(false);
-  const [activeBooking, setActiveBooking] = useState(null);
 
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
@@ -39,10 +53,8 @@ const HomeScreen = () => {
 
   // Vehicle selection state
   const [showVehicleSelection, setShowVehicleSelection] = useState(false);
-  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
   // Use location watch hook for real-time location updates
-  // Pass FALSE - we'll start watching manually after permission check
   const {
     location: userLocation,
     error: locationError,
@@ -57,7 +69,6 @@ const HomeScreen = () => {
     longitude: 120.98216,
   };
 
-  // ✅ State for rider's location - uses hook location or default
   const riderLocation = isTesting
     ? MANILA_LOCATION
     : userLocation || defaultLocation;
@@ -65,27 +76,34 @@ const HomeScreen = () => {
   const locationReady = permissionStatus === 'granted';
 
   const [showDropoff, setShowDropoff] = useState(false);
-  const [bookingStatus, setBookingStatus] = useState(1); // Start at 1 when booking accepted
 
-  // ✅ FIXED MARKER LOGIC - Based on bookingStatus from BottomModal
-  const showRiderMarker = activeBooking !== null; // Always show rider when there's a booking
+  // ✅ NEW: Check for active booking on mount
+  const checkActiveBooking = usePostRequest();
+  const [isRestoringBooking, setIsRestoringBooking] = useState(false);
 
-  // First marker changes based on status
+  // Marker logic - Based on riderBookingStatus
+  const showRiderMarker = riderActiveBooking !== null;
+
+  // First marker (pickup) shows when button status is 1, 2 (going to pickup)
   const firstMarkerLat =
-    bookingStatus === 1 || bookingStatus === 2
-      ? activeBooking?.pickup_lat
+    riderBookingStatus === 1 || riderBookingStatus === 2
+      ? riderActiveBooking?.pickup_lat
       : null;
 
   const firstMarkerLong =
-    bookingStatus === 1 || bookingStatus === 2
-      ? activeBooking?.pickup_long
+    riderBookingStatus === 1 || riderBookingStatus === 2
+      ? riderActiveBooking?.pickup_long
       : null;
 
-  // Second marker only shows when going to dropoff (status 3)
+  // Second marker (dropoff) shows when button status is 3, 4 (going to dropoff)
   const secondMarkerLat =
-    bookingStatus === 3 ? activeBooking?.dropoff_lat : null;
+    riderBookingStatus === 3 || riderBookingStatus === 4
+      ? riderActiveBooking?.dropoff_lat
+      : null;
   const secondMarkerLong =
-    bookingStatus === 3 ? activeBooking?.dropoff_long : null;
+    riderBookingStatus === 3 || riderBookingStatus === 4
+      ? riderActiveBooking?.dropoff_long
+      : null;
 
   const getPendingBooking = usePostRequest();
   const acceptBooking = usePostRequest();
@@ -97,6 +115,7 @@ const HomeScreen = () => {
 
     if (isTesting) {
       AppUtil.debugDeep('Testing Mode On - turn off if Building');
+      setIsRestoringBooking(false);
       return;
     }
 
@@ -107,6 +126,25 @@ const HomeScreen = () => {
       if (permission === 'granted') {
         console.log('✅ Permission granted, starting location watch...');
         startWatching();
+
+        // ✅ Check for active booking after location is ready
+        if (riderActiveBooking?.id) {
+          console.log(
+            '🔄 Found active booking in Redux:',
+            riderActiveBooking.id,
+          );
+          setIsRestoringBooking(true);
+
+          const postdata = {
+            booking_id: riderActiveBooking.id,
+          };
+          checkActiveBooking.makePostRequest(
+            Constants.ENDPOINT.GET_BOOKING_DETAILS,
+            postdata,
+          );
+        } else {
+          setIsRestoringBooking(false);
+        }
       } else if (permission === 'blocked') {
         console.warn('❌ Location blocked');
         Alert.alert(
@@ -117,6 +155,7 @@ const HomeScreen = () => {
             { text: 'Open Settings', onPress: () => openSettings() },
           ],
         );
+        setIsRestoringBooking(false);
       } else if (permission === 'denied') {
         console.warn('❌ Location denied');
         Alert.alert(
@@ -124,6 +163,7 @@ const HomeScreen = () => {
           'This app needs location access to track your position.',
           [{ text: 'OK' }],
         );
+        setIsRestoringBooking(false);
       }
     };
 
@@ -157,12 +197,73 @@ const HomeScreen = () => {
     }
   }, [locationError, permissionStatus]);
 
+  // ✅ NEW: Handle restored booking response
+  const handleRestoredBooking = () => {
+    if (checkActiveBooking.error) {
+      console.warn(
+        '❌ Error fetching active booking:',
+        checkActiveBooking.error,
+      );
+      dispatch(clearRiderBookingState()); // Clear invalid booking
+      setIsRestoringBooking(false);
+      return;
+    }
+
+    if (!checkActiveBooking.response) {
+      return;
+    }
+
+    const results = checkActiveBooking.response;
+    console.log('📥 Restored rider booking response:', results);
+
+    if (results?.code === 200 && results?.data) {
+      const booking = results.data;
+
+      // Check if booking is still active (not completed or cancelled)
+      if (booking.status === 3 || booking.status === 4) {
+        console.log('✅ Booking already completed/cancelled');
+        dispatch(clearRiderBookingState());
+        setIsRestoringBooking(false);
+        return;
+      }
+
+      // ✅ Update Redux with latest booking data
+      console.log('✅ Restoring active rider booking state');
+      dispatch(setRiderActiveBooking(booking));
+
+      // Map backend status to button status
+      // Backend: 1 = Accepted (button 1-2), 2 = Trip Started (button 3-4)
+      if (booking.status === 1) {
+        // Keep current button status if it's 1 or 2, otherwise default to 1
+        if (riderBookingStatus !== 1 && riderBookingStatus !== 2) {
+          dispatch(setRiderBookingStatus(1));
+        }
+      } else if (booking.status === 2) {
+        // Keep current button status if it's 3 or 4, otherwise default to 3
+        if (riderBookingStatus !== 3 && riderBookingStatus !== 4) {
+          dispatch(setRiderBookingStatus(3));
+        }
+      }
+
+      setShowDropoff(booking.status === 2);
+    } else {
+      // No active booking found or error
+      dispatch(clearRiderBookingState());
+    }
+
+    setIsRestoringBooking(false);
+  };
+
+  useEffect(() => {
+    handleRestoredBooking();
+  }, [checkActiveBooking.response, checkActiveBooking.error]);
+
   const triggerGetPendingBooking = () => {
     const postdata = {
       rider_id: userInfo?.id,
       current_lat: riderLocation.latitude,
       current_long: riderLocation.longitude,
-      booking_type: selectedVehicleId,
+      booking_type: riderSelectedVehicleId,
     };
     console.log('📡 Sending location to server:', postdata);
     getPendingBooking.makePostRequest(Constants.ENDPOINT.GET_PENDING, postdata);
@@ -212,10 +313,11 @@ const HomeScreen = () => {
 
     const results = acceptBooking.response;
     if (results?.code === 200) {
-      setActiveBooking(results.data);
+      // ✅ Save to Redux (automatically persisted)
+      dispatch(setRiderActiveBooking(results.data));
+      dispatch(setRiderBookingStatus(1)); // Reset to button status 1
       setShowBooking(false);
       setShowDropoff(false);
-      setBookingStatus(1); // Reset to status 1 (Going to pickup)
     }
   };
 
@@ -251,6 +353,11 @@ const HomeScreen = () => {
     const results = updateBookingStatus.response;
     if (results?.code === 200) {
       AppUtil.debugDeep(results?.data);
+
+      // ✅ Clear Redux state if status is 3 (completed)
+      if (results?.data?.status === 3) {
+        dispatch(clearRiderBookingState());
+      }
     }
   };
 
@@ -260,8 +367,8 @@ const HomeScreen = () => {
 
   /** ───── HANDLERS ───── */
   const handleAccept = booking => {
-    setActiveBooking(booking);
-    setBookingStatus(1); // Start at status 1
+    dispatch(setRiderActiveBooking(booking));
+    dispatch(setRiderBookingStatus(1)); // Start at button status 1
     triggerAcceptBooking(booking.id);
   };
 
@@ -274,18 +381,34 @@ const HomeScreen = () => {
   };
 
   const handleUpdateBookingStatus = (booking, newStatus) => {
-    setActiveBooking(prev => (prev ? { ...prev, status: newStatus } : prev));
-    setBookingStatus(newStatus); // Update local status
+    // Update local booking object
+    dispatch(setRiderActiveBooking({ ...booking, status: newStatus }));
+    // Update button status
+    dispatch(setRiderBookingStatus(newStatus));
+    // Send to backend
     triggerUpdateBookingStatus(booking.id, newStatus);
   };
 
   const handleVehicleSelect = vehicle => {
     console.log('Vehicle selected:', vehicle);
-    setSelectedVehicleId(vehicle.id);
+    dispatch(setRiderSelectedVehicleId(vehicle.id));
     setShowVehicleSelection(false);
     triggerGetPendingBooking();
     setShowBooking(true);
   };
+
+  // ✅ Show loading indicator while restoring
+  if (isRestoringBooking) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>
+            Checking for active bookings...
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -321,14 +444,14 @@ const HomeScreen = () => {
         <BottomModal
           bookings={pendingBookings}
           loading={getPendingBooking.loading}
-          onAcceptBooking={setActiveBooking}
+          onAcceptBooking={booking => dispatch(setRiderActiveBooking(booking))}
           onViewBooking={() => {
-            // Show vehicle selection first instead of booking list
             setShowVehicleSelection(true);
           }}
-          activeBooking={activeBooking}
+          activeBooking={riderActiveBooking}
           onUpdateStatus={handleUpdateBookingStatus}
-          bookingStatus={bookingStatus}
+          bookingStatus={riderBookingStatus}
+          permissionStatus={permissionStatus}
         />
 
         <VehicleSelectionModal
@@ -357,5 +480,20 @@ const { width, height } = Dimensions.get('window');
 
 const getStyles = ({ colors }) =>
   StyleSheet.create({
-    container: { flex: 1, position: 'relative' },
+    container: {
+      flex: 1,
+      position: 'relative',
+    },
+    // ✅ NEW: Loading indicator styles
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+    loadingText: {
+      fontFamily: 'Poppins Medium',
+      fontSize: 16,
+      color: colors.text,
+    },
   });
