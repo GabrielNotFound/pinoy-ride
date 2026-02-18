@@ -16,7 +16,7 @@ const PaymentMethodModal = ({
   visible,
   onClose,
   onSelect,
-  selectedPayment = 'wallet',
+  selectedPayment = 'cash',
 }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
@@ -35,13 +35,13 @@ const PaymentMethodModal = ({
   };
 
   const handleTopUpSuccess = () => {
-    // Close the PaymentMethodModal when top-up is successful
+    // close the payment method modal when top-up is successful
     onClose();
   };
 
   return (
     <>
-      {/* Alert for API errors */}
+      {/* alert for api errors */}
       {alertMessage ? (
         <AlertBox
           title="Error"
@@ -63,7 +63,7 @@ const PaymentMethodModal = ({
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Select Payment</Text>
 
-          {/* Cash option */}
+          {/* cash option */}
           <TouchableOpacity
             style={[
               styles.option,
@@ -85,7 +85,8 @@ const PaymentMethodModal = ({
               </View>
             )}
           </TouchableOpacity>
-          {/* Wallet option */}
+
+          {/* wallet option */}
           <TouchableOpacity
             style={[
               styles.option,
@@ -106,11 +107,12 @@ const PaymentMethodModal = ({
               </View>
             )}
           </TouchableOpacity>
+
           <AppButton title="Top Up" onPress={handleNext} isBold />
         </View>
       </Modal>
 
-      {/* Top Up Amount Modal */}
+      {/* top up amount modal */}
       <TopUpAmountModal
         visible={showTopUpModal}
         onClose={() => setShowTopUpModal(false)}

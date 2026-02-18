@@ -134,8 +134,6 @@ const OTPScreen = () => {
       await getOtpCode.makePostRequest(Constants.ENDPOINT.GENERATE_OTP, {
         mobile_no: mobileNumber,
       });
-      setAlertMessage('OTP has been resent!');
-      setShowAlert(true);
     } catch (error) {
       setAlertMessage(error || 'Failed to resend OTP.');
       setShowAlert(true);

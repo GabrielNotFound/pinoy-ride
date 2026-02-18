@@ -16,6 +16,7 @@ import {
   OTPScreen,
   OnboardingScreen,
   PaymentOptionScreen,
+  ProfileScreen,
   PromoReferralsScreen,
   QRPHScreen,
   RatingScreen,
@@ -163,6 +164,12 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="AppTransactionComplete"
               component={AppTransactionComplete}
+              options={{ headerShown: false }}
+            />
+
+            <Stack.Screen
+              name="ProfileScreen"
+              component={ProfileScreen}
               options={{ headerShown: false }}
             />
           </Stack.Navigator>

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import {
+  Alert,
   BackHandler,
   Image,
   StyleSheet,
@@ -9,19 +10,25 @@ import {
 } from 'react-native';
 import Container from '@/Components/Container/Container';
 import { useTheme } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import { selectUserInfo } from '@/Redux/Slices/userSlice';
-import { useSelector } from 'react-redux';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import {
+  clearBookingState,
+  clearSavedPlaces,
+  clearUserInfo,
+  selectUserInfo,
+} from '@/Redux/Slices/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
 import { AppUtil } from '@/Utils';
 
 const SettingsScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const userInfo = useSelector(selectUserInfo);
 
   useEffect(() => {
-    AppUtil.debugDeep(userInfo?.ekyc_details?.selfie);
+    AppUtil.debugDeep(userInfo);
   });
 
   // Intercept hardware back button
@@ -82,6 +89,30 @@ const SettingsScreen = () => {
     navigation.popToTop();
   };
 
+  const handleLogout = () => {
+    Alert.alert('Log Out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log Out',
+        style: 'destructive',
+        onPress: () => {
+          // Clear all user-related Redux state
+          dispatch(clearUserInfo());
+          dispatch(clearBookingState());
+          dispatch(clearSavedPlaces());
+
+          // Reset navigation stack so user can't go back to HomeScreen
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'LandingScreen' }],
+            }),
+          );
+        },
+      },
+    ]);
+  };
+
   return (
     <Container style={styles.container}>
       <View>
@@ -95,7 +126,7 @@ const SettingsScreen = () => {
 
         <TouchableOpacity
           style={styles.profileButton}
-          onPress={() => console.log('Profile Pressed')}>
+          onPress={() => navigation.navigate('ProfileScreen')}>
           <Image
             source={
               userInfo?.ekyc_details?.selfie
@@ -118,6 +149,11 @@ const SettingsScreen = () => {
             <Text style={styles.label}>{button.label}</Text>
           </TouchableOpacity>
         ))}
+        <TouchableOpacity
+          style={[styles.buttons, styles.logoutButton]}
+          onPress={handleLogout}>
+          <Text style={[styles.label, styles.logoutLabel]}>Log Out</Text>
+        </TouchableOpacity>
       </View>
     </Container>
   );

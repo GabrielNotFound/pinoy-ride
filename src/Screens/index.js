@@ -25,3 +25,4 @@ export { default as EKYCScreen } from './Login/EKYCScreen';
 export { default as BookingStatusModal } from './HomeScreen/Components/BookingStatusModal';
 export { default as CashInScreen } from './WalletScreen/CashInScreen';
 export { default as QRPHScreen } from './QRPH/QRPHScreen';
+export { default as ProfileScreen } from './Profile/ProfileScreen';

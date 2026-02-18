@@ -33,7 +33,7 @@ const BottomModal = ({
   setShowPaymentModal,
   setShowPromoModal,
   setShowNoteModal,
-  selectedPayment = 'wallet', // ✅ default to wallet
+  selectedPayment = 'cash',
   selectedPromo,
   noteToRider,
   inquireBookingResponse,
@@ -44,13 +44,13 @@ const BottomModal = ({
   const navigation = useNavigation();
 
   const paymentConfig =
-    PAYMENT_METHOD_CONFIG[selectedPayment] || PAYMENT_METHOD_CONFIG.wallet;
+    PAYMENT_METHOD_CONFIG[selectedPayment] || PAYMENT_METHOD_CONFIG.cash;
 
   const buttons = [
     {
       id: 'payment',
       image: paymentConfig?.icon,
-      text: paymentConfig?.label ?? 'Wallet', // ✅ fallback to Wallet
+      text: paymentConfig?.label ?? 'Cash',
       onPress: () => setShowPaymentModal(true),
     },
     {
@@ -106,7 +106,6 @@ const BottomModal = ({
     if (!location) {
       return placeholder;
     }
-    // Try multiple possible property names
     return location.description || location.address || placeholder;
   };
 
@@ -133,7 +132,7 @@ const BottomModal = ({
     <View style={styles.modalContainer} onLayout={onLayout}>
       {selectedService ? (
         <>
-          {/* Service Header */}
+          {/* service header */}
           <View style={styles.serviceHeader}>
             {isBooked && !isConfirmed ? (
               <TouchableOpacity onPress={onBackToEdit} disabled={isLoading}>
@@ -154,7 +153,7 @@ const BottomModal = ({
             )}
           </View>
 
-          {/* Pickup & Dropoff */}
+          {/* pickup and dropoff */}
           <View style={styles.locationColumn}>
             <View style={styles.locationGroup}>
               <TouchableOpacity
@@ -191,7 +190,7 @@ const BottomModal = ({
             </View>
           </View>
 
-          {/* Options row or fare breakdown */}
+          {/* options row or fare breakdown */}
           {!isBooked ? (
             <View style={styles.optionButtonsRow}>
               {buttons.map((btn, index) => (

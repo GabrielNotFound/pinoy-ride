@@ -105,7 +105,7 @@ const HomeScreen = () => {
   const [showNoteModal, setShowNoteModal] = useState(false);
 
   // Selection states (not persisted)
-  const [selectedPayment, setSelectedPayment] = useState('Wallet');
+  const [selectedPayment, setSelectedPayment] = useState('cash');
   const [selectedPromo, setSelectedPromo] = useState(null);
   const [noteToRider, setNoteToRider] = useState('');
 
@@ -195,6 +195,7 @@ const HomeScreen = () => {
 
   // Separate useEffect for login success modal - only runs once
   useEffect(() => {
+    AppUtil.debugDeep('yes' + userInfo);
     if (!hasShownLoginSuccess) {
       setShowSuccess(true);
       dispatch(setHasShownLoginSuccess(true));
@@ -254,10 +255,10 @@ const HomeScreen = () => {
     }
 
     const results = checkActiveBooking.response;
-    console.log('📥 Restored booking response:', results);
 
     if (results?.code === 200 && results?.data) {
-      const booking = results.data;
+      const booking = results?.data;
+      AppUtil.debugDeep(booking);
 
       // Check if booking is still active
       if (booking.status === 3) {
@@ -298,6 +299,7 @@ const HomeScreen = () => {
 
         // Show rider found alert if status is 1
         if (booking.status === 1 && !riderAlertShownRef.current) {
+          AppUtil.debugDeep(riderDetails);
           setShowRiderFound(true);
           riderAlertShownRef.current = true;
         }
@@ -323,9 +325,6 @@ const HomeScreen = () => {
   const handleGetPromoList = () => {
     if (getPromoList.error) {
       console.warn('Error fetching promo list:', getPromoList.error);
-      // Don't show alert here, just log it
-      // setAlertMessage(getPromoList.error);
-      // setShowAlert(true);
       return;
     }
 
@@ -468,7 +467,7 @@ const HomeScreen = () => {
   }, [createBooking.response, createBooking.error]);
 
   //GET BOOKING DETAILS
-  const triggeGetBookingDetails = () => {
+  const triggerGetBookingDetails = () => {
     const postdata = {
       booking_id: activeBooking?.id,
     };
@@ -491,13 +490,13 @@ const HomeScreen = () => {
     }
 
     const { code, data } = response;
-    AppUtil.debugDeep(response);
 
     if (code === 200 && data) {
       const { status, rider_details } = data;
 
       // ✅ Update Redux
       dispatch(setBookingStatus(status));
+      AppUtil.debugDeep(rider_details);
 
       if (status === 1) {
         dispatch(setRiderDetails(rider_details));
@@ -537,7 +536,7 @@ const HomeScreen = () => {
     const intervalTime = bookingStatus === 0 ? 1000 : 2000;
 
     intervalId = setInterval(() => {
-      triggeGetBookingDetails();
+      triggerGetBookingDetails();
     }, intervalTime);
 
     return () => {
@@ -646,7 +645,7 @@ const HomeScreen = () => {
           onClose={() => setShowRiderFound(false)}
           riderName={
             riderDetails
-              ? `${riderDetails.first_name} ${riderDetails.last_name}`
+              ? `${riderDetails.ekyc_details?.first_name} ${riderDetails.ekyc_details?.last_name}`
               : ''
           }
           plateNumber={riderDetails?.vehicle_details?.[0]?.plate_number || ''}
@@ -656,8 +655,8 @@ const HomeScreen = () => {
               : ''
           }
           imageSource={
-            riderDetails?.motorcyle_img
-              ? { uri: riderDetails.vehicle_details?.[0]?.motorcyle_img }
+            riderDetails?.ekyc_details?.selfie
+              ? { uri: riderDetails.ekyc_details.selfie }
               : require('@/Assets/Common/Sample_Profile.png')
           }
         />
@@ -809,7 +808,6 @@ const getStyles = ({ colors }) =>
       fontWeight: '600',
       color: colors.onPrimary,
     },
-    // ✅ NEW: Loading indicator styles
     loadingContainer: {
       flex: 1,
       justifyContent: 'center',

@@ -1,6 +1,13 @@
 import { AppButton } from '@/Components';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 const BookingStatusModal = ({
@@ -18,8 +25,19 @@ const BookingStatusModal = ({
   const styles = getStyles({ colors });
 
   if (!riderDetails) {
-    return null;
+    return (
+      <View style={styles.overlay} onLayout={onLayout}>
+        <View style={styles.container}>
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={styles.loadingText}>Finding your rider...</Text>
+          </View>
+        </View>
+      </View>
+    );
   }
+
+  const ekycDetails = riderDetails?.ekyc_details;
 
   return (
     <View style={styles.overlay} onLayout={onLayout}>
@@ -77,7 +95,7 @@ const BookingStatusModal = ({
               </View>
             </View>
 
-            {/*  Fare Breakdown */}
+            {/* Fare Breakdown */}
             <View style={styles.fareBreakdown}>
               <View style={styles.fareRow}>
                 <Text
@@ -112,15 +130,15 @@ const BookingStatusModal = ({
         <View style={styles.riderRow}>
           <Image
             source={
-              riderDetails?.avatar
+              riderDetails?.vehicle_details?.[0]?.motorcyle_img
                 ? { uri: riderDetails.vehicle_details[0].motorcyle_img }
                 : {
                     uri:
                       'https://ui-avatars.com/api/?name=' +
                       encodeURIComponent(
-                        (riderDetails?.fname || '') +
+                        (ekycDetails?.first_name || '') +
                           ' ' +
-                          (riderDetails?.lname || ''),
+                          (ekycDetails?.last_name || ''),
                       ),
                   }
             }
@@ -129,7 +147,7 @@ const BookingStatusModal = ({
 
           <View style={{ flex: 1 }}>
             <Text style={styles.riderName}>
-              {riderDetails.first_name} {riderDetails.last_name}
+              {ekycDetails?.first_name} {ekycDetails?.last_name}
             </Text>
             <Text style={styles.plate}>
               {riderDetails.vehicle_details?.[0]?.plate_number}
@@ -149,7 +167,7 @@ const BookingStatusModal = ({
           </View>
         </View>
 
-        {/*  Share Trip using AppButton */}
+        {/* Share Trip using AppButton */}
         <AppButton
           title="Share Your Trip Details"
           onPress={onShareTrip}
@@ -180,6 +198,19 @@ const getStyles = ({ colors }) =>
       padding: 20,
       elevation: 10,
       paddingBottom: 50,
+    },
+    loadingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 20,
+      gap: 10,
+    },
+    loadingText: {
+      fontFamily: 'Poppins Medium',
+      fontSize: 14,
+      color: colors.onSurfaceVariant,
+      marginLeft: 10,
     },
     rowBetween: {
       flexDirection: 'row',
@@ -237,7 +268,6 @@ const getStyles = ({ colors }) =>
       padding: 10,
       marginLeft: 8,
     },
-
     locationColumn: {
       marginTop: 20,
       alignItems: 'flex-start',
