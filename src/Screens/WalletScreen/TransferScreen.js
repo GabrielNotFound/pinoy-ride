@@ -1,4 +1,4 @@
-import { AppButton, AppTextInput } from '@/Components';
+import { AppButton, AppTextInput, Container } from '@/Components';
 import { AppUtil, Constants } from '@/Utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
@@ -218,7 +218,7 @@ const TransferScreen = ({ route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <Container style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Image
@@ -286,7 +286,7 @@ const TransferScreen = ({ route }) => {
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
-    </View>
+    </Container>
   );
 };
 
@@ -296,7 +296,6 @@ const getStyles = ({ colors }) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
     },
     header: {
       height: 52,

@@ -20,13 +20,17 @@ const AppMap = ({
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const mapRef = useRef(null);
-  const riderMarkerRef = useRef(null); // ✅ stable marker
 
   const [region, setRegion] = useState({
     latitude: initialLat,
     longitude: initialLong,
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
+  });
+
+  const [riderCoord, setRiderCoord] = useState({
+    latitude: parseFloat(initialLat),
+    longitude: parseFloat(initialLong),
   });
 
   const [routeCoords, setRouteCoords] = useState([]);
@@ -115,13 +119,15 @@ const AppMap = ({
         });
       }
     });
-  }, [firstMarkerLat, firstMarkerLong, secondMarkerLat, secondMarkerLong]); // no riderLat/Long dependency!
+  }, [firstMarkerLat, firstMarkerLong, secondMarkerLat, secondMarkerLong]);
 
   /* =======================================================
      ROUTE VIEW CAMERA FOLLOW
      ======================================================= */
   useEffect(() => {
-    if (!isRouteView || !riderLat || !riderLong || !mapRef.current) {return;}
+    if (!isRouteView || !riderLat || !riderLong || !mapRef.current) {
+      return;
+    }
 
     const interval = setInterval(() => {
       mapRef.current.animateCamera(
@@ -142,17 +148,14 @@ const AppMap = ({
   }, [isRouteView, riderLat, riderLong, currentHeading]);
 
   /* =======================================================
-     UPDATE RIDER MARKER COORDINATE WITHOUT RE-RENDER
+     UPDATE RIDER MARKER COORDINATE VIA STATE
      ======================================================= */
   useEffect(() => {
-    if (riderMarkerRef.current && riderLat != null && riderLong != null) {
-      riderMarkerRef.current.animateMarkerToCoordinate(
-        {
-          latitude: parseFloat(riderLat),
-          longitude: parseFloat(riderLong),
-        },
-        500, // duration in ms
-      );
+    if (riderLat != null && riderLong != null) {
+      setRiderCoord({
+        latitude: parseFloat(riderLat),
+        longitude: parseFloat(riderLong),
+      });
     }
   }, [riderLat, riderLong]);
 
@@ -179,13 +182,9 @@ const AppMap = ({
           />
         )}
 
-        {/* ✅ Rider Marker Stable */}
+        {/* Rider Marker - coordinate driven by state */}
         <Marker
-          ref={riderMarkerRef}
-          coordinate={{
-            latitude: parseFloat(riderLat || 0),
-            longitude: parseFloat(riderLong || 0),
-          }}
+          coordinate={riderCoord}
           anchor={{ x: 0.5, y: 0.5 }}
           flat={isRouteView}
           rotation={currentHeading}>

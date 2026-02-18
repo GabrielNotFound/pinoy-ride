@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ensureLocationPermission } from '@/Utils/Permissions';
 import Geolocation from 'react-native-geolocation-service';
 
@@ -113,9 +113,21 @@ export const useLocationWatch = (enabled = false) => {
   const [watching, setWatching] = useState(false);
   const [error, setError] = useState(null);
   const [permissionStatus, setPermissionStatus] = useState(null);
-  const watchIdRef = useState(null);
+
+  // ✅ FIX: was useState(null) which means .current was always undefined,
+  // so the watchId was never stored and clearWatch was never called.
+  // This caused multiple conflicting watchers to pile up on remount.
+  const watchIdRef = useRef(null);
 
   const startWatching = useCallback(async () => {
+    // ✅ FIX: Clear any existing watcher before starting a new one.
+    // Prevents duplicate watchers when HomeScreen remounts after navigation.reset().
+    if (watchIdRef.current !== null) {
+      console.log('🔄 Clearing existing watcher before starting new one...');
+      Geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+
     try {
       const permission = await ensureLocationPermission();
       setPermissionStatus(permission);
@@ -146,6 +158,7 @@ export const useLocationWatch = (enabled = false) => {
           },
         );
 
+        console.log('📡 Started location watcher, ID:', watchId);
         watchIdRef.current = watchId;
         setWatching(true);
       } else {
@@ -159,6 +172,7 @@ export const useLocationWatch = (enabled = false) => {
 
   const stopWatching = useCallback(() => {
     if (watchIdRef.current !== null) {
+      console.log('🛑 Clearing watcher ID:', watchIdRef.current);
       Geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
       setWatching(false);

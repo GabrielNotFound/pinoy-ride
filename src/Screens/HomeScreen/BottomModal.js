@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Image,
@@ -52,11 +52,23 @@ const BottomModal = ({
 
   const [buttonStatus, setButtonStatus] = useState(externalStatus || 1);
 
+  // ✅ Only sync from Redux on initial mount (app restore), NOT on every change.
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
-    if (externalStatus) {
+    if (externalStatus && !hasInitialized.current) {
       setButtonStatus(externalStatus);
+      hasInitialized.current = true;
     }
   }, [externalStatus]);
+
+  // ✅ Reset the init flag when the booking changes (new booking accepted)
+  useEffect(() => {
+    if (!activeBooking) {
+      hasInitialized.current = false;
+      setButtonStatus(1);
+    }
+  }, [activeBooking]);
 
   const getButtonTitle = status => {
     switch (status) {
@@ -66,14 +78,16 @@ const BottomModal = ({
         return "Let's go to your location";
       case 3:
         return 'Drop Off';
+      case 4:
+        return 'Complete Trip';
       default:
         return 'Continue';
     }
   };
 
-  // ✅ Check location permission before updating status
+  // check location permission before updating status
   const handleButtonPress = async () => {
-    // ✅ Always check permission before any status update
+    // always check permission before any status update
     const permission = await ensureLocationPermission();
 
     if (permission !== 'granted') {
@@ -96,19 +110,29 @@ const BottomModal = ({
       return;
     }
 
-    // ✅ Proceed with status update only if location is granted
     if (buttonStatus === 1) {
+      // "Go to Pick Up Location" — rider is heading to customer. No backend call yet.
       setButtonStatus(2);
-      onUpdateStatus(activeBooking, 2);
     } else if (buttonStatus === 2) {
+      // "Let's go to your location" — rider has arrived at pickup, trip starts.
+      // Send status 2 (trip started) to backend so customer sees "In transit".
       setButtonStatus(3);
-      onUpdateStatus(activeBooking, 3);
+      onUpdateStatus(activeBooking, 2);
     } else if (buttonStatus === 3) {
-      navigation.navigate('SuccessfulBooking', activeBooking);
+      // "Drop Off" — rider is at dropoff. No backend call yet.
+      setButtonStatus(4);
+    } else if (buttonStatus === 4) {
+      // "Complete Trip" — trip is done. Send status 3 to backend.
+      // ✅ FIX: Capture booking reference before any state changes,
+      // so navigation still has the data even if Redux clears activeBooking.
+      const completedBooking = activeBooking;
+      onUpdateStatus(completedBooking, 3);
+      setTimeout(() => {
+        navigation.navigate('SuccessfulBooking', { booking: completedBooking });
+      }, 500);
     }
   };
 
-  // ✅ Check location permission before viewing bookings
   const handleViewBooking = async () => {
     const permission = await ensureLocationPermission();
 
@@ -136,13 +160,11 @@ const BottomModal = ({
     onViewBooking();
   };
 
-  // ✅ Check if location is granted
   const isLocationGranted = permissionStatus === 'granted';
 
   if (activeBooking) {
     return (
       <View style={styles.containerBooking}>
-        {/* ✅ Show warning if location is not enabled */}
         {!isLocationGranted && (
           <View style={styles.warningBanner}>
             <Text style={styles.warningText}>
@@ -391,7 +413,6 @@ const getStyles = ({ colors }) =>
       flexShrink: 1,
       letterSpacing: -0.45,
     },
-    // ✅ Warning banner styles
     warningBanner: {
       backgroundColor: '#FF9800',
       padding: 12,

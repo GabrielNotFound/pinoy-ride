@@ -29,8 +29,7 @@ const TransferConfirmationScreen = ({ route }) => {
     if (cashOutRequest.error) {
       console.warn('Cash out error:', cashOutRequest.error);
       setAlertMessage(
-        cashOutRequest.error?.message ||
-          'Failed to process cash out. Please try again.',
+        cashOutRequest.error || 'Failed to process cash out. Please try again.',
       );
       setAlertVisible(true);
       return;

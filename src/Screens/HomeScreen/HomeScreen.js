@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { openSettings } from 'react-native-permissions';
@@ -37,7 +37,6 @@ const HomeScreen = () => {
   const styles = getStyles({ colors });
   const dispatch = useDispatch();
 
-  // ✅ Use Redux selectors instead of local state
   const userInfo = useSelector(selectUserInfo);
   const riderActiveBooking = useSelector(selectRiderActiveBooking);
   const riderBookingStatus = useSelector(selectRiderBookingStatus);
@@ -77,7 +76,7 @@ const HomeScreen = () => {
 
   const [showDropoff, setShowDropoff] = useState(false);
 
-  // ✅ NEW: Check for active booking on mount
+  // Check for active booking on mount
   const checkActiveBooking = usePostRequest();
   const [isRestoringBooking, setIsRestoringBooking] = useState(false);
 
@@ -127,7 +126,7 @@ const HomeScreen = () => {
         console.log('✅ Permission granted, starting location watch...');
         startWatching();
 
-        // ✅ Check for active booking after location is ready
+        // Check for active booking after location is ready
         if (riderActiveBooking?.id) {
           console.log(
             '🔄 Found active booking in Redux:',
@@ -197,7 +196,7 @@ const HomeScreen = () => {
     }
   }, [locationError, permissionStatus]);
 
-  // ✅ NEW: Handle restored booking response
+  // Handle restored booking response
   const handleRestoredBooking = () => {
     if (checkActiveBooking.error) {
       console.warn(
@@ -227,19 +226,15 @@ const HomeScreen = () => {
         return;
       }
 
-      // ✅ Update Redux with latest booking data
+      // Update Redux with latest booking data
       console.log('✅ Restoring active rider booking state');
       dispatch(setRiderActiveBooking(booking));
 
-      // Map backend status to button status
-      // Backend: 1 = Accepted (button 1-2), 2 = Trip Started (button 3-4)
       if (booking.status === 1) {
-        // Keep current button status if it's 1 or 2, otherwise default to 1
         if (riderBookingStatus !== 1 && riderBookingStatus !== 2) {
           dispatch(setRiderBookingStatus(1));
         }
       } else if (booking.status === 2) {
-        // Keep current button status if it's 3 or 4, otherwise default to 3
         if (riderBookingStatus !== 3 && riderBookingStatus !== 4) {
           dispatch(setRiderBookingStatus(3));
         }
@@ -303,8 +298,11 @@ const HomeScreen = () => {
 
   const handleAcceptBookingRequest = () => {
     if (acceptBooking.error) {
+      // ✅ FIX: Show error and close modal — do NOT update Redux state
       setAlertMessage(acceptBooking.error);
       setShowAlert(true);
+      setShowBooking(false);
+      setCurrentIndex(0);
       return;
     }
     if (!acceptBooking.response) {
@@ -313,11 +311,20 @@ const HomeScreen = () => {
 
     const results = acceptBooking.response;
     if (results?.code === 200) {
-      // ✅ Save to Redux (automatically persisted)
+      // ✅ Only update Redux and UI on confirmed success
       dispatch(setRiderActiveBooking(results.data));
-      dispatch(setRiderBookingStatus(1)); // Reset to button status 1
+      dispatch(setRiderBookingStatus(1));
       setShowBooking(false);
       setShowDropoff(false);
+    } else {
+      // ✅ FIX: Handle non-200 responses (e.g. "insufficient balance")
+      // Do NOT update Redux state — keep the modal closed and show the error
+      setAlertMessage(
+        results?.message || 'Failed to accept booking. Please try again.',
+      );
+      setShowAlert(true);
+      setShowBooking(false);
+      setCurrentIndex(0);
     }
   };
 
@@ -353,11 +360,9 @@ const HomeScreen = () => {
     const results = updateBookingStatus.response;
     if (results?.code === 200) {
       AppUtil.debugDeep(results?.data);
-
-      // ✅ Clear Redux state if status is 3 (completed)
-      if (results?.data?.status === 3) {
-        dispatch(clearRiderBookingState());
-      }
+      // ✅ FIX: Do NOT clear state here based on backend response.
+      // Clearing is handled by SuccessfulBooking's handleEndRide button,
+      // so sending status 2 (trip started) won't accidentally wipe the booking.
     }
   };
 
@@ -366,26 +371,26 @@ const HomeScreen = () => {
   }, [updateBookingStatus.response, updateBookingStatus.error]);
 
   /** ───── HANDLERS ───── */
+
+  // ✅ FIX: Do NOT pre-emptively set Redux state here.
+  // Wait for API response in handleAcceptBookingRequest before updating UI.
   const handleAccept = booking => {
-    dispatch(setRiderActiveBooking(booking));
-    dispatch(setRiderBookingStatus(1)); // Start at button status 1
     triggerAcceptBooking(booking.id);
   };
 
   const handleIgnore = () => {
     if (currentIndex < pendingBookings.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+      setCurrentIndex(prev => prev + 1);
     } else {
+      // All bookings ignored — close the modal
       setShowBooking(false);
     }
   };
 
   const handleUpdateBookingStatus = (booking, newStatus) => {
-    // Update local booking object
+    // Update the booking data in Redux (keeps pickup/dropoff/customer info fresh)
     dispatch(setRiderActiveBooking({ ...booking, status: newStatus }));
-    // Update button status
-    dispatch(setRiderBookingStatus(newStatus));
-    // Send to backend
+    // Send to backend only.
     triggerUpdateBookingStatus(booking.id, newStatus);
   };
 
@@ -393,11 +398,16 @@ const HomeScreen = () => {
     console.log('Vehicle selected:', vehicle);
     dispatch(setRiderSelectedVehicleId(vehicle.id));
     setShowVehicleSelection(false);
-    triggerGetPendingBooking();
+
+    setPendingBookings([]);
+    setCurrentIndex(0);
+
     setShowBooking(true);
+
+    triggerGetPendingBooking();
   };
 
-  // ✅ Show loading indicator while restoring
+  // Show loading indicator while restoring
   if (isRestoringBooking) {
     return (
       <View style={styles.container}>
@@ -462,7 +472,11 @@ const HomeScreen = () => {
 
         <PendingBookingModal
           visible={showBooking}
-          onClose={() => setShowBooking(false)}
+          onClose={() => {
+            setShowBooking(false);
+            // Reset index on close so next open shows all bookings from the start
+            setCurrentIndex(0);
+          }}
           bookings={pendingBookings}
           currentIndex={currentIndex}
           loading={getPendingBooking.loading}
@@ -484,7 +498,6 @@ const getStyles = ({ colors }) =>
       flex: 1,
       position: 'relative',
     },
-    // ✅ NEW: Loading indicator styles
     loadingContainer: {
       flex: 1,
       justifyContent: 'center',
