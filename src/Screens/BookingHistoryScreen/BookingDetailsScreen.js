@@ -9,10 +9,16 @@ import {
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AlertBox } from '@/Components';
 import { AppUtil, Constants } from '@/Utils';
 import usePostRequest from '@/Services/Api';
+import {
+  setDropoffLocation,
+  setPickupLocation,
+  setSelectedService,
+} from '@/Redux/Slices/userSlice';
 import ReportIssueModal from './Components/ReportIssueModal';
 
 const BookingDetailsScreen = () => {
@@ -20,11 +26,11 @@ const BookingDetailsScreen = () => {
   const styles = getStyles({ colors });
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
   const { bookingDetails } = route.params;
 
   const [showBreakdown, setShowBreakdown] = useState(false);
 
-  // Report Issue states
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportAlertMessage, setReportAlertMessage] = useState('');
   const [reportAlertTitle, setReportAlertTitle] = useState('');
@@ -34,22 +40,33 @@ const BookingDetailsScreen = () => {
 
   const handleBack = () => navigation.goBack();
 
+  const getBookingTypeLabel = type => {
+    const types = { 1: 'Motorcycle', 2: 'Tricycle', 3: 'Car' };
+    return types[type] || 'Ride';
+  };
+
   const handleRebook = () => {
-    navigation.navigate('HomeScreen', {
-      rebookData: {
-        pickup: {
-          address: bookingDetails.pickup_location,
-          lat: bookingDetails.pickup_lat,
-          long: bookingDetails.pickup_long,
-        },
-        dropoff: {
-          address: bookingDetails.dropoff_location,
-          lat: bookingDetails.dropoff_lat,
-          long: bookingDetails.dropoff_long,
-        },
-        bookingType: bookingDetails.booking_type,
-      },
-    });
+    dispatch(
+      setPickupLocation({
+        address: bookingDetails.pickup_location,
+        lat: bookingDetails.pickup_lat,
+        long: bookingDetails.pickup_long,
+      }),
+    );
+    dispatch(
+      setDropoffLocation({
+        address: bookingDetails.dropoff_location,
+        lat: bookingDetails.dropoff_lat,
+        long: bookingDetails.dropoff_long,
+      }),
+    );
+    dispatch(
+      setSelectedService({
+        id: bookingDetails.booking_type,
+        title: getBookingTypeLabel(bookingDetails.booking_type),
+      }),
+    );
+    navigation.navigate('HomeScreen');
   };
 
   const handleReportIssue = () => {
@@ -67,7 +84,6 @@ const BookingDetailsScreen = () => {
     if (!reportIssue.response && !reportIssue.error) {return;}
 
     if (reportIssue.error) {
-      // Close modal first, then show error alert after animation
       setShowReportModal(false);
       setTimeout(() => {
         setReportAlertTitle('Error');
@@ -243,7 +259,6 @@ const BookingDetailsScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Report Issue Modal */}
       <ReportIssueModal
         visible={showReportModal}
         onClose={() => setShowReportModal(false)}
@@ -260,7 +275,7 @@ const BookingDetailsScreen = () => {
         />
       ) : null}
 
-      {/* Header - same as BookingHistoryScreen */}
+      {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={handleBack} style={styles.iconButton}>

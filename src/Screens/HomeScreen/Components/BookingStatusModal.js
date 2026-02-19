@@ -3,6 +3,7 @@ import React from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -24,6 +25,18 @@ const BookingStatusModal = ({
   const { colors } = useTheme();
   const styles = getStyles({ colors });
 
+  const handleCall = () => {
+    const phoneNumber = riderDetails?.ekyc_details?.pretty_mobile_no;
+    if (!phoneNumber) {return;}
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
+
+  const handleMessage = () => {
+    const phoneNumber = riderDetails?.ekyc_details?.pretty_mobile_no;
+    if (!phoneNumber) {return;}
+    Linking.openURL(`sms:${phoneNumber}`);
+  };
+
   if (!riderDetails) {
     return (
       <View style={styles.overlay} onLayout={onLayout}>
@@ -42,7 +55,7 @@ const BookingStatusModal = ({
   return (
     <View style={styles.overlay} onLayout={onLayout}>
       <View style={styles.container}>
-        {/* Fare + Vehicle - Now tappable to change service */}
+        {/* Fare + Vehicle */}
         <TouchableOpacity
           style={styles.rowBetween}
           onPress={onChangeService}
@@ -51,12 +64,10 @@ const BookingStatusModal = ({
             <Text style={styles.label}>
               {selectedService?.title || 'Vehicle'}
             </Text>
-
             {(bookingStatus === 0 || bookingStatus === 4) && (
               <Text style={styles.changeText}>Tap to change</Text>
             )}
           </View>
-
           <Text style={styles.price}>₱{bookingDetails?.total_amount || 0}</Text>
         </TouchableOpacity>
 
@@ -65,7 +76,6 @@ const BookingStatusModal = ({
             {/* Pickup & Dropoff */}
             <View style={styles.locationColumn}>
               <View style={styles.locationGroup}>
-                {/* Pickup */}
                 <View style={styles.locationButton}>
                   <Image
                     source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_5.png')}
@@ -82,7 +92,6 @@ const BookingStatusModal = ({
                   ))}
                 </View>
 
-                {/* Dropoff */}
                 <View style={styles.locationButton}>
                   <Image
                     source={require('@/Assets/Common/HomeScreen/BottomModal/Ellipse_8.png')}
@@ -107,14 +116,12 @@ const BookingStatusModal = ({
                   ₱{bookingDetails?.payment_details?.total_amount}
                 </Text>
               </View>
-
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Booking Fee</Text>
                 <Text style={styles.feeText}>
                   ₱{bookingDetails?.payment_details?.booking_fee}
                 </Text>
               </View>
-
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Payment Method</Text>
                 <Text style={styles.feeText}>
@@ -124,6 +131,7 @@ const BookingStatusModal = ({
             </View>
           </>
         )}
+
         <View style={styles.separator} />
 
         {/* Rider Info */}
@@ -157,17 +165,19 @@ const BookingStatusModal = ({
               {riderDetails.vehicle_details?.[0]?.model}
             </Text>
           </View>
+
+          {/* Action Buttons */}
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.circleBtn}>
+            <TouchableOpacity style={styles.circleBtn} onPress={handleMessage}>
               <Text>💬</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.circleBtn}>
+            <TouchableOpacity style={styles.circleBtn} onPress={handleCall}>
               <Text>📞</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Share Trip using AppButton */}
+        {/* Share Trip */}
         <AppButton
           title="Share Your Trip Details"
           onPress={onShareTrip}

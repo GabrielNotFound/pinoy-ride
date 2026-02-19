@@ -58,6 +58,8 @@
 		<string>topphapp</string>
 		<string>topphapp-pre</string>
 		<string>toppay</string>
+		<string>tel</string>
+  		<string>sms</string>
 	</array>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
