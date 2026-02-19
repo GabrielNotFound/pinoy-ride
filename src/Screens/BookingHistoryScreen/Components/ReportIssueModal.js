@@ -1,29 +1,36 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const ReportIssueModal = ({ visible, onClose, onSubmit, loading }) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
   const [message, setMessage] = useState('');
 
+  // Clear message whenever modal is hidden (after success or close)
+  useEffect(() => {
+    if (!visible) {
+      setMessage('');
+    }
+  }, [visible]);
+
   const handleSend = () => {
     if (!message.trim()) {return;}
     onSubmit(message.trim());
-  };
-
-  const handleClose = () => {
-    setMessage('');
-    onClose();
   };
 
   return (
@@ -31,43 +38,60 @@ const ReportIssueModal = ({ visible, onClose, onSubmit, loading }) => {
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={handleClose}>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* Replace with your actual asset path */}
-          <Image
-            source={require('@/Assets/Common/BookingDetails/ReportIssue.png')}
-            style={styles.icon}
-            resizeMode="contain"
-          />
+      onRequestClose={onClose}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.overlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{
+              width: '100%',
+              alignItems: 'center',
+              paddingHorizontal: 30,
+            }}>
+            <TouchableWithoutFeedback>
+              <View style={styles.container}>
+                {/* Close Button */}
+                <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                  <Icon name="close" size={20} color={colors.grey4} />
+                </TouchableOpacity>
 
-          <Text style={styles.title}>Report an Issue</Text>
+                <Image
+                  source={require('@/Assets/Common/BookingDetails/ReportIssue.png')}
+                  style={styles.icon}
+                  resizeMode="contain"
+                />
 
-          <TextInput
-            style={styles.textInput}
-            placeholder="Message"
-            placeholderTextColor={colors.grey4}
-            multiline
-            value={message}
-            onChangeText={setMessage}
-            textAlignVertical="top"
-          />
+                <Text style={styles.title}>Report an Issue</Text>
 
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              (!message.trim() || loading) && styles.sendButtonDisabled,
-            ]}
-            onPress={handleSend}
-            disabled={!message.trim() || loading}>
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.sendText}>Send</Text>
-            )}
-          </TouchableOpacity>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Message"
+                  placeholderTextColor={colors.grey4}
+                  autoCorrect={false}
+                  multiline
+                  value={message}
+                  onChangeText={setMessage}
+                  textAlignVertical="top"
+                />
+
+                <TouchableOpacity
+                  style={[
+                    styles.sendButton,
+                    (!message.trim() || loading) && styles.sendButtonDisabled,
+                  ]}
+                  onPress={handleSend}
+                  disabled={!message.trim() || loading}>
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.sendText}>Send</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -81,15 +105,20 @@ const getStyles = ({ colors }) =>
       backgroundColor: 'rgba(0,0,0,0.5)',
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: 30,
     },
     container: {
       width: '100%',
       backgroundColor: colors.onPrimary,
       borderRadius: 20,
-      paddingVertical: 30,
+      paddingTop: 16,
+      paddingBottom: 30,
       paddingHorizontal: 24,
       alignItems: 'center',
+    },
+    closeButton: {
+      alignSelf: 'flex-end',
+      padding: 4,
+      marginBottom: 8,
     },
     icon: {
       width: 55,

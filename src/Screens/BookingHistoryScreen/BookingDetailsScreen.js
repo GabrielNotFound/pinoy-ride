@@ -11,7 +11,7 @@ import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AlertBox } from '@/Components';
-import { Constants } from '@/Utils';
+import { AppUtil, Constants } from '@/Utils';
 import usePostRequest from '@/Services/Api';
 import ReportIssueModal from './Components/ReportIssueModal';
 
@@ -27,8 +27,8 @@ const BookingDetailsScreen = () => {
   // Report Issue states
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportAlertMessage, setReportAlertMessage] = useState('');
+  const [reportAlertTitle, setReportAlertTitle] = useState('');
   const [showReportAlert, setShowReportAlert] = useState(false);
-  const [isReportError, setIsReportError] = useState(false);
 
   const reportIssue = usePostRequest();
 
@@ -67,18 +67,24 @@ const BookingDetailsScreen = () => {
     if (!reportIssue.response && !reportIssue.error) {return;}
 
     if (reportIssue.error) {
-      setIsReportError(true);
+      // Close modal first, then show error alert after animation
       setShowReportModal(false);
-      setReportAlertMessage(reportIssue.error);
-      setShowReportAlert(true);
+      setTimeout(() => {
+        setReportAlertTitle('Error');
+        setReportAlertMessage(reportIssue.error);
+        setShowReportAlert(true);
+      }, 1000);
       return;
     }
 
     if (reportIssue.response?.code === 200) {
-      setIsReportError(false);
+      AppUtil.debugDeep(reportIssue.response);
       setShowReportModal(false);
-      setReportAlertMessage('Your issue has been submitted successfully.');
-      setShowReportAlert(true);
+      setTimeout(() => {
+        setReportAlertTitle('Report Sent!');
+        setReportAlertMessage(reportIssue?.response?.message);
+        setShowReportAlert(true);
+      }, 1000);
     }
   }, [reportIssue.response, reportIssue.error]);
 
@@ -109,16 +115,6 @@ const BookingDetailsScreen = () => {
     };
     return statusColors[status] || '#9E9E9E';
   };
-
-  const formatDateTime = () => {
-    const dateTimeParts = bookingDetails.date.split(' - ');
-    return {
-      date: dateTimeParts[0] || bookingDetails.date_created,
-      time: dateTimeParts[1] || bookingDetails.time_created,
-    };
-  };
-
-  const { date, time } = formatDateTime();
 
   const data = [{ key: 'infoSection' }];
 
@@ -255,17 +251,16 @@ const BookingDetailsScreen = () => {
         loading={reportIssue.loading}
       />
 
-      {/* Alert Box */}
       {reportAlertMessage ? (
         <AlertBox
-          title={isReportError ? 'Error' : 'Success'}
+          title={reportAlertTitle}
           message={reportAlertMessage}
           visible={showReportAlert}
           setVisible={setShowReportAlert}
         />
       ) : null}
 
-      {/* Header */}
+      {/* Header - same as BookingHistoryScreen */}
       <View style={styles.headerContainer}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
@@ -275,15 +270,8 @@ const BookingDetailsScreen = () => {
               resizeMode="contain"
             />
           </TouchableOpacity>
-
-          <View style={styles.headerCenterRow}>
-            <Text style={styles.headerDateTime}>{date} |</Text>
-            <Text style={[styles.headerDateTime, { marginLeft: 8 }]}>
-              {time}
-            </Text>
-          </View>
-
-          <View style={styles.iconButton} />
+          <Text style={styles.headerTitle}>Booking Details</Text>
+          <View style={styles.spacing} />
         </View>
       </View>
 
@@ -370,27 +358,23 @@ const getStyles = ({ colors }) =>
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    headerCenterRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'absolute',
-      left: 0,
-      right: 0,
-    },
-    headerDateTime: {
-      fontFamily: 'Poppins Regular',
-      fontWeight: '400',
-      fontSize: 16,
-      color: colors.onPrimary,
-    },
     iconButton: {
       width: 25,
-      marginRight: 10,
+    },
+    spacing: {
+      width: 25,
     },
     backIcon: {
       width: 23,
       height: 23,
+    },
+    headerTitle: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 16,
+      fontWeight: '400',
+      color: colors.onPrimary,
+      textAlign: 'center',
+      flex: 1,
     },
     scrollViewContent: {
       paddingVertical: 10,

@@ -30,6 +30,7 @@ const BASE_DEV = {
     UPDATE_BOOKING_STATUS: 'booking/update_status_for_customer/',
     GET_BOOKING_HISTORY: 'booking/get_history/',
     GET_BOOKING_DETAILS: 'booking/get_details/',
+    REPORT_AN_ISSUE: 'booking/report_issue/',
     RATE_BOOKING: 'booking/rate/',
     GET_PROMO_LIST: 'booking/get_promo_list/',
     CHECK_PROMO_CODE: 'booking/check_promo_code/',
