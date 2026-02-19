@@ -133,6 +133,8 @@ const BottomModal = ({
     }
   };
 
+  // ✅ iOS FIX: Small delay before calling onViewBooking to ensure any prior
+  // touch/animation events have settled before a new Modal is presented.
   const handleViewBooking = async () => {
     const permission = await ensureLocationPermission();
 
@@ -156,8 +158,10 @@ const BottomModal = ({
       return;
     }
 
-    // Proceed to view booking
-    onViewBooking();
+    // Small delay for iOS touch handling stability before opening modal
+    setTimeout(() => {
+      onViewBooking();
+    }, 100);
   };
 
   const isLocationGranted = permissionStatus === 'granted';

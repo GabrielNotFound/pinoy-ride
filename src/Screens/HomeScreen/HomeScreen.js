@@ -253,12 +253,14 @@ const HomeScreen = () => {
     handleRestoredBooking();
   }, [checkActiveBooking.response, checkActiveBooking.error]);
 
-  const triggerGetPendingBooking = () => {
+  const triggerGetPendingBooking = vehicleId => {
     const postdata = {
       rider_id: userInfo?.id,
       current_lat: riderLocation.latitude,
       current_long: riderLocation.longitude,
-      booking_type: riderSelectedVehicleId,
+      // ✅ iOS FIX: Accept vehicleId as param so we don't rely on Redux
+      // having updated riderSelectedVehicleId yet (dispatch is async)
+      booking_type: vehicleId ?? riderSelectedVehicleId,
     };
     console.log('📡 Sending location to server:', postdata);
     getPendingBooking.makePostRequest(Constants.ENDPOINT.GET_PENDING, postdata);
@@ -394,17 +396,27 @@ const HomeScreen = () => {
     triggerUpdateBookingStatus(booking.id, newStatus);
   };
 
+  // ✅ iOS FIX: Use InteractionManager to wait for all animations to fully
+  // settle before opening the next modal. setTimeout alone is not reliable
+  // because iOS animation duration can vary. InteractionManager.runAfterInteractions
+  // guarantees the JS thread is free and all transitions are done.
   const handleVehicleSelect = vehicle => {
     console.log('Vehicle selected:', vehicle);
     dispatch(setRiderSelectedVehicleId(vehicle.id));
+
+    // Step 1: Close the vehicle selection modal first
     setShowVehicleSelection(false);
 
-    setPendingBookings([]);
-    setCurrentIndex(0);
-
-    setShowBooking(true);
-
-    triggerGetPendingBooking();
+    // Step 2: Wait for modal close animation + JS thread to fully settle
+    // before opening the next modal. 500ms covers iOS fade animation (~300ms)
+    // plus any Redux/setState batching delays.
+    setTimeout(() => {
+      setPendingBookings([]);
+      setCurrentIndex(0);
+      // Pass vehicle.id directly so we don't depend on Redux having updated yet
+      triggerGetPendingBooking(vehicle.id);
+      setShowBooking(true);
+    }, 500);
   };
 
   // Show loading indicator while restoring

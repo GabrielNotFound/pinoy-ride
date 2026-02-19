@@ -33,7 +33,7 @@ const TransferScreen = ({ route }) => {
   const { makePostRequest, loading, error, response } = usePostRequest();
 
   const availableBalance = walletDetails?.avail_balance || 0.0;
-  const minimumAmount = 10.0;
+  const minimumAmount = 200.0;
 
   useEffect(() => {
     if (walletDetails?.avail_balance !== undefined) {

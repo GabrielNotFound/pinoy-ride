@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   Image,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -50,7 +51,16 @@ const VehicleSelectionModal = ({ visible, onClose, onProceed }) => {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    // ✅ iOS FIX: Use animationType="none" on iOS to prevent the modal close
+    // animation from holding the touch responder and freezing subsequent modals.
+    // Android can keep "fade" since it handles modal stacking fine.
+    <Modal
+      visible={visible}
+      transparent
+      animationType={Platform.OS === 'ios' ? 'none' : 'fade'}
+      // ✅ iOS FIX: statusBarTranslucent ensures the modal fully covers the screen
+      // and doesn't leave ghost touch areas behind on dismissal
+      statusBarTranslucent={Platform.OS === 'android'}>
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           <ScrollView showsVerticalScrollIndicator={false}>
