@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -10,6 +10,10 @@ import {
 import { useTheme } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { AlertBox } from '@/Components';
+import { Constants } from '@/Utils';
+import usePostRequest from '@/Services/Api';
+import ReportIssueModal from './Components/ReportIssueModal';
 
 const BookingDetailsScreen = () => {
   const { colors } = useTheme();
@@ -19,6 +23,14 @@ const BookingDetailsScreen = () => {
   const { bookingDetails } = route.params;
 
   const [showBreakdown, setShowBreakdown] = useState(false);
+
+  // Report Issue states
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportAlertMessage, setReportAlertMessage] = useState('');
+  const [showReportAlert, setShowReportAlert] = useState(false);
+  const [isReportError, setIsReportError] = useState(false);
+
+  const reportIssue = usePostRequest();
 
   const handleBack = () => navigation.goBack();
 
@@ -41,9 +53,34 @@ const BookingDetailsScreen = () => {
   };
 
   const handleReportIssue = () => {
-    // Navigate to report issue screen or show modal
-    console.log('Reporting issue for booking:', bookingDetails.id);
+    setShowReportModal(true);
   };
+
+  const handleSubmitIssue = message => {
+    reportIssue.makePostRequest(Constants.ENDPOINT.REPORT_AN_ISSUE, {
+      booking_id: bookingDetails.id,
+      issue: message,
+    });
+  };
+
+  useEffect(() => {
+    if (!reportIssue.response && !reportIssue.error) {return;}
+
+    if (reportIssue.error) {
+      setIsReportError(true);
+      setShowReportModal(false);
+      setReportAlertMessage(reportIssue.error);
+      setShowReportAlert(true);
+      return;
+    }
+
+    if (reportIssue.response?.code === 200) {
+      setIsReportError(false);
+      setShowReportModal(false);
+      setReportAlertMessage('Your issue has been submitted successfully.');
+      setShowReportAlert(true);
+    }
+  }, [reportIssue.response, reportIssue.error]);
 
   const renderStars = rating => {
     const ratingNum = rating ? Math.floor(parseFloat(rating)) : 0;
@@ -62,7 +99,6 @@ const BookingDetailsScreen = () => {
     );
   };
 
-  //  Helper to get status badge color
   const getStatusColor = status => {
     const statusColors = {
       Completed: colors.completed || '#4CAF50',
@@ -74,7 +110,6 @@ const BookingDetailsScreen = () => {
     return statusColors[status] || '#9E9E9E';
   };
 
-  //  Format date and time
   const formatDateTime = () => {
     const dateTimeParts = bookingDetails.date.split(' - ');
     return {
@@ -109,7 +144,7 @@ const BookingDetailsScreen = () => {
         />
       </TouchableOpacity>
 
-      {/*  Breakdown Details (Collapsible) */}
+      {/* Breakdown Details (Collapsible) */}
       {showBreakdown && bookingDetails.payment_details && (
         <View style={styles.breakdownContainer}>
           <View style={styles.breakdownRow}>
@@ -212,6 +247,24 @@ const BookingDetailsScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Report Issue Modal */}
+      <ReportIssueModal
+        visible={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onSubmit={handleSubmitIssue}
+        loading={reportIssue.loading}
+      />
+
+      {/* Alert Box */}
+      {reportAlertMessage ? (
+        <AlertBox
+          title={isReportError ? 'Error' : 'Success'}
+          message={reportAlertMessage}
+          visible={showReportAlert}
+          setVisible={setShowReportAlert}
+        />
+      ) : null}
+
       {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.headerRow}>
@@ -375,13 +428,13 @@ const getStyles = ({ colors }) =>
     },
     bookingIdText: {
       fontFamily: 'Poppins Regular',
-      fontWeight: 400,
+      fontWeight: '400',
       fontSize: 10,
       color: colors.grey4,
     },
     bookingIdNumber: {
       fontFamily: 'Poppins Medium',
-      fontWeight: 500,
+      fontWeight: '500',
       fontSize: 12,
       color: colors.shadow,
       marginBottom: 15,
@@ -398,7 +451,7 @@ const getStyles = ({ colors }) =>
     },
     locationText: {
       fontFamily: 'Poppins Regular',
-      fontWeight: 400,
+      fontWeight: '400',
       fontSize: 12,
       color: colors.shadow,
       flex: 1,
@@ -412,7 +465,7 @@ const getStyles = ({ colors }) =>
       borderRadius: 8,
     },
     rebookText: {
-      fontWeight: 400,
+      fontWeight: '400',
       color: colors.onPrimary,
       fontFamily: 'Poppins Regular',
       fontSize: 12,
@@ -440,7 +493,7 @@ const getStyles = ({ colors }) =>
     },
     breakdownText: {
       fontFamily: 'Poppins Regular',
-      fontWeight: 400,
+      fontWeight: '400',
       fontSize: 8,
       color: colors.blue,
       marginRight: 2,
@@ -485,7 +538,7 @@ const getStyles = ({ colors }) =>
     },
     finalFareValue: {
       fontFamily: 'Poppins Regular',
-      fontWeight: 400,
+      fontWeight: '400',
       fontSize: 12,
       color: colors.grey4,
     },
@@ -523,7 +576,7 @@ const getStyles = ({ colors }) =>
     },
     riderName: {
       fontFamily: 'Poppins Light',
-      fontWeight: 400,
+      fontWeight: '400',
       fontSize: 12,
       color: colors.shadow,
       flex: 1,

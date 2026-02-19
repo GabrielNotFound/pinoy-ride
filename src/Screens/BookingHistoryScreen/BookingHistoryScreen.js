@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import BookingCard from './BookingCard';
+import BookingCard from './Components/BookingCard';
 import usePostRequest from '@/Services/Api';
 import { AppUtil, Constants } from '@/Utils';
 import { useSelector } from 'react-redux';
