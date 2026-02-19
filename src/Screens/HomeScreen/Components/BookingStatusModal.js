@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Image,
   Linking,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -35,6 +36,37 @@ const BookingStatusModal = ({
     const phoneNumber = riderDetails?.ekyc_details?.pretty_mobile_no;
     if (!phoneNumber) {return;}
     Linking.openURL(`sms:${phoneNumber}`);
+  };
+
+  const handleShareTrip = async () => {
+    const pickupAddress =
+      pickup?.address || bookingDetails?.pickup_location || 'N/A';
+    const dropoffAddress =
+      dropoff?.address || bookingDetails?.dropoff_location || 'N/A';
+    const riderName = riderDetails?.ekyc_details
+      ? `${riderDetails.ekyc_details.first_name} ${riderDetails.ekyc_details.last_name}`
+      : 'Unknown Rider';
+    const plateNumber =
+      riderDetails?.vehicle_details?.[0]?.plate_number || 'N/A';
+    const vehicle = riderDetails?.vehicle_details?.[0]
+      ? `${riderDetails.vehicle_details[0].brand} ${riderDetails.vehicle_details[0].model}`
+      : 'N/A';
+    const fare = bookingDetails?.payment_details?.total_amount || 0;
+
+    const message =
+      '🛵 I\'m on a Pinoy Ride!\n\n' +
+      `📍 Pickup: ${pickupAddress}\n` +
+      `🏁 Dropoff: ${dropoffAddress}\n\n` +
+      `🧑 Rider: ${riderName}\n` +
+      `🏍️ Vehicle: ${vehicle}\n` +
+      `🔖 Plate: ${plateNumber}\n` +
+      `💰 Fare: ₱${fare}\n\n`;
+
+    try {
+      await Share.share({ message });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
   };
 
   if (!riderDetails) {
@@ -180,7 +212,7 @@ const BookingStatusModal = ({
         {/* Share Trip */}
         <AppButton
           title="Share Your Trip Details"
-          onPress={onShareTrip}
+          onPress={handleShareTrip}
           mode="outlined"
           buttonColor={colors.primary}
           textColor={colors.primary}
