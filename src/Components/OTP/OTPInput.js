@@ -9,10 +9,20 @@ import { useTheme } from 'react-native-paper';
  * - Prevents crashes for all 6-digit inputs including "000000"
  * - Responsive to screen size
  */
-const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
+const OTPInput = ({
+  length = 6,
+  onOTPChange,
+  onOTPComplete,
+  parentPaddingHorizontal = 10,
+}) => {
   const { colors } = useTheme();
   const screenWidth = Dimensions.get('window').width;
-  const styles = getStyles({ colors, screenWidth, length });
+  const styles = getStyles({
+    colors,
+    screenWidth,
+    length,
+    parentPaddingHorizontal,
+  });
   const inputs = useRef([]);
   const [digits, setDigits] = useState(Array.from({ length }, () => ''));
 
@@ -95,9 +105,14 @@ const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
 
 export default OTPInput;
 
-const getStyles = ({ colors, screenWidth, length }) => {
-  // Calculate responsive dimensions
-  const horizontalPadding = 20;
+const getStyles = ({
+  colors,
+  screenWidth,
+  length,
+  parentPaddingHorizontal,
+}) => {
+  // Account for both wrapper padding and any parent container padding
+  const horizontalPadding = 20 + parentPaddingHorizontal;
   const availableWidth = screenWidth - horizontalPadding * 2;
 
   // Calculate input size based on available width
@@ -124,14 +139,14 @@ const getStyles = ({ colors, screenWidth, length }) => {
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 20,
-      paddingHorizontal: horizontalPadding,
+      paddingHorizontal: 20,
     },
     container: {
       flexDirection: 'row',
       gap: gap,
       justifyContent: 'center',
-      width: '100%',
-      maxWidth: 400, // Prevents it from getting too wide on tablets
+      alignSelf: 'center', // replaced width: '100%' to prevent edge clipping on narrow screens
+      maxWidth: 400,
     },
     input: {
       width: inputWidth,
