@@ -251,8 +251,20 @@ const BottomModal = ({
               source={item.icon}
               style={[styles.creditsIcon, dark && { tintColor: 'white' }]}
             />
-            <Text style={styles.creditsValue}>{item.value}</Text>
-            <Text style={styles.creditsLabel}>{item.label}</Text>
+            <Text
+              style={styles.creditsValue}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}>
+              {item.value}
+            </Text>
+            <Text
+              style={styles.creditsLabel}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}>
+              {item.label}
+            </Text>
           </View>
         ))}
       </View>
