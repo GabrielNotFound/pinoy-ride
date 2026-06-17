@@ -13,29 +13,6 @@ import { AppButton, ThemeSwitch } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 import { ensureLocationPermission } from '@/Utils/Permissions';
 
-const credits = [
-  {
-    icon: require('@/Assets/Common/HomeScreen/BottomModal/Acceptance.png'),
-    value: '100%',
-    label: 'Acceptance',
-  },
-  {
-    icon: require('@/Assets/Common/HomeScreen/BottomModal/Ratings.png'),
-    value: '5.0',
-    label: 'Ratings',
-  },
-  {
-    icon: require('@/Assets/Common/HomeScreen/BottomModal/Cancellation.png'),
-    value: '0%',
-    label: 'Cancellation',
-  },
-  {
-    icon: require('@/Assets/Common/HomeScreen/BottomModal/Hours_Online.png'),
-    value: '5 Hrs',
-    label: 'Hours Online',
-  },
-];
-
 const BottomModal = ({
   bookings = [],
   loading,
@@ -45,6 +22,7 @@ const BottomModal = ({
   onUpdateStatus,
   bookingStatus: externalStatus,
   permissionStatus,
+  serviceDetails,
 }) => {
   const { colors, dark } = useTheme();
   const styles = getStyles({ colors });
@@ -54,6 +32,31 @@ const BottomModal = ({
 
   // ✅ Only sync from Redux on initial mount (app restore), NOT on every change.
   const hasInitialized = useRef(false);
+
+  const credits = [
+    {
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Acceptance.png'),
+      value: serviceDetails ? `${serviceDetails.acceptance_rate ?? 0}%` : '—',
+      label: 'Acceptance',
+    },
+    {
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Ratings.png'),
+      value: serviceDetails ? `${serviceDetails.average_rating ?? 0}` : '—',
+      label: 'Ratings',
+    },
+    {
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Cancellation.png'),
+      value: serviceDetails ? `${serviceDetails.cancellation_rate ?? 0}%` : '—',
+      label: 'Cancellation',
+    },
+    {
+      icon: require('@/Assets/Common/HomeScreen/BottomModal/Hours_Online.png'),
+      value: serviceDetails?.hours_online
+        ? `${serviceDetails.hours_online} Hrs`
+        : '5 Hrs',
+      label: 'Hours Online',
+    },
+  ];
 
   useEffect(() => {
     if (externalStatus && !hasInitialized.current) {

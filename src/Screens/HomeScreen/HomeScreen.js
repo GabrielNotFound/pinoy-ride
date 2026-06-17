@@ -107,6 +107,36 @@ const HomeScreen = () => {
   const getPendingBooking = usePostRequest();
   const acceptBooking = usePostRequest();
   const updateBookingStatus = usePostRequest();
+  const ignoreBooking = usePostRequest();
+  const getServiceDetails = usePostRequest();
+  const [serviceDetails, setServiceDetails] = useState(null);
+
+  const triggerGetServiceDetails = () => {
+    const postdata = { rider_id: userInfo?.id };
+    getServiceDetails.makePostRequest(
+      Constants.ENDPOINT.GET_SERVICE_DETAILS,
+      postdata,
+    );
+  };
+
+  const handleGetServiceDetailsResponse = () => {
+    if (getServiceDetails.error || !getServiceDetails.response) {return;}
+
+    const results = getServiceDetails.response;
+    if (results?.code === 200 && results?.data) {
+      setServiceDetails(results.data);
+    }
+  };
+
+  useEffect(() => {
+    handleGetServiceDetailsResponse();
+  }, [getServiceDetails.response, getServiceDetails.error]);
+
+  useEffect(() => {
+    if (userInfo?.id) {
+      triggerGetServiceDetails();
+    }
+  }, [userInfo?.id]);
 
   useEffect(() => {
     AppUtil.debugDeep(userInfo);
@@ -372,6 +402,28 @@ const HomeScreen = () => {
     handleUpdateBookingStatusResponse();
   }, [updateBookingStatus.response, updateBookingStatus.error]);
 
+  const triggerIgnoreBooking = bookingId => {
+    const postdata = {
+      rider_id: userInfo?.id,
+      booking_id: bookingId,
+    };
+    ignoreBooking.makePostRequest(Constants.ENDPOINT.IGNORE_BOOKING, postdata);
+  };
+
+  // Handler (silent — no UI feedback needed, just log errors)
+  const handleIgnoreBookingResponse = () => {
+    if (ignoreBooking.error) {
+      console.warn('❌ Failed to record ignored booking:', ignoreBooking.error);
+    }
+    if (ignoreBooking.response?.code === 200) {
+      console.log('✅ Booking ignored recorded:', ignoreBooking.response.data);
+    }
+  };
+
+  useEffect(() => {
+    handleIgnoreBookingResponse();
+  }, [ignoreBooking.response, ignoreBooking.error]);
+
   /** ───── HANDLERS ───── */
 
   // ✅ FIX: Do NOT pre-emptively set Redux state here.
@@ -381,10 +433,15 @@ const HomeScreen = () => {
   };
 
   const handleIgnore = () => {
+    // ✅ Record the ignored booking before moving to next
+    const currentBooking = pendingBookings[currentIndex];
+    if (currentBooking?.id) {
+      triggerIgnoreBooking(currentBooking.id);
+    }
+
     if (currentIndex < pendingBookings.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
-      // All bookings ignored — close the modal
       setShowBooking(false);
     }
   };
@@ -474,6 +531,7 @@ const HomeScreen = () => {
           onUpdateStatus={handleUpdateBookingStatus}
           bookingStatus={riderBookingStatus}
           permissionStatus={permissionStatus}
+          serviceDetails={serviceDetails}
         />
 
         <VehicleSelectionModal

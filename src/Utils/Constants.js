@@ -37,6 +37,9 @@ const BASE_DEV = {
     GET_BANKS: 'cash_out/get-banks/',
     CASH_OUT: 'cash_out/cash-out/',
     GET_WALLET_HISTORY: 'riders/get_wallet_history/',
+    GET_SERVICE_DETAILS: 'riders/get_service_details/',
+
+    IGNORE_BOOKING: 'riders/ignore_booking/',
   },
 
   FEATURE_STATUS: {},
