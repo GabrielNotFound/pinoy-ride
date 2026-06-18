@@ -29,3 +29,8 @@ export { default as TransferScreen } from './WalletScreen/TransferScreen';
 export { default as BankInformationScreen } from './WalletScreen/BankInformationScreen';
 export { default as TransferConfirmationScreen } from './WalletScreen/TransferConfirmationScreen';
 export { default as QRPH } from './QRPH/QRPH';
+export { default as PersonalDetailsScreen } from './Register/PersonalDetailsScreen';
+export { default as UploadIDScreen } from './Register/UploadIDScreen';
+export { default as SelfieScreen } from './Register/SelfieScreen';
+export { default as ConfirmDetailsScreen } from './Register/ConfirmDetailsScreen';
+export { default as CongratsScreen } from './Register/CongratsScreen';

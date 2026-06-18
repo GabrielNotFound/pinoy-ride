@@ -146,7 +146,7 @@ const LandingScreen = () => {
         />
 
         <TouchableOpacity
-          onPress={() => navigation.navigate('RegisterScreen')}
+          onPress={() => navigation.navigate('PersonalDetailsScreen')}
           style={styles.applyButton}>
           <Text style={styles.applyText}>Apply As Rider</Text>
         </TouchableOpacity>
