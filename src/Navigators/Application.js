@@ -6,6 +6,8 @@ import {
   BookingDetailsScreen,
   BookingHistoryScreen,
   CashInScreen,
+  ConfirmDetailsScreen,
+  CongratsScreen,
   EKYCScreen,
   GeneralTermsScreen,
   HomeScreen,
@@ -16,15 +18,18 @@ import {
   OTPScreen,
   OnboardingScreen,
   PaymentOptionScreen,
+  PersonalDetailsScreen,
   ProfileScreen,
   PromoReferralsScreen,
   QRPHScreen,
   RatingScreen,
   RegisterScreen,
   SaveLocationScreen,
+  SelfieScreen,
   SettingsScreen,
   SplashScreen,
   TAC,
+  UploadIDScreen,
   WalletScreen,
 } from '@/Screens';
 import { Text } from 'react-native';
@@ -67,6 +72,31 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="RegisterScreen"
               component={RegisterScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="PersonalDetailsScreen"
+              component={PersonalDetailsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="UploadIDScreen"
+              component={UploadIDScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="SelfieScreen"
+              component={SelfieScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="ConfirmDetailsScreen"
+              component={ConfirmDetailsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="CongratsScreen"
+              component={CongratsScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

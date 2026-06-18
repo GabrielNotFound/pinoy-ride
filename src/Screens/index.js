@@ -27,3 +27,8 @@ export { default as BookingStatusModal } from './HomeScreen/Components/BookingSt
 export { default as CashInScreen } from './WalletScreen/CashInScreen';
 export { default as QRPHScreen } from './QRPH/QRPHScreen';
 export { default as ProfileScreen } from './Profile/ProfileScreen';
+export { default as PersonalDetailsScreen } from './Register/PersonalDetailsScreen';
+export { default as UploadIDScreen } from './Register/UploadIDScreen';
+export { default as SelfieScreen } from './Register/SelfieScreen';
+export { default as ConfirmDetailsScreen } from './Register/ConfirmDetailsScreen';
+export { default as CongratsScreen } from './Register/CongratsScreen';

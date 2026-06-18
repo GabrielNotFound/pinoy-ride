@@ -13,7 +13,7 @@ const GeneralTermsScreen = () => {
   const navigation = useNavigation();
 
   const handleNext = () => {
-    navigation.replace('RegisterScreen');
+    navigation.replace('PersonalDetailsScreen');
   };
 
   const handleBack = () => {
