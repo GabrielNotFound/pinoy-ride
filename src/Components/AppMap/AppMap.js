@@ -20,6 +20,9 @@ const AppMap = forwardRef(
       firstMarkerLong,
       secondMarkerLat,
       secondMarkerLong,
+      // 🆕 Rider marker props (only passed when bookingStatus === 1)
+      riderMarkerLat,
+      riderMarkerLong,
       minDelta = 0.02,
       latOffset = -0.01,
       onMapPress,
@@ -58,7 +61,9 @@ const AppMap = forwardRef(
     }));
 
     useEffect(() => {
-      if (!mapReady || !mapRef.current || !locationReady) {return;}
+      if (!mapReady || !mapRef.current || !locationReady) {
+        return;
+      }
 
       if (firstMarkerLat && secondMarkerLat) {
         mapRef.current.fitToCoordinates(
@@ -204,6 +209,18 @@ const AppMap = forwardRef(
             }}
             title="Dropoff"
             pinColor="red"
+          />
+        )}
+        {/* 🆕 Rider marker - only visible when bookingStatus === 1 (rider on the way to pickup) */}
+        {riderMarkerLat && riderMarkerLong && (
+          <Marker
+            coordinate={{
+              latitude: parseFloat(riderMarkerLat),
+              longitude: parseFloat(riderMarkerLong),
+            }}
+            title="Rider"
+            description="Your rider is on the way"
+            pinColor="yellow"
           />
         )}
         {routeCoords.length > 0 && (

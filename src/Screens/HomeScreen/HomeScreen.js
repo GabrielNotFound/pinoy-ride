@@ -112,6 +112,9 @@ const HomeScreen = () => {
   // Promo state
   const [availablePromos, setAvailablePromos] = useState([]);
 
+  // 🆕 Rider real-time location state (transient, not persisted in Redux)
+  const [riderLocation, setRiderLocation] = useState(null);
+
   const statusMessages = {
     0: 'Waiting for the Rider to accept your Booking',
     1: 'Your Rider will arrive soon',
@@ -121,6 +124,11 @@ const HomeScreen = () => {
   const riderFoundTimeout = useRef(null);
   const [showWaitingBanner, setShowWaitingBanner] = useState(false);
 
+  // ✅ Ref to distinguish between "Cancel to go back to confirm" vs "Full cancel"
+  // When true, handleUpdateBookingStatus will only clear the booking ID,
+  // keeping all other details (locations, fare, service, etc.) intact
+  const isCancellingToConfirmRef = useRef(false);
+
   const checkActiveBooking = usePostRequest();
   const [isRestoringBooking, setIsRestoringBooking] = useState(false);
 
@@ -129,6 +137,8 @@ const HomeScreen = () => {
   const updateBookingStatus = usePostRequest();
   const getBookingDetails = usePostRequest();
   const getPromoList = usePostRequest();
+  // 🆕 Rider location request instance
+  const getRiderLocation = usePostRequest();
   const isLoading = inquireBooking.loading || createBooking.loading;
 
   const onBookPressed = async () => {
@@ -514,6 +524,8 @@ const HomeScreen = () => {
       if (status === 3) {
         // ✅ Clear Redux state when completed
         dispatch(clearBookingState());
+        // 🆕 Clear rider location when booking is completed
+        setRiderLocation(null);
 
         navigation.reset({
           index: 0,
@@ -553,6 +565,7 @@ const HomeScreen = () => {
   //UPDATE BOOKING STATUS
   const triggerUpdateBookingStatus = () => {
     const postdata = {
+      customer_id: userInfo?.id, // ✅ added missing customer_id
       booking_id: activeBooking?.id,
       status: '4',
     };
@@ -577,19 +590,98 @@ const HomeScreen = () => {
     AppUtil.debugDeep(results);
 
     if (results?.code === 200) {
-      // ✅ Clear Redux state when cancelled
-      dispatch(clearBookingState());
-      riderAlertShownRef.current = false;
-      setShowWaitingBanner(false);
-      // Reset selections
-      setSelectedPromo(null);
-      setNoteToRider('');
+      // ✅ Check if this cancel was triggered by "go back to confirm" or a full cancel
+      if (isCancellingToConfirmRef.current) {
+        // Coming back to confirm screen — only clear the booking ID so a new
+        // one can be created on next Confirm press. Keep everything else intact:
+        // selectedService, pickupLocation, dropoffLocation, inquireBookingResponse,
+        // selectedPayment, selectedPromo, noteToRider all stay as-is.
+        console.log('🔄 Cancelled booking to return to confirm screen');
+        dispatch(setActiveBooking(null));
+        dispatch(setIsConfirmed(false));
+        dispatch(setIsBooked(true)); // keep fare breakdown visible
+        setShowWaitingBanner(false);
+        isCancellingToConfirmRef.current = false; // reset the flag
+      } else {
+        // Full cancel — clear everything and go back to the start
+        console.log('🗑️ Full booking cancel');
+        dispatch(clearBookingState());
+        riderAlertShownRef.current = false;
+        setShowWaitingBanner(false);
+        // Reset selections
+        setSelectedPromo(null);
+        setNoteToRider('');
+        // 🆕 Clear rider location when booking is cancelled
+        setRiderLocation(null);
+      }
     }
   };
 
   useEffect(() => {
     handleUpdateBookingStatus();
   }, [updateBookingStatus.response, updateBookingStatus.error]);
+
+  // 🆕 GET RIDER LOCATION
+  const triggerGetRiderLocation = () => {
+    const postdata = {
+      customer_id: userInfo?.id,
+      booking_id: activeBooking?.id,
+    };
+    getRiderLocation.makePostRequest(
+      Constants.ENDPOINT.GET_RIDER_LOCATION,
+      postdata,
+    );
+  };
+
+  // 🆕 Handle rider location response
+  const handleGetRiderLocation = () => {
+    if (getRiderLocation.error) {
+      console.warn('Error fetching rider location:', getRiderLocation.error);
+      return;
+    }
+
+    if (!getRiderLocation.response) {
+      return;
+    }
+
+    const results = getRiderLocation.response;
+
+    if (results?.code === 200 && results?.data) {
+      setRiderLocation({
+        lat: results.data.current_lat,
+        long: results.data.current_long,
+      });
+      console.log(
+        '📍 Rider location updated:',
+        results.data.current_lat,
+        results.data.current_long,
+      );
+    }
+  };
+
+  useEffect(() => {
+    handleGetRiderLocation();
+  }, [getRiderLocation.response, getRiderLocation.error]);
+
+  // 🆕 Poll rider location every 30 seconds only when status === 1 (rider on the way to pickup)
+  useEffect(() => {
+    if (bookingStatus !== 1 || !activeBooking?.id) {
+      // Clear rider location when not on status 1
+      setRiderLocation(null);
+      return;
+    }
+
+    // Fetch immediately on status change to 1
+    triggerGetRiderLocation();
+
+    const intervalId = setInterval(() => {
+      triggerGetRiderLocation();
+    }, 30000); // 30 seconds
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [bookingStatus, activeBooking?.id]);
 
   const handlePromoSelect = promo => {
     setSelectedPromo(promo);
@@ -633,6 +725,9 @@ const HomeScreen = () => {
           firstMarkerLong={pickupLocation?.long}
           secondMarkerLat={dropoffLocation?.lat}
           secondMarkerLong={dropoffLocation?.long}
+          // 🆕 Pass rider location to map (only has value when status === 1)
+          riderMarkerLat={riderLocation?.lat}
+          riderMarkerLong={riderLocation?.long}
           interactive
           style={styles.map}
         />
@@ -698,8 +793,15 @@ const HomeScreen = () => {
             onInquireBooking={triggerInquireBooking}
             onCreateBooking={triggerCreateBooking}
             onCancelBooking={() => {
+              // Full cancel — clears everything
               triggerUpdateBookingStatus();
               setShowWaitingBanner(false);
+            }}
+            // ✅ Cancel the booking on the server but keep all form details
+            // so the user lands back on the Confirm screen ready to re-confirm
+            onBackToConfirm={() => {
+              isCancellingToConfirmRef.current = true; // flag for handleUpdateBookingStatus
+              triggerUpdateBookingStatus();
             }}
             onBackToEdit={() => {
               dispatch(setIsBooked(false));

@@ -23,6 +23,8 @@ const BottomModal = ({
   onInquireBooking,
   onCreateBooking,
   onCancelBooking,
+  // ✅ NEW: Goes back to confirm screen without cancelling the booking or clearing any data
+  onBackToConfirm,
   onPickupChange,
   onDropoffChange,
   onChangeService,
@@ -85,7 +87,9 @@ const BottomModal = ({
     {
       visible: isConfirmed,
       title: 'Cancel',
-      onPress: onCancelBooking,
+      // ✅ Goes straight back to the confirm screen with all details intact,
+      // does NOT call the cancel booking API
+      onPress: onBackToConfirm,
       color: colors.error,
       outlined: true,
       textColor: colors.error,
