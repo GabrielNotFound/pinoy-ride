@@ -221,6 +221,14 @@ const BottomModal = ({
                   {inquireBookingResponse?.pretty_total_amount_wo_promo}
                 </Text>
               </View>
+              {selectedPromo && inquireBookingResponse?.promo_discount > 0 && (
+                <View style={styles.fareRow}>
+                  <Text style={styles.feeText}>Promo Discount</Text>
+                  <Text style={styles.promoAppliedText}>
+                    -₱{Number(inquireBookingResponse.promo_discount).toFixed(2)}
+                  </Text>
+                </View>
+              )}
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Total Fare w/ Discount</Text>
                 <Text style={styles.feeText}>

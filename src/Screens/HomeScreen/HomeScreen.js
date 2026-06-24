@@ -195,7 +195,6 @@ const HomeScreen = () => {
 
   // Separate useEffect for login success modal - only runs once
   useEffect(() => {
-    AppUtil.debugDeep('yes' + userInfo);
     if (!hasShownLoginSuccess) {
       setShowSuccess(true);
       dispatch(setHasShownLoginSuccess(true));
@@ -365,6 +364,7 @@ const HomeScreen = () => {
       dropoff_lat: dropoffLocation?.lat,
       dropoff_long: dropoffLocation?.long,
       promo_code: selectedPromo?.code || '',
+      promo_id: selectedPromo?.id || '',
     };
     inquireBooking.makePostRequest(
       Constants.ENDPOINT.INQUIRE_BOOKING,
@@ -398,6 +398,7 @@ const HomeScreen = () => {
   }, [inquireBooking.response, inquireBooking.error]);
 
   //CREATE BOOKING
+  //CREATE BOOKING
   const triggerCreateBooking = async () => {
     const permission = await ensureLocationPermission();
 
@@ -424,6 +425,9 @@ const HomeScreen = () => {
       total_amount_wo_promo: inquireBookingResponse.total_amount_wo_promo,
       total_amount: inquireBookingResponse.total_amount,
     };
+
+    const all_payment_details = inquireBookingResponse;
+
     const postdata = {
       booking_type: selectedService?.id,
       pickup_location: pickupLocation?.address,
@@ -435,7 +439,9 @@ const HomeScreen = () => {
       payment_type: selectedPayment.toLowerCase(),
       note_to_rider: noteToRider || '',
       payment_details: JSON.stringify(payment_details),
+      all_payment_details: JSON.stringify(all_payment_details),
       promo_code: selectedPromo?.code || '',
+      promo_id: selectedPromo?.id || '',
     };
     createBooking.makePostRequest(Constants.ENDPOINT.CREATE_BOOKING, postdata);
   };

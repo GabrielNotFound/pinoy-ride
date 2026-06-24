@@ -26,15 +26,31 @@ const BookingStatusModal = ({
   const { colors } = useTheme();
   const styles = getStyles({ colors });
 
+  // ✅ payment_details may be a JSON string if echoed back from API
+  const paymentDetails =
+    typeof bookingDetails?.payment_details === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(bookingDetails.payment_details);
+          } catch {
+            return {};
+          }
+        })()
+      : bookingDetails?.payment_details ?? {};
+
   const handleCall = () => {
     const phoneNumber = riderDetails?.ekyc_details?.pretty_mobile_no;
-    if (!phoneNumber) {return;}
+    if (!phoneNumber) {
+      return;
+    }
     Linking.openURL(`tel:${phoneNumber}`);
   };
 
   const handleMessage = () => {
     const phoneNumber = riderDetails?.ekyc_details?.pretty_mobile_no;
-    if (!phoneNumber) {return;}
+    if (!phoneNumber) {
+      return;
+    }
     Linking.openURL(`sms:${phoneNumber}`);
   };
 
@@ -51,10 +67,10 @@ const BookingStatusModal = ({
     const vehicle = riderDetails?.vehicle_details?.[0]
       ? `${riderDetails.vehicle_details[0].brand} ${riderDetails.vehicle_details[0].model}`
       : 'N/A';
-    const fare = bookingDetails?.payment_details?.total_amount || 0;
+    const fare = paymentDetails?.total_amount || 0;
 
     const message =
-      '🛵 I\'m on a Pinoy Ride!\n\n' +
+      "🛵 I'm on a Pinoy Ride!\n\n" +
       `📍 Pickup: ${pickupAddress}\n` +
       `🏁 Dropoff: ${dropoffAddress}\n\n` +
       `🧑 Rider: ${riderName}\n` +
@@ -100,7 +116,10 @@ const BookingStatusModal = ({
               <Text style={styles.changeText}>Tap to change</Text>
             )}
           </View>
-          <Text style={styles.price}>₱{bookingDetails?.total_amount || 0}</Text>
+          {/* ✅ Show total_amount from payment_details */}
+          <Text style={styles.price}>
+            ₱{paymentDetails?.total_amount || bookingDetails?.total_amount || 0}
+          </Text>
         </TouchableOpacity>
 
         {(bookingStatus === 2 || bookingStatus === 3) && (
@@ -145,20 +164,18 @@ const BookingStatusModal = ({
                 </Text>
                 <Text
                   style={[styles.feeText, { fontFamily: 'Poppins SemiBold' }]}>
-                  ₱{bookingDetails?.payment_details?.total_amount}
+                  ₱{paymentDetails?.total_amount}
                 </Text>
               </View>
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Booking Fee</Text>
                 <Text style={styles.feeText}>
-                  ₱{bookingDetails?.payment_details?.booking_fee}
+                  ₱{paymentDetails?.booking_fee}
                 </Text>
               </View>
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Payment Method</Text>
-                <Text style={styles.feeText}>
-                  {bookingDetails?.payment_details?.type}
-                </Text>
+                <Text style={styles.feeText}>{paymentDetails?.type}</Text>
               </View>
             </View>
           </>

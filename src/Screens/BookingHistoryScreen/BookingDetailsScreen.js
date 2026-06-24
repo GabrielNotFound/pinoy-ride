@@ -81,7 +81,9 @@ const BookingDetailsScreen = () => {
   };
 
   useEffect(() => {
-    if (!reportIssue.response && !reportIssue.error) {return;}
+    if (!reportIssue.response && !reportIssue.error) {
+      return;
+    }
 
     if (reportIssue.error) {
       setShowReportModal(false);
@@ -183,6 +185,17 @@ const BookingDetailsScreen = () => {
               ₱{bookingDetails.payment_details.booking_fee?.toFixed(2)}
             </Text>
           </View>
+          {Number(bookingDetails.payment_details.promo_discount) > 0 && (
+            <View style={styles.breakdownRow}>
+              <Text style={styles.breakdownLabel}>Promo Discount:</Text>
+              <Text style={styles.breakdownValue}>
+                -₱
+                {Number(bookingDetails.payment_details.promo_discount).toFixed(
+                  2,
+                )}
+              </Text>
+            </View>
+          )}
           {bookingDetails.payment_details.tip > 0 && (
             <View style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Tip:</Text>

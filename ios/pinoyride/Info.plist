@@ -41,7 +41,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>6</string>
+	<string>7</string>
 	<key>FacebookAppID</key>
 	<string>3041042182736964</string>
 	<key>FacebookDisplayName</key>
@@ -59,7 +59,7 @@
 		<string>topphapp-pre</string>
 		<string>toppay</string>
 		<string>tel</string>
-  		<string>sms</string>
+		<string>sms</string>
 	</array>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>

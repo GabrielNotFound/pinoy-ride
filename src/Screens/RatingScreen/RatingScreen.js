@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
   Image,
   Keyboard,
+  Linking,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -44,6 +46,11 @@ const RatingScreen = () => {
 
   const handleSubmit = () => {
     triggerRateBooking();
+  };
+
+  const handleContactSupport = () => {
+    const url = Platform.OS === 'android' ? 'tel:09' : 'telprompt:';
+    Linking.openURL(url);
   };
 
   const triggerRateBooking = () => {
@@ -106,7 +113,7 @@ const RatingScreen = () => {
                     resizeMode="contain"
                   />
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={handleContactSupport}>
                   <Text style={styles.contactSupport}>Contact Support</Text>
                 </TouchableOpacity>
               </View>
