@@ -1,6 +1,6 @@
 {
   "name": "pinoy-ride-rider",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "main": "index.js",
   "scripts": {
     "start": "expo start --dev-client",
@@ -51,6 +51,7 @@
     "react-native-device-info": "^14.0.4",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-google-maps": "^1.0.0",
+    "react-native-image-picker": "^8.2.1",
     "react-native-inappbrowser-reborn": "^3.7.0",
     "react-native-intl-phone-input": "^1.2.27",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",

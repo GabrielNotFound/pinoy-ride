@@ -32,6 +32,12 @@ const MANILA_LOCATION = {
   longitude: 120.98216,
 };
 
+// ✅ How often to refresh pending bookings while the modal is open (ms)
+const POLL_INTERVAL_MS = 5000;
+
+// ✅ How often to push rider location to backend while in transit (ms)
+const LOCATION_UPDATE_INTERVAL_MS = 15000;
+
 const HomeScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
@@ -52,6 +58,11 @@ const HomeScreen = () => {
 
   // Vehicle selection state
   const [showVehicleSelection, setShowVehicleSelection] = useState(false);
+
+  // ✅ POLLING FIX: Track whether the pending booking fetch is the first one
+  // (triggered by vehicle selection) or a background poll. Loading UI is only
+  // shown on the first fetch — silent on all subsequent polls.
+  const isInitialBookingFetch = useRef(false);
 
   // Use location watch hook for real-time location updates
   const {
@@ -79,6 +90,9 @@ const HomeScreen = () => {
   // Check for active booking on mount
   const checkActiveBooking = usePostRequest();
   const [isRestoringBooking, setIsRestoringBooking] = useState(false);
+
+  // ✅ NEW: Hook for pushing rider location to backend
+  const updateRiderLocation = usePostRequest();
 
   // Marker logic - Based on riderBookingStatus
   const showRiderMarker = riderActiveBooking !== null;
@@ -120,7 +134,9 @@ const HomeScreen = () => {
   };
 
   const handleGetServiceDetailsResponse = () => {
-    if (getServiceDetails.error || !getServiceDetails.response) {return;}
+    if (getServiceDetails.error || !getServiceDetails.response) {
+      return;
+    }
 
     const results = getServiceDetails.response;
     if (results?.code === 200 && results?.data) {
@@ -138,9 +154,13 @@ const HomeScreen = () => {
     }
   }, [userInfo?.id]);
 
+  // ✅ FIX: Show the offline alert exactly once per app session (mount only).
+  useEffect(() => {
+    setShowOffline(true);
+  }, []);
+
   useEffect(() => {
     AppUtil.debugDeep(userInfo);
-    setShowOffline(true);
 
     if (isTesting) {
       AppUtil.debugDeep('Testing Mode On - turn off if Building');
@@ -283,6 +303,46 @@ const HomeScreen = () => {
     handleRestoredBooking();
   }, [checkActiveBooking.response, checkActiveBooking.error]);
 
+  // ✅ NEW: Push rider location to backend every 15 seconds while in transit.
+  // "In transit" = riderBookingStatus >= 2 (rider has left to pickup or is
+  // already carrying the customer). Stops automatically when booking ends.
+  useEffect(() => {
+    const isInTransit =
+      riderActiveBooking?.id != null && riderBookingStatus >= 2;
+
+    if (!isInTransit) {return;}
+
+    console.log('🚀 Starting location update interval (every 15s)...');
+
+    const pushLocation = () => {
+      const postdata = {
+        rider_id: userInfo?.id,
+        current_lat: riderLocation.latitude,
+        current_long: riderLocation.longitude,
+      };
+      console.log('📡 Pushing rider location to server:', postdata);
+      updateRiderLocation.makePostRequest(
+        Constants.ENDPOINT.UPDATE_RIDER_LOCATION,
+        postdata,
+      );
+    };
+
+    // Push immediately on first trigger, then every 15s
+    pushLocation();
+    const interval = setInterval(pushLocation, LOCATION_UPDATE_INTERVAL_MS);
+
+    return () => {
+      console.log('🛑 Stopping location update interval.');
+      clearInterval(interval);
+    };
+  }, [
+    riderActiveBooking?.id,
+    riderBookingStatus,
+    // Re-run when location changes so the interval always has fresh coords
+    riderLocation.latitude,
+    riderLocation.longitude,
+  ]);
+
   const triggerGetPendingBooking = vehicleId => {
     const postdata = {
       rider_id: userInfo?.id,
@@ -309,13 +369,44 @@ const HomeScreen = () => {
     const results = getPendingBooking.response;
     if (results?.code === 200) {
       AppUtil.debugDeep(results.data);
-      setPendingBookings(results.data.bookings);
+
+      // ✅ Clear the initial fetch flag so all subsequent polls are silent
+      isInitialBookingFetch.current = false;
+
+      // ✅ POLLING FIX: Merge new bookings instead of replacing the whole list.
+      // This prevents the modal from jumping or losing the rider's current position
+      // in the list when a new booking arrives during polling. Only newly arrived
+      // bookings (by id) are appended to the end.
+      setPendingBookings(prev => {
+        const existingIds = new Set(prev.map(b => b.id));
+        const newOnes = results.data.bookings.filter(
+          b => !existingIds.has(b.id),
+        );
+        if (newOnes.length > 0) {
+          console.log(`🆕 ${newOnes.length} new booking(s) found, appending.`);
+        }
+        return [...prev, ...newOnes];
+      });
     }
   };
 
   useEffect(() => {
     handleGetPendingBookingRequest();
   }, [getPendingBooking.response, getPendingBooking.error]);
+
+  // ✅ POLLING FIX: While PendingBookingModal is open, poll every POLL_INTERVAL_MS
+  // so newly created customer bookings appear in real time without the rider
+  // needing to close and reopen the modal.
+  useEffect(() => {
+    if (!showBooking) {return;}
+
+    const interval = setInterval(() => {
+      console.log('🔄 Polling for new pending bookings...');
+      triggerGetPendingBooking(riderSelectedVehicleId);
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval); // stop when modal closes
+  }, [showBooking, riderSelectedVehicleId]);
 
   /** ───── ACCEPT BOOKING ───── */
   const triggerAcceptBooking = bookingId => {
@@ -470,6 +561,8 @@ const HomeScreen = () => {
     setTimeout(() => {
       setPendingBookings([]);
       setCurrentIndex(0);
+      // Mark this as the initial fetch so the loading UI shows just this once
+      isInitialBookingFetch.current = true;
       // Pass vehicle.id directly so we don't depend on Redux having updated yet
       triggerGetPendingBooking(vehicle.id);
       setShowBooking(true);
@@ -549,7 +642,8 @@ const HomeScreen = () => {
           }}
           bookings={pendingBookings}
           currentIndex={currentIndex}
-          loading={getPendingBooking.loading}
+          // ✅ Only show loading spinner on the very first fetch, not on polls
+          loading={getPendingBooking.loading && isInitialBookingFetch.current}
           onAccept={handleAccept}
           onIgnore={handleIgnore}
         />

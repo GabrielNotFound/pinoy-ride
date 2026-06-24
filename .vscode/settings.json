@@ -1,5 +1,6 @@
 {
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "snyk.advanced.autoSelectOrganization": true
+  "snyk.advanced.autoSelectOrganization": true,
+  "snyk.advanced.organization": "be0587e9-41bb-4a46-8874-5026b081627b"
 }

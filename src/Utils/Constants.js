@@ -40,6 +40,7 @@ const BASE_DEV = {
     GET_SERVICE_DETAILS: 'riders/get_service_details/',
 
     IGNORE_BOOKING: 'riders/ignore_booking/',
+    UPDATE_RIDER_LOCATION: 'riders/update_current_location/',
   },
 
   FEATURE_STATUS: {},

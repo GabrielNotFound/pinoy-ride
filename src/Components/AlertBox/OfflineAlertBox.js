@@ -18,8 +18,16 @@ const OfflineAlertBox = ({ visible, onClose }) => {
   };
 
   return (
-    <Pressable style={styles.backdrop} onPress={onClose}>
+    <View style={styles.backdrop}>
       <View style={styles.container}>
+        {/* Close button - top right */}
+        <Pressable
+          style={styles.closeButton}
+          onPress={closeModal}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={styles.closeButtonText}>✕</Text>
+        </Pressable>
+
         <Image
           source={require('@/Assets/Common/Offline_Alert.png')}
           style={styles.image}
@@ -37,7 +45,7 @@ const OfflineAlertBox = ({ visible, onClose }) => {
           featureStyle={{ width: '100%', marginTop: 16 }}
         />
       </View>
-    </Pressable>
+    </View>
   );
 };
 
@@ -58,8 +66,8 @@ const getStyles = ({ colors }) =>
     },
     container: {
       width: 350,
-      height: 246,
-      paddingVertical: 40,
+      paddingTop: 40,
+      paddingBottom: 40,
       paddingHorizontal: 31,
       backgroundColor: colors.surface,
       borderRadius: 5,
@@ -69,6 +77,16 @@ const getStyles = ({ colors }) =>
       shadowRadius: 10,
       elevation: 5,
       alignItems: 'center',
+    },
+    closeButton: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+    },
+    closeButtonText: {
+      fontSize: 16,
+      color: colors.onSurfaceVariant ?? colors.onSurface,
+      fontFamily: 'Poppins Regular',
     },
     image: {
       width: 270,

@@ -12,6 +12,8 @@ import { openSettings } from 'react-native-permissions';
 import { AppButton, ThemeSwitch } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 import { ensureLocationPermission } from '@/Utils/Permissions';
+// ✅ ADDED: Safe area inset hook to handle gesture and 3-button nav bar spacing
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const BottomModal = ({
   bookings = [],
@@ -25,8 +27,12 @@ const BottomModal = ({
   serviceDetails,
 }) => {
   const { colors, dark } = useTheme();
-  const styles = getStyles({ colors });
   const navigation = useNavigation();
+
+  // ✅ ADDED: Get bottom inset for safe area padding (handles gesture vs 3-button nav)
+  const { bottom } = useSafeAreaInsets();
+
+  const styles = getStyles({ colors, bottom });
 
   const [buttonStatus, setButtonStatus] = useState(externalStatus || 1);
 
@@ -291,11 +297,14 @@ const BottomModal = ({
 
 export default BottomModal;
 
-const getStyles = ({ colors }) =>
+const getStyles = ({ colors, bottom }) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 24,
-      paddingBottom: 20,
+      // ✅ ADDED: Math.max(bottom, 16) ensures minimum 16px on devices that
+      // report bottom: 0 (some 3-button nav setups). +8 adds visual breathing
+      // room above the nav bar. Adjust the +8 to taste.
+      paddingBottom: Math.max(bottom, 16) + 8,
       paddingTop: 12,
       backgroundColor: colors.background2,
     },
@@ -383,7 +392,10 @@ const getStyles = ({ colors }) =>
     },
     containerBooking: {
       paddingHorizontal: 30,
-      paddingVertical: 45,
+      paddingTop: 45,
+      // ✅ ADDED: Same safe area treatment for the active booking view so the
+      // action button (Go to Pick Up / Complete Trip etc.) also clears the nav bar.
+      paddingBottom: Math.max(bottom, 16) + 8,
       backgroundColor: colors.background,
       shadowOffset: { width: 0, height: -3 },
       shadowOpacity: 0.1,

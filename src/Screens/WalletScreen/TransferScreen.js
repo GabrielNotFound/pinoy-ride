@@ -1,7 +1,7 @@
 import { AppButton, AppTextInput, Container } from '@/Components';
 import { AppUtil, Constants } from '@/Utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -161,7 +161,35 @@ const TransferScreen = ({ route }) => {
     }
   };
 
-  const BanksList = () => {
+  // ✅ FIX: renderItem defined outside JSX so its reference is stable across renders.
+  // Previously BanksList was an inner component — every parent re-render (e.g. on
+  // bank selection) recreated it as a new component type, forcing FlatList to fully
+  // remount and scroll back to the top. With renderItem as a stable useCallback-
+  // style ref here, FlatList stays mounted and preserves scroll position.
+  const renderBankItem = ({ item }) => (
+    <TouchableOpacity
+      style={[
+        styles.bankItem,
+        selectedBank?.id === item.id && styles.bankItemSelected,
+      ]}
+      onPress={() => handleBankSelect(item)}>
+      {item.logo_url && (
+        <Image
+          source={{ uri: item.logo_url }}
+          style={styles.bankLogo}
+          resizeMode="contain"
+        />
+      )}
+      <Text style={styles.bankName}>{item.name || 'Unknown Bank'}</Text>
+      {selectedBank?.id === item.id && (
+        <View style={styles.checkIconContainer}>
+          <Text style={styles.checkIcon}>✓</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
+  const renderBanksList = () => {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
@@ -186,29 +214,9 @@ const TransferScreen = ({ route }) => {
     return (
       <FlatList
         data={filteredBanks}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.bankItem,
-              selectedBank?.id === item.id && styles.bankItemSelected,
-            ]}
-            onPress={() => handleBankSelect(item)}>
-            {item.logo_url && (
-              <Image
-                source={{ uri: item.logo_url }}
-                style={styles.bankLogo}
-                resizeMode="contain"
-              />
-            )}
-            <Text style={styles.bankName}>{item.name || 'Unknown Bank'}</Text>
-            {selectedBank?.id === item.id && (
-              <View style={styles.checkIconContainer}>
-                <Text style={styles.checkIcon}>✓</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
+        keyExtractor={item => String(item.id)}
+        renderItem={renderBankItem}
+        extraData={selectedBank}
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         style={styles.bankListContainer}
         showsVerticalScrollIndicator={true}
@@ -277,7 +285,7 @@ const TransferScreen = ({ route }) => {
                 )}
               </View>
 
-              <BanksList />
+              {renderBanksList()}
             </View>
           </View>
 

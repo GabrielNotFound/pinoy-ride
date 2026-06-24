@@ -32,7 +32,18 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>6</string>
+	<string>7</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>gcash</string>
+		<string>paymaya</string>
+		<string>maya</string>
+		<string>topphapp</string>
+		<string>topphapp-pre</string>
+		<string>toppay</string>
+		<string>tel</string>
+		<string>sms</string>
+	</array>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -57,17 +68,6 @@
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
-	</array>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>gcash</string>
-		<string>paymaya</string>
-		<string>maya</string>
-		<string>topphapp</string>
-		<string>topphapp-pre</string>
-		<string>toppay</string>
-		<string>tel</string>
-  		<string>sms</string>
 	</array>
 	<key>UIRequiresFullScreen</key>
 	<false/>
