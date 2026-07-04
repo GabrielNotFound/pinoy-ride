@@ -38,6 +38,15 @@ const POLL_INTERVAL_MS = 5000;
 // ✅ How often to push rider location to backend while in transit (ms)
 const LOCATION_UPDATE_INTERVAL_MS = 15000;
 
+// ✅ Module-level flag (NOT component state) — persists across HomeScreen
+// mount/unmount and navigation.reset() calls within the same app session,
+// but resets to false on a real app restart (cold start re-evaluates this
+// module). This gives us "show only on first app open" semantics, instead
+// of component state which re-fires on every HomeScreen mount — including
+// the remount caused by navigation.reset() after ending a ride, which
+// previously made it look like the rider had been kicked back offline.
+let hasShownOfflineAlertThisSession = false;
+
 const HomeScreen = () => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
@@ -63,6 +72,14 @@ const HomeScreen = () => {
   // (triggered by vehicle selection) or a background poll. Loading UI is only
   // shown on the first fetch — silent on all subsequent polls.
   const isInitialBookingFetch = useRef(false);
+
+  // ✅ NEW: Booking IDs the rider has ignored during this app session.
+  // Deliberately a plain useRef (NOT Redux, NOT AsyncStorage) — nothing here
+  // is persisted to disk. That means a real app restart wipes this set
+  // completely, so bookings the rider ignored will be visible again after
+  // restart. Within the same session, though, an ignored booking stays
+  // filtered out so it doesn't keep popping back up on every poll.
+  const ignoredBookingIdsRef = useRef(new Set());
 
   // Use location watch hook for real-time location updates
   const {
@@ -93,6 +110,12 @@ const HomeScreen = () => {
 
   // ✅ NEW: Hook for pushing rider location to backend
   const updateRiderLocation = usePostRequest();
+
+  // ✅ NEW: Pinoy Rider Credit balance for the BottomModal home view.
+  // Sourced from GET_RIDER_DETAILS, same endpoint/shape WalletScreen uses
+  // (pr_wallet_details is a sibling of wallet_details in that response).
+  const getRiderDetails = usePostRequest();
+  const [prCreditBalance, setPrCreditBalance] = useState(null);
 
   // Marker logic - Based on riderBookingStatus
   const showRiderMarker = riderActiveBooking !== null;
@@ -148,14 +171,52 @@ const HomeScreen = () => {
     handleGetServiceDetailsResponse();
   }, [getServiceDetails.response, getServiceDetails.error]);
 
+  // ✅ NEW: Fetch rider/wallet details to populate the Pinoy Rider Credit
+  // balance shown at the top of the home BottomModal.
+  const triggerGetRiderDetails = () => {
+    getRiderDetails.makePostRequest(Constants.ENDPOINT.GET_RIDER_DETAILS, {
+      rider_id: userInfo?.id,
+    });
+  };
+
+  const handleGetRiderDetailsResponse = () => {
+    if (getRiderDetails.error) {
+      console.warn('rider details fetch error:', getRiderDetails.error);
+      return;
+    }
+    if (!getRiderDetails.response) {
+      return;
+    }
+
+    // pr_wallet_details is a sibling of wallet_details in this response.
+    const prWallet = getRiderDetails.response?.data?.pr_wallet_details;
+    if (prWallet?.avail_balance !== undefined) {
+      setPrCreditBalance(prWallet.avail_balance);
+    }
+  };
+
+  useEffect(() => {
+    handleGetRiderDetailsResponse();
+  }, [getRiderDetails.response, getRiderDetails.error]);
+
   useEffect(() => {
     if (userInfo?.id) {
       triggerGetServiceDetails();
+      triggerGetRiderDetails();
     }
   }, [userInfo?.id]);
 
-  // ✅ FIX: Show the offline alert exactly once per app session (mount only).
+  // ✅ FIX: Show the offline alert only once per true app session (first
+  // HomeScreen mount after app launch), not once per HomeScreen mount.
+  // Previously this ran on every mount, including the remount caused by
+  // navigation.reset() after ending a ride — which made it look like the
+  // rider had been kicked back offline even though nothing changed
+  // server-side.
   useEffect(() => {
+    if (hasShownOfflineAlertThisSession) {
+      return;
+    }
+    hasShownOfflineAlertThisSession = true;
     setShowOffline(true);
   }, []);
 
@@ -310,7 +371,9 @@ const HomeScreen = () => {
     const isInTransit =
       riderActiveBooking?.id != null && riderBookingStatus >= 2;
 
-    if (!isInTransit) {return;}
+    if (!isInTransit) {
+      return;
+    }
 
     console.log('🚀 Starting location update interval (every 15s)...');
 
@@ -377,10 +440,16 @@ const HomeScreen = () => {
       // This prevents the modal from jumping or losing the rider's current position
       // in the list when a new booking arrives during polling. Only newly arrived
       // bookings (by id) are appended to the end.
+      //
+      // ✅ NEW: Also exclude anything already in ignoredBookingIdsRef so a
+      // booking the rider just ignored doesn't get re-merged back in by the
+      // very next poll. This ref is session-only (see declaration above), so
+      // this exclusion naturally goes away on app restart.
       setPendingBookings(prev => {
         const existingIds = new Set(prev.map(b => b.id));
         const newOnes = results.data.bookings.filter(
-          b => !existingIds.has(b.id),
+          b =>
+            !existingIds.has(b.id) && !ignoredBookingIdsRef.current.has(b.id),
         );
         if (newOnes.length > 0) {
           console.log(`🆕 ${newOnes.length} new booking(s) found, appending.`);
@@ -398,7 +467,9 @@ const HomeScreen = () => {
   // so newly created customer bookings appear in real time without the rider
   // needing to close and reopen the modal.
   useEffect(() => {
-    if (!showBooking) {return;}
+    if (!showBooking) {
+      return;
+    }
 
     const interval = setInterval(() => {
       console.log('🔄 Polling for new pending bookings...');
@@ -523,17 +594,41 @@ const HomeScreen = () => {
     triggerAcceptBooking(booking.id);
   };
 
+  // ✅ UPDATED: Ignoring a booking now actually removes it from the visible
+  // list (instead of just skipping past it via currentIndex), and records
+  // its id in ignoredBookingIdsRef so it won't get re-added by a later poll
+  // during this session. Because that ref is never persisted, a full app
+  // restart clears it and the booking becomes visible again — this is
+  // intentional, not a bug.
   const handleIgnore = () => {
-    // ✅ Record the ignored booking before moving to next
     const currentBooking = pendingBookings[currentIndex];
-    if (currentBooking?.id) {
-      triggerIgnoreBooking(currentBooking.id);
+    if (!currentBooking) {
+      return;
     }
 
-    if (currentIndex < pendingBookings.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
+    if (currentBooking.id) {
+      // Let the backend know it was ignored (analytics / no re-serving logic there, if any)
+      triggerIgnoreBooking(currentBooking.id);
+      // Track locally for this session only — NOT persisted anywhere.
+      ignoredBookingIdsRef.current.add(currentBooking.id);
+    }
+
+    const remainingCount = pendingBookings.length - 1;
+
+    // Remove the ignored booking from the list right away
+    setPendingBookings(prev => prev.filter(b => b.id !== currentBooking.id));
+
+    if (remainingCount <= 0) {
+      // That was the last one — nothing left to show
       setShowBooking(false);
+      setCurrentIndex(0);
+    } else {
+      // Keep currentIndex in bounds of the now-shorter list. Since the
+      // ignored item is removed, whatever was "next" naturally shifts into
+      // the current index, so we only need to clamp if we were at the end.
+      setCurrentIndex(prev =>
+        prev >= remainingCount ? remainingCount - 1 : prev,
+      );
     }
   };
 
@@ -625,6 +720,7 @@ const HomeScreen = () => {
           bookingStatus={riderBookingStatus}
           permissionStatus={permissionStatus}
           serviceDetails={serviceDetails}
+          creditBalance={prCreditBalance}
         />
 
         <VehicleSelectionModal

@@ -26,6 +26,7 @@ const WalletScreen = () => {
   const userInfo = useSelector(selectUserInfo);
 
   const [walletDetails, setWalletDetails] = useState({});
+  const [prWalletDetails, setPrWalletDetails] = useState({});
   const [walletHistory, setWalletHistory] = useState([]);
 
   const getWalletDetails = usePostRequest();
@@ -69,6 +70,13 @@ const WalletScreen = () => {
     if (result) {
       setWalletDetails(result);
     }
+
+    // ✅ Pinoy Ride Credit comes back as a sibling of wallet_details in the
+    // same GET_RIDER_DETAILS response.
+    const prResult = getWalletDetails.response?.data?.pr_wallet_details;
+    if (prResult) {
+      setPrWalletDetails(prResult);
+    }
   }, [getWalletDetails.response, getWalletDetails.error]);
 
   /* =====================
@@ -87,7 +95,9 @@ const WalletScreen = () => {
 
   // Only handle back button when this screen is focused
   useEffect(() => {
-    if (!isFocused) {return;}
+    if (!isFocused) {
+      return;
+    }
 
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -150,13 +160,21 @@ const WalletScreen = () => {
 
         <View style={styles.cardContainer}>
           <Text style={styles.cardTitle}>Pinoy Ride Credit</Text>
-          <Text style={styles.cardAmount}>100.50</Text>
+          <Text style={styles.cardAmount}>
+            {prWalletDetails?.avail_balance !== undefined
+              ? AppUtil.fn(prWalletDetails.avail_balance)
+              : '0.00'}
+          </Text>
           <Text style={styles.cardSubtitle}>
             Earnings from cashless, Promo Fare & Incentives
           </Text>
           <TouchableOpacity
             style={styles.cardButton}
-            onPress={() => navigation.navigate('TopUpScreen')}>
+            onPress={() =>
+              navigation.navigate('TopUpScreen', {
+                prWalletDetails,
+              })
+            }>
             <Image
               source={require('@/Assets/Common/WalletScreen/Top_Up.png')}
               style={styles.cardButtonIcon}

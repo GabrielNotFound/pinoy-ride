@@ -4,6 +4,25 @@ import axios from 'axios';
 import { AppUtil, Constants } from '@/Utils';
 import { useSelector } from 'react-redux';
 import { selectUserInfo } from '@/Redux/Slices/userSlice';
+import { getCurrentRouteName, navigate } from '@/Utils/NavigationService';
+
+// Force-update signal is code === 426, from ANY endpoint.
+function getForceUpdateData(data) {
+  if (data?.code === 426) {
+    return data?.data || {}; // { update_link, current_version, minimum_version }
+  }
+  return null;
+}
+
+function handleForceUpdate(fu) {
+  if (getCurrentRouteName() === 'UpdateRequiredScreen') {return;} // already there
+
+  navigate('UpdateRequiredScreen', {
+    updateLink: fu.update_link,
+    currentVersion: fu.current_version,
+    minimumVersion: fu.minimum_version,
+  });
+}
 
 const usePostRequest = () => {
   const [response, setResponse] = useState(null);
@@ -28,6 +47,7 @@ const usePostRequest = () => {
       user_type: 'rider',
       rider_id: userInfo?.id,
       user_id: userInfo?.id,
+      app_version: '1.0.14',
     };
     const params = { ...requiredParams, ...obj };
 
@@ -86,6 +106,13 @@ const usePostRequest = () => {
       // Always set response (don't leave it null if request succeeded)
       setResponse(res.data);
 
+      // Force-update check — code 426, from ANY endpoint.
+      const forceUpdate = getForceUpdateData(res.data);
+      if (forceUpdate) {
+        handleForceUpdate(forceUpdate);
+        return { response: null, error: null, forceUpdate: true };
+      }
+
       if (isOK(res)) {
         return { response: res.data, error: null };
       } else if (isNotOK(res)) {
@@ -96,6 +123,14 @@ const usePostRequest = () => {
         return { response: res.data, error: null };
       }
     } catch (err) {
+      // Force-update check on the thrown-error path — a 426 status makes
+      // axios throw, and the payload lands in err.response.data.
+      const forceUpdate = getForceUpdateData(err.response?.data);
+      if (forceUpdate) {
+        handleForceUpdate(forceUpdate);
+        return { response: null, error: null, forceUpdate: true };
+      }
+
       let message = '';
 
       // ✅ Check if error response has a message from your API

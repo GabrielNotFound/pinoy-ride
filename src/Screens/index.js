@@ -34,3 +34,4 @@ export { default as UploadIDScreen } from './Register/UploadIDScreen';
 export { default as SelfieScreen } from './Register/SelfieScreen';
 export { default as ConfirmDetailsScreen } from './Register/ConfirmDetailsScreen';
 export { default as CongratsScreen } from './Register/CongratsScreen';
+export { default as UpdateRequiredScreen } from './Login/UpdateRequiredScreen';

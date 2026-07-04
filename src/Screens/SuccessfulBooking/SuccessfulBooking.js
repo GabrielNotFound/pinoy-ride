@@ -21,14 +21,25 @@ const SuccessfulBooking = () => {
   const route = useRoute();
   const dispatch = useDispatch();
 
+  // ✅ FIX: HomeScreen navigates with
+  // `navigation.navigate('SuccessfulBooking', { booking: completedBooking })`,
+  // so the booking data is nested under route.params.booking — not
+  // route.params itself. The old code (`const booking = route?.params`) was
+  // grabbing the wrapper object, so `booking.customer` was always undefined.
+  const { booking } = route?.params || {};
+
   useEffect(() => {
-    AppUtil.debugDeep(route?.params);
+    AppUtil.debugDeep(booking);
   }, [route]);
 
-  const booking = route?.params;
-
-  const passengerName = booking?.customer
-    ? `${booking.customer.fname} ${booking.customer.mname} ${booking.customer.lname}`
+  // ✅ FIX: Customer name fields live under customer.ekyc_details
+  // (first_name / last_name), matching the shape used everywhere else in the
+  // app (see BottomModal.js: activeBooking.customer.ekyc_details.first_name).
+  // There is no fname/mname/lname on the customer object.
+  const passengerName = booking?.customer?.ekyc_details
+    ? `${booking.customer.ekyc_details.first_name || ''} ${
+        booking.customer.ekyc_details.last_name || ''
+      }`.trim()
     : '';
 
   const estTime = '10 mins';

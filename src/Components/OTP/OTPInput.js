@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { Dimensions, StyleSheet, TextInput, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 /**
@@ -8,13 +8,29 @@ import { useTheme } from 'react-native-paper';
  * - Handles pasting multiple digits
  * - Prevents crashes for all 6-digit inputs including "000000"
  * - Responsive to screen size
+ *
+ * NOTE: Sizing is based on the ACTUAL measured width of the row (via
+ * onLayout) instead of Dimensions.get('window').width. Dimensions gives
+ * the full screen width with no way to know how much horizontal padding
+ * any given parent screen applies, so boxes could end up wider than the
+ * real available space and overflow past the container edge. Measuring
+ * the rendered width directly fixes this regardless of how the component
+ * is nested.
  */
 const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
   const { colors } = useTheme();
-  const screenWidth = Dimensions.get('window').width;
-  const styles = getStyles({ colors, screenWidth, length });
   const inputs = useRef([]);
   const [digits, setDigits] = useState(Array.from({ length }, () => ''));
+
+  // Width of the row, filled in once the container actually renders.
+  const [containerWidth, setContainerWidth] = useState(null);
+
+  const onContainerLayout = useCallback(e => {
+    const { width } = e.nativeEvent.layout;
+    setContainerWidth(width);
+  }, []);
+
+  const styles = getStyles({ colors, length, containerWidth });
 
   const update = nextDigits => {
     setDigits(nextDigits);
@@ -73,7 +89,7 @@ const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.container}>
+      <View style={styles.container} onLayout={onContainerLayout}>
         {digits.map((value, i) => (
           <TextInput
             key={i}
@@ -95,28 +111,30 @@ const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
 
 export default OTPInput;
 
-const getStyles = ({ colors, screenWidth, length }) => {
-  // Calculate responsive dimensions
+const getStyles = ({ colors, length, containerWidth }) => {
   const horizontalPadding = 20;
-  const availableWidth = screenWidth - horizontalPadding * 2;
-
-  // Calculate input size based on available width
-  // Account for gaps between inputs
   const minGap = 2;
   const maxGap = 8;
-  const totalGapWidth = (length - 1) * maxGap;
-
-  let inputWidth = (availableWidth - totalGapWidth) / length;
   let gap = maxGap;
 
-  // If inputs would be too small, reduce gap
-  if (inputWidth < 35) {
-    gap = minGap;
-    inputWidth = (availableWidth - (length - 1) * gap) / length;
+  // Sensible default for the single frame before onLayout fires, so
+  // nothing flashes oversized/overflowing before the real width is known.
+  let inputWidth = 40;
+
+  if (containerWidth) {
+    const totalGapWidth = (length - 1) * maxGap;
+    inputWidth = (containerWidth - totalGapWidth) / length;
+
+    // If inputs would be too small, reduce gap
+    if (inputWidth < 35) {
+      gap = minGap;
+      inputWidth = (containerWidth - (length - 1) * gap) / length;
+    }
+
+    // Ensure minimum and maximum sizes
+    inputWidth = Math.max(Math.min(inputWidth, 45), 32);
   }
 
-  // Ensure minimum and maximum sizes
-  inputWidth = Math.max(Math.min(inputWidth, 45), 32);
   const inputHeight = Math.max(Math.min(inputWidth * 1.25, 52), 40);
 
   return StyleSheet.create({
@@ -130,6 +148,8 @@ const getStyles = ({ colors, screenWidth, length }) => {
       flexDirection: 'row',
       gap: gap,
       justifyContent: 'center',
+      // width: '100%' so onLayout measures the true available width of
+      // this row, whatever padding exists in the parent screen(s) above it.
       width: '100%',
       maxWidth: 400, // Prevents it from getting too wide on tablets
     },

@@ -31,12 +31,14 @@ import {
   TopUpScreen,
   TransferConfirmationScreen,
   TransferScreen,
+  UpdateRequiredScreen,
   UploadIDScreen,
   WalletScreen,
 } from '@/Screens';
 import { Text } from 'react-native';
 import { AppTransactionComplete } from '@/Components';
 import { useAppTheme } from '@/Contexts/ThemeContext';
+import { navigationRef } from '@/Utils/NavigationService';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,7 +47,7 @@ const ApplicationNavigator = () => {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={theme}>
+      <NavigationContainer theme={theme} ref={navigationRef}>
         <Stack.Navigator
           initialRouteName="Splash"
           screenOptions={{
@@ -103,6 +105,11 @@ const ApplicationNavigator = () => {
           <Stack.Screen
             name="DownloadDocumentScreen"
             component={DownloadDocumentScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="UpdateRequiredScreen"
+            component={UpdateRequiredScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen

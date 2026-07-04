@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Image,
+  Linking,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,6 +13,7 @@ import { openSettings } from 'react-native-permissions';
 import { AppButton, ThemeSwitch } from '@/Components';
 import { useNavigation } from '@react-navigation/native';
 import { ensureLocationPermission } from '@/Utils/Permissions';
+import { AppUtil } from '@/Utils';
 // ✅ ADDED: Safe area inset hook to handle gesture and 3-button nav bar spacing
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -25,6 +27,12 @@ const BottomModal = ({
   bookingStatus: externalStatus,
   permissionStatus,
   serviceDetails,
+  // ✅ ADDED: optional overrides so a real distance/geofence check can drive
+  // "near customer" instead of relying purely on booking status.
+  isNearCustomer,
+  onCallCustomer,
+  onMessageCustomer,
+  creditBalance,
 }) => {
   const { colors, dark } = useTheme();
   const navigation = useNavigation();
@@ -38,6 +46,15 @@ const BottomModal = ({
 
   // ✅ Only sync from Redux on initial mount (app restore), NOT on every change.
   const hasInitialized = useRef(false);
+
+  // ✅ Pinoy Rider Credit balance now comes from the `creditBalance` prop
+  // (passed down from HomeScreen, sourced from pr_wallet_details), instead
+  // of being hardcoded. Falls back to '0.00' while the value hasn't loaded
+  // yet or if it's ever missing.
+  const displayCreditBalance =
+    creditBalance !== undefined && creditBalance !== null
+      ? AppUtil.fn(creditBalance)
+      : '0.00';
 
   const credits = [
     {
@@ -93,6 +110,15 @@ const BottomModal = ({
         return 'Continue';
     }
   };
+
+  // ✅ ADDED: Rider is considered "near" the customer once they've marked
+  // arrival at pickup (status 2) through drop-off (status 4). If a real
+  // geofence/distance check is wired in via the `isNearCustomer` prop, that
+  // takes precedence over this status-based fallback.
+  const isRiderNearCustomer =
+    typeof isNearCustomer === 'boolean'
+      ? isNearCustomer
+      : buttonStatus >= 2 && buttonStatus <= 4;
 
   // check location permission before updating status
   const handleButtonPress = async () => {
@@ -173,6 +199,34 @@ const BottomModal = ({
     }, 100);
   };
 
+  // ✅ ADDED: Quick call handler — uses onCallCustomer override if provided,
+  // otherwise falls back to dialing the customer's phone number directly.
+  const handleCallCustomer = () => {
+    if (onCallCustomer) {
+      onCallCustomer(activeBooking);
+      return;
+    }
+    const phone = activeBooking?.customer?.ekyc_details?.phone_number;
+    if (!phone) {
+      Alert.alert(
+        'No Phone Number',
+        'This customer has no phone number on file.',
+      );
+      return;
+    }
+    Linking.openURL(`tel:${phone}`);
+  };
+
+  // ✅ ADDED: Quick message handler — uses onMessageCustomer override if
+  // provided, otherwise navigates to the in-app chat screen for this booking.
+  const handleMessageCustomer = () => {
+    if (onMessageCustomer) {
+      onMessageCustomer(activeBooking);
+      return;
+    }
+    navigation.navigate('ChatScreen', { booking: activeBooking });
+  };
+
   const isLocationGranted = permissionStatus === 'granted';
 
   if (activeBooking) {
@@ -229,6 +283,31 @@ const BottomModal = ({
           <Text style={styles.address}>{activeBooking?.dropoff_location}</Text>
         </View>
 
+        {/* ✅ ADDED: Quick call / message actions — only shown once the
+                rider is near the customer's location. */}
+        {isRiderNearCustomer && (
+          <View style={styles.quickActionsRow}>
+            <TouchableOpacity
+              style={[
+                styles.quickActionButton,
+                { backgroundColor: colors.primary },
+              ]}
+              onPress={handleMessageCustomer}
+              accessibilityLabel="Message customer">
+              <Text style={styles.quickActionIcon}>💬</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.quickActionButton,
+                { backgroundColor: colors.primary },
+              ]}
+              onPress={handleCallCustomer}
+              accessibilityLabel="Call customer">
+              <Text style={styles.quickActionIcon}>📞</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <AppButton
           title={getButtonTitle(buttonStatus)}
           onPress={handleButtonPress}
@@ -249,7 +328,7 @@ const BottomModal = ({
         <Text style={styles.title}>Pinoy Rider</Text>
         <Text style={styles.title}>Credit</Text>
         <View style={styles.creditScoreContainer}>
-          <Text style={styles.creditScore}>100.50</Text>
+          <Text style={styles.creditScore}>{displayCreditBalance}</Text>
         </View>
       </View>
 
@@ -402,7 +481,12 @@ const getStyles = ({ colors, bottom }) =>
       shadowRadius: 4,
       elevation: 6,
     },
-    row: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 10,
+      flex: 1,
+    },
     rowBetween: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -420,6 +504,24 @@ const getStyles = ({ colors, bottom }) =>
       fontFamily: 'Poppins Medium',
       fontSize: 16,
       color: colors.text,
+      flexShrink: 1,
+    },
+    // ✅ ADDED: Wrapper + button styles for the quick call/message icons.
+    quickActionsRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginLeft: 10,
+      gap: 8,
+    },
+    quickActionButton: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    quickActionIcon: {
+      fontSize: 14,
     },
     amount: {
       fontFamily: 'Poppins SemiBold',
