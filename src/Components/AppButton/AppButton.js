@@ -59,6 +59,8 @@ const AppButton = ({
         <View style={styles.textWrapper}>
           <Text
             numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
             style={[
               {
                 fontSize: hasIcon ? 16 : 18,

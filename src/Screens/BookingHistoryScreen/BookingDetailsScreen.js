@@ -134,6 +134,30 @@ const BookingDetailsScreen = () => {
     return statusColors[status] || '#9E9E9E';
   };
 
+  // --- Fare breakdown helpers -------------------------------------------
+  // The backend uses a tiered distance rate: the first `km_basis` km are
+  // billed at `pesos_per_km`, and anything beyond that is billed at the
+  // higher `pesos_per_km2` rate. `all_payment_details` already contains the
+  // correctly computed pieces (base_amount, exceeding_kms_total, etc).
+  // When that object is missing/empty (seen on some older bookings), we
+  // fall back to a flat-rate estimate so the UI doesn't show blank values.
+  const paymentDetails = bookingDetails.payment_details || {};
+  const apd = paymentDetails.all_payment_details || {};
+  const hasDetailedBreakdown = apd && Object.keys(apd).length > 0;
+
+  const distanceKm = parseFloat(bookingDetails.distance_km || 0);
+  const fallbackPesosPerKm = parseFloat(paymentDetails.pesos_per_km || 0);
+  const fallbackDistanceAmount = distanceKm * fallbackPesosPerKm;
+
+  const kmBasis = parseFloat(apd.km_basis || 0);
+  const baseAmount = parseFloat(apd.base_amount || 0);
+  const pesosPerKm = parseFloat(
+    apd.pesos_per_km ?? paymentDetails.pesos_per_km ?? 0,
+  );
+  const pesosPerKm2 = parseFloat(apd.pesos_per_km2 || 0);
+  const exceedingKms = parseFloat(apd.exceeding_kms || 0);
+  const exceedingKmsTotal = parseFloat(apd.exceeding_kms_total || 0);
+
   const data = [{ key: 'infoSection' }];
 
   const renderItem = () => (
@@ -164,45 +188,78 @@ const BookingDetailsScreen = () => {
           <View style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>Minimum Fare:</Text>
             <Text style={styles.breakdownValue}>
-              ₱{bookingDetails.payment_details.minimum_fare?.toFixed(2)}
+              ₱{paymentDetails.minimum_fare?.toFixed(2)}
             </Text>
           </View>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>
-              Distance ({bookingDetails.distance_km} km):
-            </Text>
-            <Text style={styles.breakdownValue}>
-              ₱
-              {(
-                parseFloat(bookingDetails.distance_km || 0) *
-                parseFloat(bookingDetails.payment_details.pesos_per_km || 0)
-              ).toFixed(2)}
-            </Text>
-          </View>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Booking Fee:</Text>
-            <Text style={styles.breakdownValue}>
-              ₱{bookingDetails.payment_details.booking_fee?.toFixed(2)}
-            </Text>
-          </View>
-          {Number(bookingDetails.payment_details.promo_discount) > 0 && (
+
+          {hasDetailedBreakdown ? (
+            <>
+              {/* Base distance tier */}
+              <View style={styles.breakdownRow}>
+                <Text style={styles.breakdownLabel}>
+                  Base Distance ({Math.min(distanceKm, kmBasis).toFixed(2)} km @
+                  ₱{pesosPerKm}/km):
+                </Text>
+                <Text style={styles.breakdownValue}>
+                  ₱{baseAmount.toFixed(2)}
+                </Text>
+              </View>
+
+              {/* Exceeding distance tier - only shown if applicable */}
+              {exceedingKms > 0 && (
+                <View style={styles.breakdownRow}>
+                  <Text style={styles.breakdownLabel}>
+                    Additional Distance ({exceedingKms.toFixed(2)} km @ ₱
+                    {pesosPerKm2}/km):
+                  </Text>
+                  <Text style={styles.breakdownValue}>
+                    ₱{exceedingKmsTotal.toFixed(2)}
+                  </Text>
+                </View>
+              )}
+            </>
+          ) : (
+            // Fallback: flat-rate estimate when detailed breakdown is missing
             <View style={styles.breakdownRow}>
-              <Text style={styles.breakdownLabel}>Promo Discount:</Text>
+              <Text style={styles.breakdownLabel}>
+                Distance ({bookingDetails.distance_km} km):
+              </Text>
               <Text style={styles.breakdownValue}>
-                -₱
-                {Number(bookingDetails.payment_details.promo_discount).toFixed(
-                  2,
-                )}
+                ₱{fallbackDistanceAmount.toFixed(2)}
               </Text>
             </View>
           )}
-          {bookingDetails.payment_details.tip > 0 && (
+
+          <View style={styles.breakdownRow}>
+            <Text style={styles.breakdownLabel}>Booking Fee:</Text>
+            <Text style={styles.breakdownValue}>
+              ₱{paymentDetails.booking_fee?.toFixed(2)}
+            </Text>
+          </View>
+
+          {Number(paymentDetails.promo_discount) > 0 && (
+            <View style={styles.breakdownRow}>
+              <Text style={styles.breakdownLabel}>Promo Discount:</Text>
+              <Text style={styles.breakdownValue}>
+                -₱{Number(paymentDetails.promo_discount).toFixed(2)}
+              </Text>
+            </View>
+          )}
+
+          {paymentDetails.tip > 0 && (
             <View style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Tip:</Text>
               <Text style={styles.breakdownValue}>
-                ₱{bookingDetails.payment_details.tip?.toFixed(2)}
+                ₱{paymentDetails.tip?.toFixed(2)}
               </Text>
             </View>
+          )}
+
+          {!hasDetailedBreakdown && (
+            <Text style={styles.breakdownNoticeText}>
+              Detailed fare breakdown unavailable for this trip. Amount shown is
+              an estimate based on a flat per-km rate.
+            </Text>
           )}
         </View>
       )}
@@ -530,6 +587,13 @@ const getStyles = ({ colors }) =>
       fontFamily: 'Poppins Medium',
       fontSize: 11,
       color: colors.shadow,
+    },
+    breakdownNoticeText: {
+      fontFamily: 'Poppins Regular',
+      fontSize: 9,
+      fontStyle: 'italic',
+      color: colors.grey4,
+      marginTop: 4,
     },
     divider: {
       borderBottomWidth: 0.5,

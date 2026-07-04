@@ -19,6 +19,7 @@ import { clearBookingState } from '@/Redux/Slices/userSlice';
 import { AlertBox, AppButton, AppTextInput } from '@/Components';
 import { AppUtil, Constants } from '@/Utils';
 import usePostRequest from '@/Services/Api';
+import { transformBooking } from '@/Hooks/bookingTransform';
 
 const RatingScreen = () => {
   const { colors } = useTheme();
@@ -49,8 +50,19 @@ const RatingScreen = () => {
   };
 
   const handleContactSupport = () => {
-    const url = Platform.OS === 'android' ? 'tel:09' : 'telprompt:';
+    const url = Platform.OS === 'android' ? 'tel:09770368299' : 'telprompt:';
     Linking.openURL(url);
+  };
+
+  const handleViewBookingDetails = () => {
+    const raw = route?.params?.bookingDetails;
+    if (!raw) {
+      return;
+    }
+
+    navigation.navigate('BookingDetailsScreen', {
+      bookingDetails: transformBooking(raw),
+    });
   };
 
   const triggerRateBooking = () => {
@@ -81,6 +93,7 @@ const RatingScreen = () => {
   };
 
   useEffect(() => {
+    console.log(route?.params?.bookingDetails);
     AppUtil.debugDeep(route?.params?.bookingDetails);
     handleRateBooking();
   }, [rateBooking.response, rateBooking.error]);
@@ -178,7 +191,7 @@ const RatingScreen = () => {
             <View style={styles.bottomButtonWrapper}>
               <AppButton
                 title="View Booking Details"
-                onPress={() => console.log('View Booking Pressed')}
+                onPress={handleViewBookingDetails}
                 isBold
                 mode="outlined"
               />

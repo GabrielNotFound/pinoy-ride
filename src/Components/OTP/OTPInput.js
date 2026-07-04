@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { Dimensions, StyleSheet, TextInput, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 /**
@@ -8,23 +8,30 @@ import { useTheme } from 'react-native-paper';
  * - Handles pasting multiple digits
  * - Prevents crashes for all 6-digit inputs including "000000"
  * - Responsive to screen size
+ *
+ * NOTE: Sizing is now based on the ACTUAL measured width of the row
+ * (via onLayout) instead of Dimensions.get('window').width combined with
+ * a manually-passed `parentPaddingHorizontal`. That old approach required
+ * every parent to correctly report its own horizontal padding, and broke
+ * silently when a screen had multiple nested padded containers (like
+ * OTPScreen's `container` + `pageContainer`), causing the boxes to
+ * overflow past the visible card. Measuring the real rendered width fixes
+ * this regardless of how deeply the component is nested.
  */
-const OTPInput = ({
-  length = 6,
-  onOTPChange,
-  onOTPComplete,
-  parentPaddingHorizontal = 10,
-}) => {
+const OTPInput = ({ length = 6, onOTPChange, onOTPComplete }) => {
   const { colors } = useTheme();
-  const screenWidth = Dimensions.get('window').width;
-  const styles = getStyles({
-    colors,
-    screenWidth,
-    length,
-    parentPaddingHorizontal,
-  });
   const inputs = useRef([]);
   const [digits, setDigits] = useState(Array.from({ length }, () => ''));
+
+  // Width of the row, filled in once the container actually renders.
+  const [containerWidth, setContainerWidth] = useState(null);
+
+  const onContainerLayout = useCallback(e => {
+    const { width } = e.nativeEvent.layout;
+    setContainerWidth(width);
+  }, []);
+
+  const styles = getStyles({ colors, length, containerWidth });
 
   const update = nextDigits => {
     setDigits(nextDigits);
@@ -83,7 +90,7 @@ const OTPInput = ({
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.container}>
+      <View style={styles.container} onLayout={onContainerLayout}>
         {digits.map((value, i) => (
           <TextInput
             key={i}
@@ -105,33 +112,29 @@ const OTPInput = ({
 
 export default OTPInput;
 
-const getStyles = ({
-  colors,
-  screenWidth,
-  length,
-  parentPaddingHorizontal,
-}) => {
-  // Account for both wrapper padding and any parent container padding
-  const horizontalPadding = 20 + parentPaddingHorizontal;
-  const availableWidth = screenWidth - horizontalPadding * 2;
-
-  // Calculate input size based on available width
-  // Account for gaps between inputs
+const getStyles = ({ colors, length, containerWidth }) => {
   const minGap = 2;
   const maxGap = 8;
-  const totalGapWidth = (length - 1) * maxGap;
-
-  let inputWidth = (availableWidth - totalGapWidth) / length;
   let gap = maxGap;
 
-  // If inputs would be too small, reduce gap
-  if (inputWidth < 35) {
-    gap = minGap;
-    inputWidth = (availableWidth - (length - 1) * gap) / length;
+  // Sensible default for the single frame before onLayout fires, so
+  // nothing flashes oversized/overflowing before the real width is known.
+  let inputWidth = 40;
+
+  if (containerWidth) {
+    const totalGapWidth = (length - 1) * maxGap;
+    inputWidth = (containerWidth - totalGapWidth) / length;
+
+    // If inputs would be too small, reduce the gap instead
+    if (inputWidth < 35) {
+      gap = minGap;
+      inputWidth = (containerWidth - (length - 1) * gap) / length;
+    }
+
+    // Ensure minimum and maximum sizes (also keeps things sane on tablets)
+    inputWidth = Math.max(Math.min(inputWidth, 45), 32);
   }
 
-  // Ensure minimum and maximum sizes
-  inputWidth = Math.max(Math.min(inputWidth, 45), 32);
   const inputHeight = Math.max(Math.min(inputWidth * 1.25, 52), 40);
 
   return StyleSheet.create({
@@ -143,10 +146,14 @@ const getStyles = ({
     },
     container: {
       flexDirection: 'row',
-      gap: gap,
+      gap,
       justifyContent: 'center',
-      alignSelf: 'center', // replaced width: '100%' to prevent edge clipping on narrow screens
+      // width: '100%' (instead of maxWidth + alignSelf) so onLayout reports
+      // the true available width of this row, regardless of how much
+      // padding exists in parent containers above it.
+      width: '100%',
       maxWidth: 400,
+      alignSelf: 'center',
     },
     input: {
       width: inputWidth,

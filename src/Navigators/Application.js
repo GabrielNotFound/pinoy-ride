@@ -29,6 +29,7 @@ import {
   SettingsScreen,
   SplashScreen,
   TAC,
+  UpdateRequiredScreen,
   UploadIDScreen,
   WalletScreen,
 } from '@/Screens';
@@ -36,6 +37,7 @@ import { Text } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import LightTheme from '../Theme/LightTheme';
 import { AppTransactionComplete } from '@/Components';
+import { navigationRef } from '@/Utils/NavigationService';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,7 +45,7 @@ const ApplicationNavigator = () => {
   return (
     <SafeAreaProvider>
       <PaperProvider theme={LightTheme}>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <Stack.Navigator
             initialRouteName="Splash"
             screenOptions={{
@@ -92,6 +94,11 @@ const ApplicationNavigator = () => {
             <Stack.Screen
               name="ConfirmDetailsScreen"
               component={ConfirmDetailsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="UpdateRequiredScreen"
+              component={UpdateRequiredScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

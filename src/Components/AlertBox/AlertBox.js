@@ -2,7 +2,15 @@ import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 
-const AlertBox = ({ title, message, onConfirm, visible, setVisible }) => {
+const AlertBox = ({
+  title,
+  message,
+  onConfirm,
+  visible,
+  setVisible,
+  confirmText = 'Confirm',
+  dismissable = true,
+}) => {
   const { colors } = useTheme();
   const styles = getStyles({ colors });
 
@@ -18,7 +26,9 @@ const AlertBox = ({ title, message, onConfirm, visible, setVisible }) => {
       transparent
       visible={visible}
       animationType="fade"
-      onRequestClose={() => setVisible(false)}>
+      onRequestClose={() => {
+        if (dismissable) {setVisible(false);}
+      }}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           {title ? <Text style={styles.title}>{title}</Text> : null}
@@ -26,7 +36,7 @@ const AlertBox = ({ title, message, onConfirm, visible, setVisible }) => {
           <TouchableOpacity
             onPress={handleConfirm}
             style={styles.confirmButton}>
-            <Text style={styles.confirmText}>Confirm</Text>
+            <Text style={styles.confirmText}>{confirmText}</Text>
           </TouchableOpacity>
         </View>
       </View>
