@@ -82,6 +82,7 @@ const BottomModal = ({
   ];
 
   useEffect(() => {
+    console.log(activeBooking?.customer?.ekyc_details);
     if (externalStatus && !hasInitialized.current) {
       setButtonStatus(externalStatus);
       hasInitialized.current = true;
@@ -206,7 +207,10 @@ const BottomModal = ({
       onCallCustomer(activeBooking);
       return;
     }
-    const phone = activeBooking?.customer?.ekyc_details?.phone_number;
+    const phone =
+      activeBooking?.customer?.ekyc_details?.pretty_mobile_no ||
+      activeBooking?.customer?.mobile ||
+      activeBooking?.customer?.ekyc_details?.mobile_no;
     if (!phone) {
       Alert.alert(
         'No Phone Number',
@@ -214,17 +218,28 @@ const BottomModal = ({
       );
       return;
     }
-    Linking.openURL(`tel:${phone}`);
+    Linking.openURL(`tel:+${phone}`);
   };
 
-  // ✅ ADDED: Quick message handler — uses onMessageCustomer override if
-  // provided, otherwise navigates to the in-app chat screen for this booking.
+  // ✅ UPDATED: No ChatScreen exists in the navigator yet, so message the
+  // customer via SMS instead, using the same number as handleCallCustomer.
   const handleMessageCustomer = () => {
     if (onMessageCustomer) {
       onMessageCustomer(activeBooking);
       return;
     }
-    navigation.navigate('ChatScreen', { booking: activeBooking });
+    const phone =
+      activeBooking?.customer?.ekyc_details?.pretty_mobile_no ||
+      activeBooking?.customer?.mobile ||
+      activeBooking?.customer?.ekyc_details?.mobile_no;
+    if (!phone) {
+      Alert.alert(
+        'No Phone Number',
+        'This customer has no phone number on file.',
+      );
+      return;
+    }
+    Linking.openURL(`sms:+${phone}`);
   };
 
   const isLocationGranted = permissionStatus === 'granted';
