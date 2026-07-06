@@ -15,7 +15,9 @@ function getForceUpdateData(data) {
 }
 
 function handleForceUpdate(fu) {
-  if (getCurrentRouteName() === 'UpdateRequiredScreen') {return;} // already there
+  if (getCurrentRouteName() === 'UpdateRequiredScreen') {
+    return;
+  } // already there
 
   navigate('UpdateRequiredScreen', {
     updateLink: fu.update_link,
@@ -47,7 +49,7 @@ const usePostRequest = () => {
       user_type: 'rider',
       rider_id: userInfo?.id,
       user_id: userInfo?.id,
-      app_version: '1.0.14',
+      app_version: '1.0.15',
     };
     const params = { ...requiredParams, ...obj };
 
