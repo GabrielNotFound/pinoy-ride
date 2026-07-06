@@ -107,8 +107,10 @@ const SuccessfulBooking = () => {
             <Text style={styles.fareValue}>₱{perKm}</Text>
           </View>
           <View style={styles.fareRow}>
+            {/* <View style={styles.fareRow}>
             <Text style={styles.fareLabel}>Booking Fee</Text>
             <Text style={styles.fareValue}>₱{bookingFee}</Text>
+          </View> */}
           </View>
           <View style={styles.separator} />
           <View style={styles.fareRow}>
