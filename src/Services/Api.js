@@ -49,7 +49,7 @@ const usePostRequest = () => {
       user_type: 'rider',
       rider_id: userInfo?.id,
       user_id: userInfo?.id,
-      app_version: '1.0.15',
+      app_version: '1.0.16',
     };
     const params = { ...requiredParams, ...obj };
 
