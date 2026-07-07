@@ -29,7 +29,7 @@ const SuccessfulBooking = () => {
   const { booking } = route?.params || {};
 
   useEffect(() => {
-    AppUtil.debugDeep(booking);
+    AppUtil.debugDeep(booking?.payment_details);
   }, [route]);
 
   // ✅ FIX: Customer name fields live under customer.ekyc_details
@@ -44,12 +44,32 @@ const SuccessfulBooking = () => {
 
   const estTime = '10 mins';
 
-  const fare = booking?.payment_details?.total_amount || 0;
-  const minimumFare = booking?.payment_details?.minimum_fare || 0;
-  const perKm = booking?.payment_details?.pesos_per_km || 0;
-  const bookingFee = booking?.payment_details?.booking_fee || 0;
+  const paymentDetails = booking?.payment_details || {};
+  const allPaymentDetails = paymentDetails?.all_payment_details || {};
+
+  const fare = paymentDetails?.total_amount || 0;
+  const minimumFare = allPaymentDetails?.minimum_fare || 0;
+  const perKm = allPaymentDetails?.pesos_per_km || 0;
+  const bookingFee = allPaymentDetails?.booking_fee || 0;
+
+  // ✅ NEW: these extra fields (from payment_details.all_payment_details)
+  // are what actually make up the total_amount. Showing them lets the rider
+  // see the real math instead of just the flat minimum-fare/per-km card:
+  //   total = minimum_fare + base_amount + exceeding_kms_total
+  //   rider_net_amount = total - commission
+  const kmBasis = allPaymentDetails?.km_basis || 0; // km covered by base_amount
+  const baseAmount = allPaymentDetails?.base_amount || 0; // kmBasis * pesos_per_km
+  const exceedingKms = allPaymentDetails?.exceeding_kms || 0; // distance beyond kmBasis
+  const pesosPerKm2 = allPaymentDetails?.pesos_per_km2 || 0; // rate charged for exceeding km
+  const exceedingKmsTotal = allPaymentDetails?.exceeding_kms_total || 0; // exceedingKms * pesosPerKm2
+  const promoDiscount = allPaymentDetails?.promo_discount || 0;
+  const commission = allPaymentDetails?.commission || 0; // platform's cut
+  const riderNetAmount = allPaymentDetails?.rider_net_amount || fare; // driver's take-home after commission
 
   const distance = booking?.distance_km ? `${booking.distance_km} km` : '0 km';
+
+  // Small helper so we don't sprinkle .toFixed(2) everywhere in the JSX
+  const money = value => Number(value || 0).toFixed(2);
 
   const handleEndRide = () => {
     dispatch(clearRiderBookingState());
@@ -98,25 +118,64 @@ const SuccessfulBooking = () => {
 
         <View style={styles.fareBox}>
           <Text style={styles.fareTitle}>Fare Breakdown</Text>
+
           <View style={styles.fareRow}>
             <Text style={styles.fareLabel}>Minimum Fare</Text>
-            <Text style={styles.fareValue}>₱{minimumFare}</Text>
+            <Text style={styles.fareValue}>₱{money(minimumFare)}</Text>
           </View>
-          <View style={styles.fareRow}>
-            <Text style={styles.fareLabel}>Pesos / km</Text>
-            <Text style={styles.fareValue}>₱{perKm}</Text>
-          </View>
-          <View style={styles.fareRow}>
-            {/* <View style={styles.fareRow}>
-            <Text style={styles.fareLabel}>Booking Fee</Text>
-            <Text style={styles.fareValue}>₱{bookingFee}</Text>
-          </View> */}
-          </View>
+
+          {baseAmount > 0 && (
+            <View style={styles.fareRow}>
+              <Text style={styles.fareLabel}>Base Fare</Text>
+              <Text style={styles.fareValue}>₱{money(baseAmount)}</Text>
+            </View>
+          )}
+
+          {exceedingKms > 0 && (
+            <View style={styles.fareRow}>
+              <Text style={styles.fareLabel}>Additional Distance</Text>
+              <Text style={styles.fareValue}>₱{money(exceedingKmsTotal)}</Text>
+            </View>
+          )}
+
+          {bookingFee > 0 && (
+            <View style={styles.fareRow}>
+              <Text style={styles.fareLabel}>Booking Fee</Text>
+              <Text style={styles.fareValue}>₱{money(bookingFee)}</Text>
+            </View>
+          )}
+
+          {promoDiscount > 0 && (
+            <View style={styles.fareRow}>
+              <Text style={styles.fareLabel}>Promo Discount</Text>
+              <Text style={styles.fareValue}>-₱{money(promoDiscount)}</Text>
+            </View>
+          )}
+
           <View style={styles.separator} />
+
           <View style={styles.fareRow}>
-            <Text style={styles.fareTotal}>Total</Text>
-            <Text style={styles.fareTotal}>₱{fare}</Text>
+            <Text style={styles.fareTotal}>Total Fare</Text>
+            <Text style={styles.fareTotal}>₱{money(fare)}</Text>
           </View>
+
+          {commission > 0 && (
+            <>
+              <View style={styles.fareRow}>
+                <Text style={styles.fareLabel}>Platform Commission</Text>
+                <Text style={styles.fareValue}>-₱{money(commission)}</Text>
+              </View>
+
+              <View style={styles.separator} />
+
+              <View style={styles.fareRow}>
+                <Text style={styles.fareTotal}>Total Earnings</Text>
+                <Text style={[styles.fareTotal, { color: colors.primary }]}>
+                  ₱{money(riderNetAmount)}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handleEndRide}>
