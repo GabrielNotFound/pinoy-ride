@@ -758,7 +758,7 @@ const HomeScreen = () => {
           imageSource={
             riderDetails?.ekyc_details?.selfie
               ? { uri: riderDetails.ekyc_details.selfie }
-              : require('@/Assets/Common/Sample_Profile.png')
+              : require('@/Assets/Common/Default_Profile.png')
           }
         />
 

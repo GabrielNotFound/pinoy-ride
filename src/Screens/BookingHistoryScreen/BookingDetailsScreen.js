@@ -230,12 +230,12 @@ const BookingDetailsScreen = () => {
             </View>
           )}
 
-          <View style={styles.breakdownRow}>
+          {/* <View style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>Booking Fee:</Text>
             <Text style={styles.breakdownValue}>
               ₱{paymentDetails.booking_fee?.toFixed(2)}
             </Text>
-          </View>
+          </View> */}
 
           {Number(paymentDetails.promo_discount) > 0 && (
             <View style={styles.breakdownRow}>

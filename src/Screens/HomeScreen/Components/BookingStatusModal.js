@@ -167,12 +167,12 @@ const BookingStatusModal = ({
                   ₱{paymentDetails?.total_amount}
                 </Text>
               </View>
-              <View style={styles.fareRow}>
+              {/* <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Booking Fee</Text>
                 <Text style={styles.feeText}>
                   ₱{paymentDetails?.booking_fee}
                 </Text>
-              </View>
+              </View> */}
               <View style={styles.fareRow}>
                 <Text style={styles.feeText}>Payment Method</Text>
                 <Text style={styles.feeText}>{paymentDetails?.type}</Text>
